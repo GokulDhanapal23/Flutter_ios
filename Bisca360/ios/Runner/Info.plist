@@ -45,5 +45,28 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+	 <!-- Internet permissions -->
+        <key>NSAppTransportSecurity</key>
+        <dict>
+            <key>NSAllowsArbitraryLoads</key>
+            <true/>
+        </dict>
+
+        <!-- Camera permission -->
+        <key>NSCameraUsageDescription</key>
+        <string>This app requires access to the camera to take pictures.</string>
+
+        <!-- Photo Library permission -->
+        <key>NSPhotoLibraryUsageDescription</key>
+        <string>This app requires access to your photo library.</string>
+
+        <!-- Contacts permission -->
+        <key>NSContactsUsageDescription</key>
+        <string>This app requires access to your contacts.</string>
+        <key>NSCameraUsageDescription</key>
+        <string>We need access to your camera to take pictures.</string>
+        <key>NSPhotoLibraryUsageDescription</key>
+        <string>We need access to your photo library to select images.</string>
 </dict>
 </plist>

@@ -2,6 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import '../ApiService/Apis.dart';
+import 'package:http/http.dart' as http;
+import '../Response/CheckMobileNumberResponse.dart';
 import 'Home.dart';
 
 
@@ -11,12 +14,32 @@ void main(){
 
 TextEditingController loginMobileNumberController = TextEditingController();
 final _loginForm = GlobalKey<FormState>();
-// late CheckMobileNumberResponse saveDateRes;
+late CheckMobileNumberResponse saveDateRes;
 
 
 
 class Login extends StatelessWidget{
   const Login({super.key});
+
+
+    // Future<void> _signIn(var data, context) async {
+    //   // const url = 'http://192.168.0.17:9092/user/check/mobilenumber'; // Example for Android Emulator
+    //     await Apis.getClient()
+    //         .post(Uri.parse(Apis.checkMobileNumber) ,body: data ,headers: {"Content-Type": "application/json"})
+    //         .then((res) async => {
+    //     saveDateRes = CheckMobileNumberResponse.fromJson(jsonDecode(res.body)),
+    //     if (saveDateRes.status == "OK") {
+    //       Navigator.pushReplacement(
+    //         context,
+    //         MaterialPageRoute(builder: (context) => const Home()),
+    //       ),
+    //       print('Data: ${saveDateRes.toString()}'),
+    //     } else {
+    //       // Error
+    //       print('Failed to load data'),
+    //     }
+    // });
+    // }
 
 
 
@@ -39,7 +62,7 @@ class Login extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
     return  Scaffold(
-        bottomNavigationBar: footer(),
+        // bottomNavigationBar: footer(),
         body: Stack(
             children: [
               Container(
@@ -93,6 +116,11 @@ class Login extends StatelessWidget{
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+                        // Image.asset(
+                        //   'assets/bisca.png',
+                        //   height: 100,
+                        //   width: 100,
+                        // ),
                          SizedBox(
                           width: 350,
                           child: TextFormField(
@@ -103,6 +131,13 @@ class Login extends StatelessWidget{
                             decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                               labelText: 'Mobile Number',
+                              prefixIcon: Padding(
+                                padding: EdgeInsets.all(0.0),
+                                child: Icon(
+                                  Icons.mobile_friendly,
+                                  color: Colors.blue,
+                                ), // icon is 48px widget.
+                              ),
                                 enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(color:  Colors.lightBlue)
                                 ),
@@ -112,52 +147,46 @@ class Login extends StatelessWidget{
                             ),
                           ),
                         ),
-                        // TextFormField(
-                        //   maxLength: 10,
-                        //   textInputAction: TextInputAction.next,
-                        //   controller: loginMobileNumberController,
-                        //   autovalidateMode: AutovalidateMode.onUserInteraction,
-                        //   style: const TextStyle(fontSize: 14),
-                        //   decoration: InputDecoration(
-                        //     hintText: 'Mobile Number',
-                        //     counterText: "",
-                        //     filled: true,
-                        //     suffixIcon: IconButton(
-                        //       icon: const Icon(Icons.clear),
-                        //       splashRadius: 10,
-                        //       onPressed: () {
-                        //         loginMobileNumberController.clear();
-                        //       },
-                        //     ),
-                        //     fillColor: Colors.white70,
-                        //     enabledBorder: OutlineInputBorder(
-                        //       borderSide: const BorderSide(color: Colors.black),
-                        //       borderRadius: BorderRadius.circular(15),
-                        //     ),
-                        //     focusedBorder: OutlineInputBorder(
-                        //       borderSide: BorderSide(color: Colors.blueGrey.shade50),
-                        //       borderRadius: BorderRadius.circular(15),
+                        const SizedBox(height: 60),
+                        // ElevatedButton(
+                        //   onPressed: () {
+                        //     // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const Home()));
+                        //       var signInData ={"mobileNumber": loginMobileNumberController.text};
+                        //       _signIn(jsonEncode(signInData),context);
+                        //   },
+                        //   style: ElevatedButton.styleFrom(
+                        //     foregroundColor: Colors.white, backgroundColor: Colors.blue,
+                        //     padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                        //     shape: RoundedRectangleBorder(
+                        //       borderRadius: BorderRadius.circular(8.0),
                         //     ),
                         //   ),
+                        //   child: const Text(
+                        //     'Continue',
+                        //     style: TextStyle(fontSize: 18),
+                        //   ),
                         // ),
-                        const SizedBox(height: 40),
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const Home()));
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 40.0), // Adjust the value as needed
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: const Size.fromHeight(50),
+                              backgroundColor: Colors.blue,
+                            ),
+                            onPressed: () {
+                              var signInData ={"mobileNumber": loginMobileNumberController.text};
+                              // _signIn(jsonEncode(signInData),context);
 
-                          },
-                          style: ElevatedButton.styleFrom(
-                            foregroundColor: Colors.white, backgroundColor: Colors.blue,
-                            padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.0),
+                            },
+                            child: Text(
+                              'Continue',
+                              style: const TextStyle(fontSize: 18).copyWith(
+                                color: Colors.white,
+                              ),
                             ),
                           ),
-                          child: const Text(
-                            'Continue',
-                            style: TextStyle(fontSize: 18),
-                          ),
-                        ),
+                        )
+                        ,
                       ],
                     )
                 ),
@@ -169,3 +198,4 @@ class Login extends StatelessWidget{
   }
 
 }
+
