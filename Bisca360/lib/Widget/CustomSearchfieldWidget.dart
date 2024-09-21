@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:searchfield/searchfield.dart';
+import 'package:searchfield/searchfield.dart';
 
 class CustomSearchField extends StatelessWidget {
   final TextEditingController textEditingController;
@@ -71,7 +72,7 @@ class CustomSearchField extends StatelessWidget {
           }
         },
         textInputAction: TextInputAction.done,
-        searchInputDecoration: InputDecoration(
+        searchInputDecoration: SearchInputDecoration(
           labelText: hintText,
           prefixIcon: prefixIcon,
           suffixIcon: Icon(Icons.arrow_drop_down, color: Colors.green),

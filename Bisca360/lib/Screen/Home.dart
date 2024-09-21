@@ -10,6 +10,7 @@ import 'AddShop.dart';
 import 'Customers.dart';
 import 'LoginNew.dart';
 import 'Profile.dart';
+import 'Settings.dart';
 import 'ShopBilling.dart';
 import 'ShopBillingReport.dart';
 import 'ShopProduct.dart';
@@ -176,7 +177,7 @@ class HomeState extends State<Home> {
             itemDashboard('Customers', CupertinoIcons.person, Colors.teal, Customers()),
             itemDashboard('Bill History', CupertinoIcons.clock, Colors.brown, ShopBillingHistory()),
             itemDashboard('Report', CupertinoIcons.chart_bar, Colors.indigo, ShopBillingReport()),
-            itemDashboard('Settings', CupertinoIcons.settings, Colors.blue, Shop()),
+            itemDashboard('Settings', CupertinoIcons.settings, Colors.blue, Settings()),
             itemDashboard('Profile', CupertinoIcons.person_alt_circle, Colors.pinkAccent, ProfileScreen(signInResponse:  widget.signinResponse,)),
           ],
         ),

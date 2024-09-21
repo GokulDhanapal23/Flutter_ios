@@ -231,7 +231,14 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
     try{
     final response = await Apis.getClient().get(url, headers: Apis.getHeaders());
     final bytes = response.bodyBytes;
-    final Directory? directory = await getDownloadsDirectory();
+    Directory? directory;
+    if (Platform.isAndroid) {
+      // directory = Directory('/storage/emulated/0/Download');
+      directory = await getDownloadsDirectory();
+
+    } else if (Platform.isIOS) {
+      directory = await getApplicationDocumentsDirectory();
+    }
     _downloadPath = directory?.path ?? '';
     final filePath = '$_downloadPath/$fileName.xlsx';
     final file = File(filePath);
