@@ -51,6 +51,7 @@ class _AddShopState extends State<AddShop> {
   String? _selectedValue;
   bool? _selectedBooleanValue = false;
   Uint8List? _imageData;
+  bool _isLoading = false;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   Future<void> getAllShops() async {
@@ -158,6 +159,9 @@ class _AddShopState extends State<AddShop> {
 
 
   void _saveForm() {
+    setState(() {
+      _isLoading = true;
+    });
     String taxes = '';
     if(_selectedBooleanValue==true){
       taxes = _taxController.text;
@@ -177,6 +181,11 @@ class _AddShopState extends State<AddShop> {
       _priceRoundingController.text,
     );
     ShopService.saveShop(shopRequest, context);
+
+    setState(() {
+      _isLoading = false;
+    });
+
   }
 
   @override
@@ -414,15 +423,17 @@ class _AddShopState extends State<AddShop> {
                 ),
                 const SizedBox(width: 16),
                 ElevatedButton(
-                  onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                          _saveForm();
-                      }
+                  onPressed: _isLoading ? null : () {
+                    if (_formKey.currentState!.validate()) {
+                      _saveForm();
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                   ),
-                  child: Text(
+                  child: _isLoading
+                      ? CircularProgressIndicator(color: Colors.white)
+                      : Text(
                     widget.shopResponse == null ? 'Save' : 'Update',
                     style: const TextStyle(color: Colors.white),
                   ),

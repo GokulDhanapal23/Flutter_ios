@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../ApiService/Apis.dart';
@@ -27,7 +28,7 @@ class _MyPhoneState extends State<MyPhone> {
   Future<void> checkAccessPermission(BuildContext context) async {
     // Define the permissions you want to request
     List<Permission> permissions = [
-      Permission.manageExternalStorage,
+      // Permission.manageExternalStorage,
       Permission.storage,
       Permission.phone,
       Permission.camera,
@@ -48,10 +49,20 @@ class _MyPhoneState extends State<MyPhone> {
       Fluttertoast.showToast(msg: "Please provide all permissions", toastLength: Toast.LENGTH_SHORT);
     }
   }
+  Future<void> checkInternetPermission(BuildContext context) async {
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult == ConnectivityResult.mobile ||
+        connectivityResult == ConnectivityResult.wifi) {
+      Fluttertoast.showToast(msg: "Internet Success", toastLength: Toast.LENGTH_SHORT);
+    } else {
+      Fluttertoast.showToast(msg: "Failed internet", toastLength: Toast.LENGTH_SHORT);
+    }
+  }
   @override
   void initState(){
     super.initState();
-    checkAccessPermission(context);
+    // checkAccessPermission(context);
+    checkInternetPermission(context);
   }
 
   @override
