@@ -135,7 +135,6 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
   Future<void> downloadPdf(BuildContext context, final url, String fileName) async {
     try{
       print('URL ; $url');
-      requestPermissions();
       final response = await Apis.getClient().get(url, headers: Apis.getHeaders());
       final bytes = response.bodyBytes;
       Directory? directory;
@@ -144,7 +143,7 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
          directory = (await getExternalStorageDirectories(type: StorageDirectory.downloads))?.first;
 
       } else if (Platform.isIOS) {
-        directory = await getApplicationDocumentsDirectory();
+        directory = await getExternalStorageDirectory();
       }
       _downloadPath = directory?.path ?? '';
       final filePath = '$_downloadPath/$fileName.pdf';
@@ -156,76 +155,6 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
       print('File Service : Error on pdf download failed $e');
     }
   }
-  Future<void> requestPermissions() async {
-    final status = await Permission.manageExternalStorage.request();
-
-    if (status.isGranted) {
-      print('Permission granted');
-    } else if (status.isDenied) {
-      print('Permission denied');
-    } else if (status.isPermanentlyDenied) {
-      print('Permission permanently denied');
-      // Open app settings to allow user to grant permissions
-      openAppSettings();
-    }
-  }
-  Future<void> downloadPdf2(BuildContext context, final url, String fileName) async {
-    try {
-
-      final permissionStatus = await Permission.storage.status;
-      if (!permissionStatus.isGranted) {
-        // Request permission if not granted
-        await requestPermissions();
-      }
-      // Check and request storage permission
-
-      if (!permissionStatus.isGranted) {
-        final result = await Permission.storage.request();
-        if (!result.isGranted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Storage permission not granted')),
-          );
-          return;
-        }
-      }
-
-      print('URL: $url');
-
-      // Download the file
-      final response = await Dio().get(
-        url,
-        options: Options(responseType: ResponseType.bytes),
-      );
-
-      final bytes = response.data as List<int>;
-
-      // Get the Downloads directory
-      final directory = await getExternalStorageDirectory();
-      if (directory != null) {
-        final downloadDirectory = Directory('${directory.path}/Download');
-        if (!await downloadDirectory.exists()) {
-          await downloadDirectory.create(recursive: true);
-        }
-
-        // Define the file path
-        final filePath = '${downloadDirectory.path}/$fileName.pdf';
-        final file = File(filePath);
-
-        // Write the file
-        await file.writeAsBytes(bytes);
-
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('PDF downloaded to $filePath')),
-        );
-        print('File Service: PDF download Success $filePath');
-      } else {
-        print('Error: Could not get the Downloads directory');
-      }
-    } catch (e) {
-      print('File Service: Error on PDF download failed $e');
-    }
-  }
 
   Future<void> downloadExcel(BuildContext context, final url, String fileName) async{
     try{
@@ -234,18 +163,16 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
     Directory? directory;
     if (Platform.isAndroid) {
       // directory = Directory('/storage/emulated/0/Download');
-      directory = await getDownloadsDirectory();
+      directory = (await getExternalStorageDirectories(type: StorageDirectory.downloads))?.first;
 
     } else if (Platform.isIOS) {
-      directory = await getApplicationDocumentsDirectory();
+      directory = await getExternalStorageDirectory();
     }
     _downloadPath = directory?.path ?? '';
     final filePath = '$_downloadPath/$fileName.xlsx';
     final file = File(filePath);
     await file.writeAsBytes(bytes);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Excel downloaded to $filePath')),
-    );
+    LoginService.showBlurredSnackBarFile(context, 'File Downloaded Successfully ', filePath, type: SnackBarType.success);
     print('File Service : Excel download Success $filePath');
   } catch(e){
   print('File Service : Error on Excel download failed $e');

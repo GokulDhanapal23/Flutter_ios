@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:another_flushbar/flushbar.dart';
+import 'package:another_flushbar/flushbar_helper.dart';
 import 'package:bisca360/Response/SigninResponse.dart';
 import 'package:bisca360/Screen/UserAccounts.dart';
 import 'package:flutter/material.dart';
@@ -183,7 +184,8 @@ class LoginService{
         icon = Icon(Icons.info, size: 32, color: Colors.white);
     }
 
-    show(context, Flushbar(
+    Flushbar? flushbar;
+    flushbar = Flushbar(
       icon: icon,
       shouldIconPulse: false,
       message: message,
@@ -193,21 +195,37 @@ class LoginService{
       padding: EdgeInsets.all(24),
       flushbarPosition: FlushbarPosition.TOP,
       margin: EdgeInsets.fromLTRB(8, kToolbarHeight + 8, 8, 0),
-      duration: Duration(seconds: 4), // Increased duration for visibility
+      duration: Duration(seconds: 4),
       barBlur: 20,
       borderRadius: BorderRadius.circular(20.0),
       backgroundColor: backgroundColor,
-      mainButton: TextButton(
-        onPressed: () {
-          // Define the action for the button
-          _openFile(context, filePath);
-        },
-        child: Text(
-          'VIEW',
-          style: TextStyle(color: Colors.white),
-        ),
+      mainButton: Row(
+        children: [
+          TextButton(
+            onPressed: () {
+              _openFile(context, filePath);
+            },
+            child: Text(
+              'VIEW',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+          SizedBox(width: 8),
+          TextButton(
+            onPressed: () {
+              // Dismiss the specific Flushbar instance
+              flushbar?.dismiss(true); // true will remove it with animation
+            },
+            child: Text(
+              'CLEAR',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
       ),
-    ));
+    )..show(context);
+
+
   }
   static final Map<String, String> types = {
     '.pdf': 'application/pdf',
