@@ -60,6 +60,8 @@ class Apis{
   static String imageLoad = '${dotenv.env['BASE_URL'] ?? ""}/file/load/';
 
   static String shopInvoicePdf = '${dotenv.env['BASE_URL'] ?? ""}/report/customer/invoice/pdf';
+  static String shopBillPdf = '${dotenv.env['BASE_URL'] ?? ""}/shopsalesdetails/get/bill/invoice';
+
   static String shopSummary= '${dotenv.env['BASE_URL'] ?? ""}/report/customer/billing/';
 
 

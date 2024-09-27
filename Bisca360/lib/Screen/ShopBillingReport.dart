@@ -143,7 +143,7 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
          directory = (await getExternalStorageDirectories(type: StorageDirectory.downloads))?.first;
 
       } else if (Platform.isIOS) {
-        directory = await getExternalStorageDirectory();
+        directory = await getApplicationDocumentsDirectory();
       }
       _downloadPath = directory?.path ?? '';
       final filePath = '$_downloadPath/$fileName.pdf';
@@ -166,7 +166,7 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
       directory = (await getExternalStorageDirectories(type: StorageDirectory.downloads))?.first;
 
     } else if (Platform.isIOS) {
-      directory = await getExternalStorageDirectory();
+      directory = await getApplicationDocumentsDirectory();
     }
     _downloadPath = directory?.path ?? '';
     final filePath = '$_downloadPath/$fileName.xlsx';

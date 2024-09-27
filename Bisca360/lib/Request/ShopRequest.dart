@@ -1,5 +1,5 @@
 class ShopRequest{
-  late int id;
+  late var id;
   late String shopName;
   late bool active;
   late String address;
@@ -8,6 +8,9 @@ class ShopRequest{
   late String description;
   late bool taxEnable;
   late String taxType;
+  late var projectId;
+  late String? projectName;
+
 
   ShopRequest(
       this.id,
@@ -21,15 +24,17 @@ class ShopRequest{
       this.taxType,
       this.gstNumber,
       this.panNumber,
-      this.rounding);
+      this.rounding,
+      this.projectId,
+      this.projectName);
 
   @override
   String toString() {
-    return '{id: $id, shopName: $shopName, active: $active, address: $address, contactNumber: $contactNumber, shopType: $shopType, description: $description, taxEnable: $taxEnable, taxType: $taxType, gstNumber: $gstNumber, panNumber: $panNumber, rounding: $rounding}';
+    return '{id: $id, shopName: $shopName, active: $active, address: $address, contactNumber: $contactNumber, shopType: $shopType, description: $description, taxEnable: $taxEnable, taxType: $taxType, gstNumber: $gstNumber, panNumber: $panNumber, rounding: $rounding,projectId:$projectId, projectName:$projectName}';
   }
 
-  late String gstNumber;
-  late String panNumber;
+  late String? gstNumber;
+  late String? panNumber;
   late String rounding;
 
   Map<String, dynamic> toJson() {
@@ -46,6 +51,8 @@ class ShopRequest{
       'gstNumber': gstNumber,
       'panNumber': panNumber,
       'rounding': rounding,
+      'projectId': projectId,
+      'projectName': projectName
     };
   }
 }

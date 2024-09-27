@@ -162,23 +162,31 @@ class _AddShopState extends State<AddShop> {
     setState(() {
       _isLoading = true;
     });
+    String shopName = _shopNameController.text.isNotEmpty ? _shopNameController.text : '';
+    String address = _addressController.text.isNotEmpty ? _addressController.text : '';
+    String shopType = _shopTypeController.text.isNotEmpty ? _shopTypeController.text : '';
+    String description = _descriptionController.text.isNotEmpty ? _descriptionController.text : '';
+    String gst = _gstController.text.isNotEmpty ? _gstController.text : '';
+    String rounding = _priceRoundingController.text.isNotEmpty ? _priceRoundingController.text : '';
+
     String taxes = '';
     if(_selectedBooleanValue==true){
       taxes = _taxController.text;
     }
     ShopRequest shopRequest = ShopRequest(
-      widget.shopResponse?.id ?? 0,
-      _shopNameController.text,
-      true,
-      _addressController.text,
-      int.tryParse(_mobileNumberController.text) ?? 0,
-      _shopTypeController.text,
-      _descriptionController.text,
-      _selectedBooleanValue!,
-      taxes,
-      _gstController.text,
-      "",
-      _priceRoundingController.text,
+        widget.shopResponse?.id ?? 0,
+        _shopNameController.text,
+        true,
+        _addressController.text,
+        int.tryParse(_mobileNumberController.text) ?? 0,
+        _shopTypeController.text,
+        _descriptionController.text,
+        _selectedBooleanValue!,
+        taxes,
+        _gstController.text.isEmpty ? null : _gstController.text,
+        null,
+        _priceRoundingController.text,
+        0, null
     );
     ShopService.saveShop(shopRequest, context);
 

@@ -35,84 +35,94 @@ class HomeState extends State<Home> {
     final id = user.id!;
     String uId = 'U$id';
     imageData = ImageService.fetchImage(uId, 'profile');
+    imageData = ImageService.fetchImage(uId, 'profile');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[200],
-      appBar: AppBar(
-        backgroundColor: Colors.green,
-        leading: Icon(Icons.sort_sharp, color: Colors.white, size: 30),
-        actions: [
-          IconButton(
-            onPressed: () {
-              // Show confirmation dialog
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    title: const Text(
-                      'Logout',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                      ),
-                    ),
-                    content: const Text(
-                      'Are you sure you want to logout?',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                    actions: <Widget>[
-                      TextButton(
-                        style: TextButton.styleFrom(
-                          backgroundColor: Colors.red, // Text color for No button
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            backgroundColor: Colors.green,
+            // leading: Icon(Icons.sort_sharp, color: Colors.white, size: 30),
+            actions: [
+              IconButton(
+                onPressed: () {
+                  // Show confirmation dialog
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.0),
                         ),
-                        child: const Text('No',style: TextStyle(color: Colors.white),),
-                        onPressed: () {
-                          Navigator.of(context).pop(); // Close the dialog
-                        },
-                      ),
-                      TextButton(
-                        style: TextButton.styleFrom(
-                          backgroundColor: Colors.green, // Background color for Yes button
-                         // Text color for Yes button
+                        title: const Text(
+                          'Logout',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
                         ),
-                        child: const Text('Yes',style: TextStyle(color: Colors.white),),
-                        onPressed: () {
-                          Navigator.of(context).pop(); // Close the dialog
-                          // Navigate to MyPhone screen
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => const MyPhone()),
-                          );
-                        },
-                      ),
-                    ],
+                        content: const Text(
+                          'Are you sure you want to logout?',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        actions: <Widget>[
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              backgroundColor: Colors.red,
+                            ),
+                            child: const Text('No', style: TextStyle(color: Colors.white)),
+                            onPressed: () {
+                              Navigator.of(context).pop(); // Close the dialog
+                            },
+                          ),
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              backgroundColor: Colors.green,
+                            ),
+                            child: const Text('Yes', style: TextStyle(color: Colors.white)),
+                            onPressed: () {
+                              Navigator.of(context).pop(); // Close the dialog
+                              // Navigate to MyPhone screen
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (context) => const MyPhone()),
+                              );
+                            },
+                          ),
+                        ],
+                      );
+                    },
                   );
                 },
-              );
-            },
-            icon: const Icon(Icons.logout_rounded),
-            color: Colors.white,
+                icon: const Icon(Icons.logout_rounded),
+                color: Colors.white,
+              ),
+            ],
+            expandedHeight: 50.0, // Set the height of the expanded AppBar
+            pinned: false, // Keep the AppBar pinned at the top
+            floating: true, // Make the AppBar non-floating
           ),
-        ],
-
-
-      ),
-      body: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          _buildHeader(),
-          _buildGrid(),
-          const SizedBox(height: 20),
+          SliverToBoxAdapter(
+            child: Container(
+              color: Colors.white, // Background color for the content area
+              child: Column(
+                children: [
+                  _buildHeader(),
+                  _buildGrid(),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
+
 
   Widget _buildHeader() {
     return FutureBuilder<Uint8List?>(

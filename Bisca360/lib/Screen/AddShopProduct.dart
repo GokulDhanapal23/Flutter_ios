@@ -7,6 +7,7 @@ import 'package:bisca360/Response/Measurementresponse.dart';
 import 'package:bisca360/Response/SubCategoryResponse.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:searchfield/searchfield.dart';
 
 import '../ApiService/Apis.dart';
@@ -53,9 +54,7 @@ class _AddShopProductState extends State<AddShopProduct> {
     final price = _priceController.text;
 
     if (shopName.isEmpty || category.isEmpty || subCategory.isEmpty || product.isEmpty || unit.isEmpty || quantity.isEmpty || price.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please fill in all fields')),
-      );
+      Fluttertoast.showToast(msg: "Please fill All Field", toastLength: Toast.LENGTH_SHORT);
       return;
     }
 

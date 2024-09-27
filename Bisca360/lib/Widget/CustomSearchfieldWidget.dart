@@ -25,14 +25,14 @@ class CustomSearchField extends StatelessWidget {
     Key? key, required TextStyle hintTextStyle, required Icon suffixIcon,
   }) : super(key: key);
 
-  static Widget buildSearchField(TextEditingController controller, String hintText, IconData icon, List<SearchFieldListItem<String>> suggestions, Function(String) onSelect,bool validation) {
+  static Widget buildSearchField(TextEditingController controller, String hintText, IconData? icon, List<SearchFieldListItem<String>> suggestions, Function(String) onSelect,bool validation) {
     return CustomSearchField(
       textEditingController: controller,
       hintText: hintText,
       prefixIcon: Icon(icon, color: Colors.green),
       suffixIcon: Icon(Icons.arrow_drop_down, color: Colors.green),
       suggestions: suggestions,
-      initialValue: suggestions.isNotEmpty ? null : null,
+      initialValue: suggestions.isNotEmpty ? suggestions.first : null,
       onSelect: onSelect,
       hintTextStyle: TextStyle(color: Colors.black),
       validate: validation,

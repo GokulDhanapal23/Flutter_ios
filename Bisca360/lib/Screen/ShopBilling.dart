@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:bisca360/Request/ShopBillProducts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pinput/pinput.dart';
 import 'package:searchfield/searchfield.dart';
 
@@ -158,6 +160,8 @@ class _ShopBillingState extends State<ShopBilling> {
           headers: Apis.getHeaders());
       final response = jsonDecode(res.body);
       if (response['status']== "OK") {
+        String billNumber = response['shopBillNo'];
+        _downloadBill(shopSalesDetailsRequest.shopName,billNumber);
         LoginService.showBlurredSnackBar(context, response['message'], type: SnackBarType.success);
         _clear();
         print('Success to save shop billing : $response');
@@ -169,6 +173,39 @@ class _ShopBillingState extends State<ShopBilling> {
     }catch (e){
       print('data : ${jsonEncode(shopSalesDetailsRequest.toJson())}');
       print('Error fetching save billing: $e');
+    }
+  }
+
+  void _downloadBill(String shopName, String billNumber){
+    final encodedShopName = Uri.encodeComponent(shopName);
+    final encodedBillNumber = Uri.encodeComponent(billNumber);
+      final url = Uri.parse('${Apis.shopBillPdf}?shopName=$encodedShopName&billNumber=$encodedBillNumber');
+      String fileName = '$billNumber-${DateTime.now()}';
+      downloadPdf(context,url,fileName);
+    }
+
+  String? _downloadPath;
+  Future<void> downloadPdf(BuildContext context, final url, String fileName) async {
+    try{
+      print('URL ; $url');
+      final response = await Apis.getClient().get(url, headers: Apis.getHeaders());
+      final bytes = response.bodyBytes;
+      Directory? directory;
+      if (Platform.isAndroid) {
+        // directory = Directory('/storage/emulated/0/Download');
+        directory = (await getExternalStorageDirectories(type: StorageDirectory.downloads))?.first;
+
+      } else if (Platform.isIOS) {
+        directory = await getApplicationDocumentsDirectory();
+      }
+      _downloadPath = directory?.path ?? '';
+      final filePath = '$_downloadPath/$fileName.pdf';
+      final file = File(filePath);
+      await file.writeAsBytes(bytes);
+      LoginService.showBlurredSnackBarFile(context, 'Bill Downloaded Successfully ', filePath, type: SnackBarType.success);
+      print('File Service : Bill download Success $filePath');
+    } catch(e){
+      print('File Service : Error on Bill download failed $e');
     }
   }
 
@@ -582,16 +619,6 @@ class _ShopBillingState extends State<ShopBilling> {
     );
   }
 
-  Widget _buildSearchField(TextEditingController controller, String hintText, IconData? icon, List<SearchFieldListItem<String>> suggestions, Function(String) onSelect) {
-    return CustomSearchField(
-      textEditingController: controller,
-      hintText: hintText,
-      prefixIcon: Icon(icon, color: Colors.green),
-      suggestions: suggestions,
-      initialValue: suggestions.isNotEmpty ? null : null,
-      onSelect: onSelect,  hintTextStyle: TextStyle(color: Colors.black), suffixIcon: Icon(Icons.arrow_drop_down, color: Colors.green),
-    );
-  }
 
   Widget _buildTextField(TextEditingController controller, String labelText, IconData icon, TextInputType keyboardType) {
     return SizedBox(
@@ -681,7 +708,7 @@ class _ShopBillingState extends State<ShopBilling> {
         ),
         Expanded(
           flex: 6,
-          child: _buildSearchField(_paymentTypeController, 'Select', null, _paymentType, (String value) {}),
+          child:CustomSearchField.buildSearchField(_paymentTypeController, 'Select', null, _paymentType, (String value) {},true),
         ),
       ],
     );

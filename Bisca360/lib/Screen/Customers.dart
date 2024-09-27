@@ -99,18 +99,18 @@ class _CustomersState extends State<Customers> {
         ),
         title: const Text('Customers', style: TextStyle(color: Colors.white)),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navigator.push(
-          //   context,
-          //   MaterialPageRoute(
-          //     builder: (context) => const AddShop(shopResponse: null),
-          //   ),
-          // );
-        },
-        backgroundColor: Colors.green,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      //     // Navigator.push(
+      //     //   context,
+      //     //   MaterialPageRoute(
+      //     //     builder: (context) => const AddShop(shopResponse: null),
+      //     //   ),
+      //     // );
+      //   },
+      //   backgroundColor: Colors.green,
+      //   child: const Icon(Icons.add, color: Colors.white),
+      // ),
       body:GestureDetector(
         onTap: () {
           FocusScope.of(context).unfocus();

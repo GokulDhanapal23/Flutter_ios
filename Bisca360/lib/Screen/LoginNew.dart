@@ -61,7 +61,7 @@ class _MyPhoneState extends State<MyPhone> {
   @override
   void initState(){
     super.initState();
-    checkAccessPermission(context);
+    // checkAccessPermission(context);
     checkInternetPermission(context);
   }
 
