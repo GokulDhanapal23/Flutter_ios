@@ -83,6 +83,27 @@ class _ShopBillingHistoryState extends State<ShopBillingHistory> {
     getAllBillByDate(_datePickerController.text, selectedShop);
   }
 
+  void _selectDate() async {
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+
+    if (pickedDate != null) {
+      String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
+      setState(() {
+        _datePickerController.text = formattedDate; // Update the text field
+        billingResponse = null; // Reset billing response
+        // Optionally, trigger fetching bills for the currently selected shop and date
+        if (_shopNameController.text.isNotEmpty) {
+          getAllBillByDate(formattedDate, _shopNameController.text);
+        }
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -108,6 +129,9 @@ class _ShopBillingHistoryState extends State<ShopBillingHistory> {
               Row(
                 children: [
                   Expanded(
+              child: GestureDetector(
+              onTap: _selectDate, // Show date picker on tap
+                child: AbsorbPointer(
                     child: TextFieldDateWidget(
                       _datePickerController,
                       "Bill Date",
@@ -116,6 +140,8 @@ class _ShopBillingHistoryState extends State<ShopBillingHistory> {
                       TextInputType.text,
                       "PAST",
                     ),
+                  ),
+              ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -173,7 +199,7 @@ class _ShopBillingHistoryState extends State<ShopBillingHistory> {
                 Row(
                   children: [
                     Expanded(child: Text('Total Price: ${billingResponse?.totalPrice}', style: const TextStyle(fontSize: 14))),
-                    Text('Net Total Amount: ${billingResponse?.netTotalPrice}', style: const TextStyle(fontSize: 14)),
+                    Text('Net Total Amount: ${billingResponse?.netTotalPrice}', style: const TextStyle(fontSize: 14,color: Colors.green,fontWeight: FontWeight.bold)),
                   ],
                 ),
               ],
@@ -206,7 +232,7 @@ class _ShopBillingHistoryState extends State<ShopBillingHistory> {
                   subtitle: Row(
                     children: [
                       Expanded(child: Text('Payment Type: ${bill.paymentType}', style: const TextStyle(fontSize: 14))),
-                      Text('Net Amount: ${bill.netTotalPrice}', style: const TextStyle(fontSize: 14)),
+                      Text('Net Amount: ${bill.netTotalPrice}', style: const TextStyle(fontSize: 14,color: Colors.green,fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
@@ -215,62 +241,6 @@ class _ShopBillingHistoryState extends State<ShopBillingHistory> {
           ),
         ),
       ],
-    );
-  }
-
-  void dialogPopup() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: Colors.grey[200],
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15.0))),
-          scrollable: true,
-          title: const Center(
-            child: Text('Report', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 20)),
-          ),
-          contentPadding: const EdgeInsets.all(10.0),
-          content: Column(
-            children: [
-              CustomSearchField.buildSearchField(
-                _shopNameController,
-                'Shop Name',
-                Icons.shop,
-                _shopItems,
-                _handleShopSelection,
-                true,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFieldDateWidget(
-                      _fromDatePickerController,
-                      "From Date",
-                      const Icon(Icons.date_range, color: Colors.green),
-                      TextInputAction.next,
-                      TextInputType.text,
-                      "PAST",
-                    ),
-                  ),
-                  const SizedBox(width: 5),
-                  Expanded(
-                    child: TextFieldDateWidget(
-                      _toDatePickerController,
-                      "To Date",
-                      const Icon(Icons.date_range, color: Colors.green),
-                      TextInputAction.next,
-                      TextInputType.text,
-                      "PAST",
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-            ],
-          ),
-        );
-      },
     );
   }
 }

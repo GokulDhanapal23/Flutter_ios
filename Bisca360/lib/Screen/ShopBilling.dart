@@ -318,16 +318,51 @@ class _ShopBillingState extends State<ShopBilling> {
     saveSalesBill(shopSalesDetailsRequest);
   }
 
-
-
+    // void _billProduct() {
+    //   final String item = _productController.text;
+    //   final int  quantity = int.tryParse(_qtyController.text) ?? 0;
+    //   final double price = double.tryParse(selectedProductData.price.toString()) ?? 0.0;
+    //   final double totalPrice = price * quantity;
+    //   final productData = shopProducts.firstWhere(
+    //       (product) => product.product == selectedProductData.product);
+    //
+    //   if (item.isEmpty || quantity <= 0 || price <= 0) {
+    //     ScaffoldMessenger.of(context).showSnackBar(
+    //       const SnackBar(content: Text('Please fill in all fields correctly')),
+    //     );
+    //     return;
+    //   }
+    //
+    //   final newProduct = ShopBillProducts(item, productData.unit.toString(), price, quantity, totalPrice);
+    //
+    //   setState(() {
+    //     billedProducts.add(newProduct);
+    //   });
+    //
+    //   _productController.clear();
+    //   _qtyController.setText('1');
+    //   _priceController.clear();
+    // }
   void _billProduct() {
-    final String item = _productController.text;
-    final int  quantity = int.tryParse(_qtyController.text) ?? 0;
+    final String item = _productController.text.trim(); // Trim whitespace
+    final int quantity = int.tryParse(_qtyController.text) ?? 0;
     final double price = double.tryParse(selectedProductData.price.toString()) ?? 0.0;
     final double totalPrice = price * quantity;
-    final productData = shopProducts.firstWhere(
-        (product) => product.product == selectedProductData.product);
 
+    // Check if the product exists in the shopProducts list
+    final productData = shopProducts.firstWhere(
+            (product) => product.product == selectedProductData.product,
+    );
+
+    // Show error if the product does not exist
+    if (productData == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selected product does not exist')),
+      );
+      return;
+    }
+
+    // Validate inputs
     if (item.isEmpty || quantity <= 0 || price <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all fields correctly')),
@@ -335,22 +370,290 @@ class _ShopBillingState extends State<ShopBilling> {
       return;
     }
 
+    // Create a new product entry
     final newProduct = ShopBillProducts(item, productData.unit.toString(), price, quantity, totalPrice);
 
+    // Update the state
     setState(() {
       billedProducts.add(newProduct);
     });
 
+    // Clear the input fields
     _productController.clear();
-    _qtyController.setText('1');
+    _qtyController.text = '1'; // Use text instead of setText for consistency
     _priceController.clear();
   }
+
 
   void _deleteProduct(int index) {
     setState(() {
       billedProducts.removeAt(index);
     });
   }
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   return Scaffold(
+  //     backgroundColor: Colors.grey[200],
+  //     appBar: AppBar(
+  //       centerTitle: true,
+  //       backgroundColor: Colors.green,
+  //       leading: IconButton(
+  //         onPressed: () => Navigator.of(context).pop(),
+  //         icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+  //       ),
+  //       title: const Text('Shop Billing', style: TextStyle(color: Colors.white)),
+  //     ),
+  //     body:
+  //   GestureDetector(
+  //   onTap: () {
+  //   FocusScope.of(context).unfocus();
+  //   },
+  //   child : Form(
+  //   key: _formKey,
+  //   child:SingleChildScrollView(
+  //       padding: const EdgeInsets.all(16.0),
+  //       child: Column(
+  //         crossAxisAlignment: CrossAxisAlignment.start,
+  //         children: [
+  //           CustomSearchField.buildSearchField(_shopNameController, 'Shop Name', Icons.shop, _shopItems, _handleShopSelection,true),
+  //           const SizedBox(height: 10),
+  //           Row(
+  //             children: [
+  //               Expanded(
+  //                 child: TextFieldDateWidget(
+  //                   _datePickerController,
+  //                   "Bill Date",
+  //                   const Icon(Icons.date_range, color: Colors.green),
+  //                   TextInputAction.next,
+  //                   TextInputType.text,
+  //                   "PAST",
+  //                 ),
+  //               ),
+  //               const SizedBox(width: 10),
+  //               Expanded(
+  //                 child:  CustomSearchField.buildSearchField(_mealTimeController, 'Meal Time', Icons.category, _mealTime, (String value) {},true),
+  //               ),
+  //             ],
+  //           ),
+  //           const SizedBox(height: 10),
+  //           CustomSearchField.buildSearchField(_customerController, 'Customer', Icons.person, _shopCustomer, (String value) {},false),
+  //           const SizedBox(height: 10),
+  //           CustomSearchField.buildSearchField(_productController, 'Product', Icons.fastfood, _productItems, _handleProductSelection,true),
+  //           const SizedBox(height: 10),
+  //           Row(
+  //             children: [
+  //                       const Expanded(
+  //                         flex: 3,
+  //                         child: Padding(
+  //                           padding: EdgeInsets.symmetric(horizontal: 8.0),
+  //                           child: Text(
+  //                             'Quantity:',
+  //                             style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: Colors.black),
+  //                           ),
+  //                         ),
+  //                       ),
+  //                       Expanded(
+  //                         flex: 3,
+  //                         child: TextField(
+  //                           controller: _qtyController,
+  //                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
+  //                           cursorColor: Colors.black,
+  //                           onChanged: (_) => _recalculateTotalPrice(),
+  //                         ),
+  //                       ),
+  //                       const Expanded(
+  //                         flex: 3,
+  //                         child: Padding(
+  //                           padding: EdgeInsets.symmetric(horizontal: 8.0),
+  //                           child: Text(
+  //                             'Price (₹):',
+  //                             style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: Colors.black),
+  //                           ),
+  //                         ),
+  //                       ),
+  //                       Expanded(
+  //                         flex: 3,
+  //                         child: TextField(
+  //                           controller: _priceController,
+  //                           readOnly: true,
+  //                         ),
+  //                       ),
+  //                     ],
+  //                   ),
+  //           const SizedBox(height: 10),
+  //           Row(
+  //             mainAxisAlignment: MainAxisAlignment.end,
+  //             children: [
+  //               // Align(
+  //               //   alignment: Alignment.bottomLeft,
+  //               //   child: ElevatedButton(
+  //               //     onPressed: () {
+  //               //       Navigator.of(context).pop();
+  //               //     },
+  //               //     style: ElevatedButton.styleFrom(
+  //               //       backgroundColor: Colors.red,
+  //               //       shape: RoundedRectangleBorder(
+  //               //         borderRadius: BorderRadius.circular(25),
+  //               //       ),
+  //               //     ),
+  //               //     child: const Text('Clear', style: TextStyle(color: Colors.white)),
+  //               //   ),
+  //               // ),
+  //               const SizedBox(width: 10),
+  //               Align(
+  //                 alignment: Alignment.bottomRight,
+  //                 child: ElevatedButton(
+  //                   onPressed:(){ if(_formKey.currentState!.validate()){_billProduct();}},
+  //                   style: ElevatedButton.styleFrom(
+  //                     backgroundColor: Colors.green,
+  //                     shape: RoundedRectangleBorder(
+  //                       borderRadius: BorderRadius.circular(25),
+  //                     ),
+  //                   ),
+  //                   child: const Text('Add', style: TextStyle(color: Colors.white)),
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //           const SizedBox(height: 10),
+  //           if (billedProducts.isNotEmpty) ...[
+  //             const Text(
+  //               'Added Products',
+  //               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+  //             ),
+  //             const SizedBox(height: 10),
+  //             Container(
+  //               height: 24,
+  //               color: Colors.green,
+  //               child: const Row(
+  //                 children: [
+  //                   Padding(
+  //                     padding: EdgeInsets.only(left: 6),
+  //                     child: Expanded(child: Text('S.No', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+  //                   ),
+  //                   Padding(
+  //                     padding: EdgeInsets.only(left: 30),
+  //                     child: Expanded(child: Text('Products', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+  //                   ),
+  //                   Padding(
+  //                     padding: EdgeInsets.only(left: 90),
+  //                     child: Expanded(child: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+  //                   ),
+  //                   Padding(
+  //                     padding: EdgeInsets.only(left: 40),
+  //                     child: Expanded(child: Text('Price', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ),
+  //             const SizedBox(height: 5),
+  //             Column(
+  //               children: billedProducts.map((product) {
+  //                 final index = billedProducts.indexOf(product);
+  //                 return Card(
+  //                   elevation: 3,
+  //                   margin: const EdgeInsets.symmetric(vertical: 3),
+  //                   child: Row(
+  //                     children: [
+  //                       Expanded(
+  //                         child: Padding(
+  //                           padding: const EdgeInsets.all(8.0),
+  //                           child: Text('${index + 1}', style: TextStyle(fontSize: 15)),
+  //                         ),
+  //                       ),
+  //                       Expanded(
+  //                         flex: 3,
+  //                         child: Padding(
+  //                           padding: const EdgeInsets.all(8.0),
+  //                           child: Text(product.items, style: TextStyle(fontSize: 15)),
+  //                         ),
+  //                       ),
+  //                       Expanded(
+  //                         child: Padding(
+  //                           padding: const EdgeInsets.all(8.0),
+  //                           child: Text('${product.quantity}', style: TextStyle(fontSize: 15)),
+  //                         ),
+  //                       ),
+  //                       Expanded(
+  //                         child: Padding(
+  //                           padding: const EdgeInsets.all(8.0),
+  //                           child: Text('${product.totalPriceList.toStringAsFixed(0)}', style: TextStyle(fontSize: 15)),
+  //                         ),
+  //                       ),
+  //                       IconButton(
+  //                         icon: Icon(Icons.highlight_remove_outlined, color: Colors.red),
+  //                         onPressed: () => _deleteProduct(index),
+  //                       ),
+  //                     ],
+  //                   ),
+  //                 );
+  //               }).toList(),
+  //             ),
+  //             const SizedBox(height: 10),
+  //             Card(
+  //               elevation: 3,
+  //               child: Padding(
+  //                 padding: const EdgeInsets.all(8.0),
+  //                 child: Column(
+  //                   crossAxisAlignment: CrossAxisAlignment.start,
+  //                   children: [
+  //                     ...taxItems.map((tax) => _buildRow('${tax.taxType} (${tax.taxPercentage})', '', '₹', (tax.taxPercentage * _cardTotalPrice / 100).toString())),
+  //                     _buildRow('Total Tax', '', '₹', _cardTotalTax.toString()),
+  //                     _buildDivider(),
+  //                     _buildRow('Total Price', '', '₹', _cardTotalPrice.toString()),
+  //                     _buildDivider(),
+  //                     _buildRow('Net Amount', '', '₹', (_cardTotalTax + _cardTotalPrice).toString()),
+  //                     _buildDivider(),
+  //                     _buildPaymentTypeRow(),
+  //                   ],
+  //                 ),
+  //               ),
+  //             ),
+  //             const SizedBox(height: 10),
+  //             Row(
+  //               mainAxisAlignment: MainAxisAlignment.end,
+  //               children: [
+  //                 Align(
+  //                   alignment: Alignment.bottomLeft,
+  //                   child: ElevatedButton(
+  //                     onPressed: () {
+  //                       Navigator.of(context).pop();
+  //                     },
+  //                     style: ElevatedButton.styleFrom(
+  //                       backgroundColor: Colors.red,
+  //                       shape: RoundedRectangleBorder(
+  //                         borderRadius: BorderRadius.circular(25),
+  //                       ),
+  //                     ),
+  //                     child: const Text('Cancel', style: TextStyle(color: Colors.white)),
+  //                   ),
+  //                 ),
+  //                 const SizedBox(width: 10),
+  //                 Align(
+  //                   alignment: Alignment.bottomRight,
+  //                   child: ElevatedButton(
+  //                     onPressed: _saveBill,
+  //                     style: ElevatedButton.styleFrom(
+  //                       backgroundColor: Colors.green,
+  //                       shape: RoundedRectangleBorder(
+  //                         borderRadius: BorderRadius.circular(25),
+  //                       ),
+  //                     ),
+  //                     child: const Text('Save', style: TextStyle(color: Colors.white)),
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           ],
+  //
+  //         ],
+  //       ),
+  //     ),
+  //   ),
+  //   ),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -365,254 +668,264 @@ class _ShopBillingState extends State<ShopBilling> {
         ),
         title: const Text('Shop Billing', style: TextStyle(color: Colors.white)),
       ),
-      body:
-    GestureDetector(
-    onTap: () {
-    FocusScope.of(context).unfocus();
-    },
-    child : Form(
-    key: _formKey,
-    child:SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CustomSearchField.buildSearchField(_shopNameController, 'Shop Name', Icons.shop, _shopItems, _handleShopSelection,true),
-            const SizedBox(height: 10),
-            Row(
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: TextFieldDateWidget(
-                    _datePickerController,
-                    "Bill Date",
-                    const Icon(Icons.date_range, color: Colors.green),
-                    TextInputAction.next,
-                    TextInputType.text,
-                    "PAST",
-                  ),
+                CustomSearchField.buildSearchField(
+                    _shopNameController,
+                    'Shop Name',
+                    Icons.shop,
+                    _shopItems,
+                    _handleShopSelection,
+                    true
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child:  CustomSearchField.buildSearchField(_mealTimeController, 'Meal Time', Icons.category, _mealTime, (String value) {},true),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            CustomSearchField.buildSearchField(_customerController, 'Customer', Icons.person, _shopCustomer, (String value) {},false),
-            const SizedBox(height: 10),
-            CustomSearchField.buildSearchField(_productController, 'Product', Icons.fastfood, _productItems, _handleProductSelection,true),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                        const Expanded(
-                          flex: 3,
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 8.0),
-                            child: Text(
-                              'Quantity:',
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: Colors.black),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 3,
-                          child: TextField(
-                            controller: _qtyController,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            cursorColor: Colors.black,
-                            onChanged: (_) => _recalculateTotalPrice(),
-                          ),
-                        ),
-                        const Expanded(
-                          flex: 3,
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 8.0),
-                            child: Text(
-                              'Price (₹):',
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: Colors.black),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 3,
-                          child: TextField(
-                            controller: _priceController,
-                            readOnly: true,
-                          ),
-                        ),
-                      ],
-                    ),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                // Align(
-                //   alignment: Alignment.bottomLeft,
-                //   child: ElevatedButton(
-                //     onPressed: () {
-                //       Navigator.of(context).pop();
-                //     },
-                //     style: ElevatedButton.styleFrom(
-                //       backgroundColor: Colors.red,
-                //       shape: RoundedRectangleBorder(
-                //         borderRadius: BorderRadius.circular(25),
-                //       ),
-                //     ),
-                //     child: const Text('Clear', style: TextStyle(color: Colors.white)),
-                //   ),
-                // ),
-                const SizedBox(width: 10),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: ElevatedButton(
-                    onPressed:(){ if(_formKey.currentState!.validate()){_billProduct();}},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFieldDateWidget(
+                        _datePickerController,
+                        "Bill Date",
+                        const Icon(Icons.date_range, color: Colors.green),
+                        TextInputAction.next,
+                        TextInputType.text,
+                        "PAST",
                       ),
                     ),
-                    child: const Text('Add', style: TextStyle(color: Colors.white)),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            if (billedProducts.isNotEmpty) ...[
-              const Text(
-                'Added Products',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              Container(
-                height: 24,
-                color: Colors.green,
-                child: const Row(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(left: 6),
-                      child: Expanded(child: Text('S.No', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(left: 30),
-                      child: Expanded(child: Text('Products', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(left: 90),
-                      child: Expanded(child: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(left: 40),
-                      child: Expanded(child: Text('Price', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: CustomSearchField.buildSearchField(
+                          _mealTimeController,
+                          'Meal Time',
+                          Icons.category,
+                          _mealTime,
+                              (String value) {},
+                          true
+                      ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 5),
-              Column(
-                children: billedProducts.map((product) {
-                  final index = billedProducts.indexOf(product);
-                  return Card(
-                    elevation: 3,
-                    margin: const EdgeInsets.symmetric(vertical: 3),
-                    child: Row(
+                const SizedBox(height: 10),
+                CustomSearchField.buildSearchField(
+                    _customerController,
+                    'Customer',
+                    Icons.person,
+                    _shopCustomer,
+                        (String value) {},
+                    false
+                ),
+                const SizedBox(height: 10),
+                CustomSearchField.buildSearchField(
+                    _productController,
+                    'Product',
+                    Icons.fastfood,
+                    _productItems,
+                    _handleProductSelection,
+                    true
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    const Expanded(
+                      flex: 3,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Text(
+                          'Quantity:',
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: Colors.black),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 3,
+                      child: TextField(
+                        controller: _qtyController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        cursorColor: Colors.black,
+                        onChanged: (_) => _recalculateTotalPrice(),
+                      ),
+                    ),
+                    const Expanded(
+                      flex: 3,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Text(
+                          'Price (₹):',
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: Colors.black),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 3,
+                      child: TextField(
+                        controller: _priceController,
+                        readOnly: true,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    const SizedBox(width: 10),
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            _billProduct();
+                            setState(() {}); // Trigger a rebuild
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                        ),
+                        child: const Text('Add', style: TextStyle(color: Colors.white)),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                if (billedProducts.isNotEmpty) ...[
+                  const Text(
+                    'Added Products',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    height: 24,
+                    color: Colors.green,
+                    child: const Row(
                       children: [
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text('${index + 1}', style: TextStyle(fontSize: 15)),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 3,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(product.items, style: TextStyle(fontSize: 15)),
-                          ),
-                        ),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text('${product.quantity}', style: TextStyle(fontSize: 15)),
-                          ),
-                        ),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text('${product.totalPriceList.toStringAsFixed(0)}', style: TextStyle(fontSize: 15)),
-                          ),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.highlight_remove_outlined, color: Colors.red),
-                          onPressed: () => _deleteProduct(index),
-                        ),
+                        Expanded(child: Padding(
+                          padding: EdgeInsets.only(left: 6),
+                          child: Text('S.No', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                        )),
+                        Expanded(child: Padding(
+                          padding: EdgeInsets.only(left: 30),
+                          child: Text('Products', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                        )),
+                        Expanded(child: Padding(
+                          padding: EdgeInsets.only(left: 90),
+                          child: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                        )),
+                        Expanded(child: Padding(
+                          padding: EdgeInsets.only(left: 40),
+                          child: Text('Price', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                        )),
                       ],
                     ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 10),
-              Card(
-                elevation: 3,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  ),
+                  const SizedBox(height: 5),
+                  Column(
+                    children: billedProducts.map((product) {
+                      final index = billedProducts.indexOf(product);
+                      return Card(
+                        elevation: 3,
+                        margin: const EdgeInsets.symmetric(vertical: 3),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text('${index + 1}', style: TextStyle(fontSize: 15)),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 3,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(product.items, style: TextStyle(fontSize: 15)),
+                              ),
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text('${product.quantity}', style: TextStyle(fontSize: 15)),
+                              ),
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text('${product.totalPriceList.toStringAsFixed(0)}', style: TextStyle(fontSize: 15)),
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.highlight_remove_outlined, color: Colors.red),
+                              onPressed: () => _deleteProduct(index),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 10),
+                  Card(
+                    elevation: 3,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ...taxItems.map((tax) => _buildRow('${tax.taxType} (${tax.taxPercentage})', '', '₹', (tax.taxPercentage * _cardTotalPrice / 100).toString())),
+                          _buildRow('Total Tax', '', '₹', _cardTotalTax.toString()),
+                          _buildDivider(),
+                          _buildRow('Total Price', '', '₹', _cardTotalPrice.toString()),
+                          _buildDivider(),
+                          _buildRow('Net Amount', '', '₹', (_cardTotalTax + _cardTotalPrice).toString()),
+                          _buildDivider(),
+                          _buildPaymentTypeRow(),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      ...taxItems.map((tax) => _buildRow('${tax.taxType} (${tax.taxPercentage})', '', '₹', (tax.taxPercentage * _cardTotalPrice / 100).toString())),
-                      _buildRow('Total Tax', '', '₹', _cardTotalTax.toString()),
-                      _buildDivider(),
-                      _buildRow('Total Price', '', '₹', _cardTotalPrice.toString()),
-                      _buildDivider(),
-                      _buildRow('Net Amount', '', '₹', (_cardTotalTax + _cardTotalPrice).toString()),
-                      _buildDivider(),
-                      _buildPaymentTypeRow(),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                        ),
+                        child: const Text('Cancel', style: TextStyle(color: Colors.white)),
+                      ),
+                      const SizedBox(width: 10),
+                      ElevatedButton(
+                        onPressed: _saveBill,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                        ),
+                        child: const Text('Save', style: TextStyle(color: Colors.white)),
+                      ),
                     ],
                   ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Align(
-                    alignment: Alignment.bottomLeft,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                      ),
-                      child: const Text('Cancel', style: TextStyle(color: Colors.white)),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: ElevatedButton(
-                      onPressed: _saveBill,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                      ),
-                      child: const Text('Save', style: TextStyle(color: Colors.white)),
-                    ),
-                  ),
                 ],
-              ),
-            ],
-
-          ],
+              ],
+            ),
+          ),
         ),
       ),
-    ),
-    ),
     );
   }
 
