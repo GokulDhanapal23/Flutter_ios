@@ -48,11 +48,11 @@ class ShopRequest{
       'description': description,
       'taxEnable': taxEnable,
       'taxType': taxType,
-      'gstNumber': gstNumber,
-      'panNumber': panNumber,
+      'gstNumber': gstNumber!.isNotEmpty ? gstNumber :'',
+      'panNumber': panNumber!.isNotEmpty ? panNumber :'',
       'rounding': rounding,
       'projectId': projectId,
-      'projectName': projectName
+      'projectName': projectName!.isNotEmpty ? projectName :'',
     };
   }
 }

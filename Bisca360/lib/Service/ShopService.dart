@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:bisca360/Request/ShopRequest.dart';
 import 'package:bisca360/Response/ShopResponse.dart';
 import 'package:bisca360/Response/TaxResponse.dart';
 import 'package:flutter/material.dart';
@@ -23,11 +24,11 @@ class ShopService{
     }
     });
   }
-  static Future<void> saveShop(var data, BuildContext context) async {
+  static Future<void> saveShop(ShopRequest shopRequest, BuildContext context) async {
     try {
       var res = await Apis.getClient().post(
           Uri.parse(Apis.saveShop),
-          body :jsonEncode(data.toJson()),
+          body :jsonEncode(shopRequest.toJson()),
           headers: Apis.getHeaders());
       final response = jsonDecode(res.body);
       if (response['status']== "OK") {

@@ -183,10 +183,10 @@ class _AddShopState extends State<AddShop> {
         _descriptionController.text,
         _selectedBooleanValue!,
         taxes,
-        _gstController.text.isEmpty ? null : _gstController.text,
-        null,
+        _gstController.text.isEmpty ? '' : _gstController.text,
+        '',
         _priceRoundingController.text,
-        0, null
+        0, ''
     );
     ShopService.saveShop(shopRequest, context);
 

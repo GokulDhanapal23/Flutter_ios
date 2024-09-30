@@ -485,36 +485,33 @@ class _ShopBillingState extends State<ShopBilling> {
               ),
               const SizedBox(height: 10),
               Container(
-                              height: 24,
-                              color: Colors.green, // Set your desired background color here
-                              child: const Row(
-                                children: [
-                                  Padding(
-                                    padding: EdgeInsets.only(left: 6),
-                                    child: Expanded(child: Text('S.No', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.only(left: 30),
-                                    child: Expanded(child: Text('Products', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.only(left: 90),
-                                    child: Expanded(child: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.only(left: 40),
-                                    child: Expanded(child: Text('Price', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-                                  ),
-                                ],
-                              ),
-                            ),
+                height: 24,
+                color: Colors.green,
+                child: const Row(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(left: 6),
+                      child: Expanded(child: Text('S.No', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(left: 30),
+                      child: Expanded(child: Text('Products', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(left: 90),
+                      child: Expanded(child: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(left: 40),
+                      child: Expanded(child: Text('Price', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 5),
-              ListView.builder(
-                itemCount: billedProducts.length,
-                shrinkWrap: true, // Ensure the ListView takes only the required space
-                physics: NeverScrollableScrollPhysics(), // Prevent the ListView from scrolling
-                itemBuilder: (context, index) {
-                  final product = billedProducts[index];
+              Column(
+                children: billedProducts.map((product) {
+                  final index = billedProducts.indexOf(product);
                   return Card(
                     elevation: 3,
                     margin: const EdgeInsets.symmetric(vertical: 3),
@@ -552,7 +549,7 @@ class _ShopBillingState extends State<ShopBilling> {
                       ],
                     ),
                   );
-                },
+                }).toList(),
               ),
               const SizedBox(height: 10),
               Card(
@@ -562,13 +559,12 @@ class _ShopBillingState extends State<ShopBilling> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ...taxItems.map((tax) => _buildRow('${tax.taxType} (${tax.taxPercentage})', '', '₹', (tax.taxPercentage*_cardTotalPrice/100).toString())),
-                      // _buildDivider(),
+                      ...taxItems.map((tax) => _buildRow('${tax.taxType} (${tax.taxPercentage})', '', '₹', (tax.taxPercentage * _cardTotalPrice / 100).toString())),
                       _buildRow('Total Tax', '', '₹', _cardTotalTax.toString()),
                       _buildDivider(),
                       _buildRow('Total Price', '', '₹', _cardTotalPrice.toString()),
                       _buildDivider(),
-                      _buildRow('Net Amount', '', '₹',( _cardTotalTax+_cardTotalPrice).toString()),
+                      _buildRow('Net Amount', '', '₹', (_cardTotalTax + _cardTotalPrice).toString()),
                       _buildDivider(),
                       _buildPaymentTypeRow(),
                     ],
@@ -611,6 +607,7 @@ class _ShopBillingState extends State<ShopBilling> {
                 ],
               ),
             ],
+
           ],
         ),
       ),

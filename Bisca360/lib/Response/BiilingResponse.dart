@@ -18,9 +18,9 @@ class BillingResponse {
 
   factory BillingResponse.fromJson(Map<String, dynamic> json) {
     return BillingResponse(
-      (json['listShopSalesDetailsResponse'] as List<dynamic>)
-          .map((item) => ShopSalesDetailsResponse.fromJson(item as Map<String, dynamic>))
-          .toList(),
+      (json['listShopSalesDetailsResponse'] as List<dynamic>?)
+          ?.map((item) => ShopSalesDetailsResponse.fromJson(item as Map<String, dynamic>))
+          .toList() ?? [],
       json['billingCount'] as int,
       (json['totalTax'] as num).toDouble(),
       (json['totalPrice'] as num).toDouble(),
