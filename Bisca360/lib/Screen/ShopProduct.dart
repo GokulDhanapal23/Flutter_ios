@@ -79,10 +79,17 @@ class _ShopProductState extends State<ShopProduct> {
     getShopProducts(selectedShop);
   }
   @override
-  void initState(){
-    super.initState();
-    getAllShops();
+  void initState() {
+    super.initState(); // Always call super.initState() first
+    getAllShops().then((_) {
+      // Ensure this runs after the shops have been fetched
+      if (shopResponses.isNotEmpty) {
+        _shopNameController.text = shopResponses.first.shopName;
+        getShopProducts(_shopNameController.text); // Fetch products after setting the shop name
+      }
+    });
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -111,7 +118,7 @@ class _ShopProductState extends State<ShopProduct> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            CustomSearchField.buildSearchField(_shopNameController, 'Shop name', Icons.shop, _shopItems, _handleShopSelection,false),
+            CustomSearchField.buildSearchField(_shopNameController, 'Shop name', Icons.shop, _shopItems, _handleShopSelection,false, true),
             const SizedBox(height: 10),
             Expanded(
               child: shopProducts.isEmpty

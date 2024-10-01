@@ -81,7 +81,13 @@ class _CustomersState extends State<Customers> {
 
   @override
   void initState() {
-    getAllShops();
+    getAllShops().then((_) {
+      // Ensure this runs after the shops have been fetched
+      if (shopResponses.isNotEmpty) {
+        _shopNameController.text = shopResponses.first.shopName;
+        getShopCustomer(_shopNameController.text); // Fetch products after setting the shop name
+      }
+    });
     super.initState();
   }
   @override
@@ -119,7 +125,7 @@ class _CustomersState extends State<Customers> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              CustomSearchField.buildSearchField(_shopNameController, 'Shop Name', Icons.shop, _shopItems, _handleShopSelection,false),
+              CustomSearchField.buildSearchField(_shopNameController, 'Shop Name', Icons.shop, _shopItems, _handleShopSelection,false, true),
               const SizedBox(height: 10),
               Expanded(
                 child: shopCustomer.isEmpty

@@ -208,7 +208,7 @@ class _AddShopState extends State<AddShop> {
           },
         ),
         backgroundColor: Colors.green,
-        title: const Text('Add Shop', style: TextStyle(color: Colors.white)),
+        title:  Text(widget.shopResponse != null ? 'Update Shop' : 'Add Shop', style: TextStyle(color: Colors.white)),
         centerTitle: true,
         elevation: 1,
       ),
@@ -305,9 +305,9 @@ class _AddShopState extends State<AddShop> {
               textAlignVertical: TextAlignVertical.center,
             ),
             const SizedBox(height: 10),
-            CustomSearchField.buildSearchField(_shopTypeController, 'Shop Type', Icons.shop, _shopTypeItems, (String value) {},true),
+            CustomSearchField.buildSearchField(_shopTypeController, 'Shop Type', Icons.shop, _shopTypeItems, (String value) {},true,true),
             const SizedBox(height: 10),
-            CustomSearchField.buildSearchField(_priceRoundingController, 'Price Rounding', Icons.attach_money_outlined, _rounding, (String value) {},true),
+            CustomSearchField.buildSearchField(_priceRoundingController, 'Price Rounding', Icons.attach_money_outlined, _rounding, (String value) {},true,true),
             const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
@@ -434,6 +434,10 @@ class _AddShopState extends State<AddShop> {
                   onPressed: _isLoading ? null : () {
                     if (_formKey.currentState!.validate()) {
                       _saveForm();
+                    }else{
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Please fill in all fields correctly')),
+                      );
                     }
                   },
                   style: ElevatedButton.styleFrom(

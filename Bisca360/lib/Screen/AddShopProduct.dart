@@ -38,6 +38,7 @@ class _AddShopProductState extends State<AddShopProduct> {
   late List<SubCategoryResponse> subCategories = [];
   late List<ShoppProductResponse> shopProducts = [];
   List<ShopProducts> addedProducts = [];
+  List<ShopProducts> updateProducts = [];
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   void _addProduct() {
@@ -117,6 +118,42 @@ class _AddShopProductState extends State<AddShopProduct> {
         _shopNameController.text,
         0,
         addedProducts);
+    var data = jsonEncode(
+        productRequest
+            .toJson());
+    ShopService.saveShopProduct(data,context);
+  }
+  void _updateProduct(){
+    var id = 0;
+    if(widget.shopProducts != null){
+      id = widget.shopProducts?.id;
+    }
+    final shopName = _shopNameController.text;
+    final category = _categoryController.text;
+    final subCategory = _subCategoryController.text;
+    final product = _productController.text;
+    final unit = _unitController.text;
+    final quantity = _qtyController.text;
+    final price = _priceController.text;
+
+    if (shopName.isEmpty || category.isEmpty || subCategory.isEmpty || product.isEmpty || unit.isEmpty || quantity.isEmpty || price.isEmpty) {
+      Fluttertoast.showToast(msg: "Please fill All Field", toastLength: Toast.LENGTH_SHORT);
+      return;
+    }
+
+    final newProduct = ShopProducts(id, product, unit, price, quantity);
+
+    setState(() {
+      updateProducts.add(newProduct);
+    });
+    ShopProductRequest productRequest =  ShopProductRequest(
+        _categoryController.text,
+        _subCategoryController.text,
+        _getCategoryId(),
+        _getSubCategoryId(),
+        _shopNameController.text,
+        0,
+        updateProducts);
     var data = jsonEncode(
         productRequest
             .toJson());
@@ -315,7 +352,7 @@ class _AddShopProductState extends State<AddShopProduct> {
           onPressed: () => Navigator.of(context).pop(),
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
         ),
-        title: const Text('Add Product', style: TextStyle(color: Colors.white)),
+        title:  Text(widget.shopProducts != null ? 'Update Product' : 'Add Product', style: TextStyle(color: Colors.white)),
       ),
       body: GestureDetector(
            onTap: () {
@@ -328,21 +365,21 @@ class _AddShopProductState extends State<AddShopProduct> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CustomSearchField.buildSearchField(_shopNameController, 'Shop name', Icons.shop, _shopItems, _handleShopSelection,true),
+            CustomSearchField.buildSearchField(_shopNameController, 'Shop name', Icons.shop, _shopItems, _handleShopSelection,true, true),
             const SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
-                  child: CustomSearchField.buildSearchField(_categoryController, 'Category', Icons.category, _categoryItems, _handleCategorySelection,true),
+                  child: CustomSearchField.buildSearchField(_categoryController, 'Category', Icons.category, _categoryItems, _handleCategorySelection,true, true),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: CustomSearchField.buildSearchField(_subCategoryController, 'Sub Category', Icons.category, _subCategoryItems, (String value) {},true),
+                  child: CustomSearchField.buildSearchField(_subCategoryController, 'Sub Category', Icons.category, _subCategoryItems, (String value) {},true, true),
                 ),
               ],
             ),
             const SizedBox(height: 10),
-            CustomSearchField.buildSearchField(_productController, 'Product', Icons.fastfood, _productItems, (String value) {},true),
+            CustomSearchField.buildSearchField(_productController, 'Product', Icons.fastfood, _productItems, (String value) {},true, false),
             const SizedBox(height: 10),
             Row(
               children: [
@@ -351,7 +388,7 @@ class _AddShopProductState extends State<AddShopProduct> {
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: CustomSearchField.buildSearchField(_unitController, 'Unit', Icons.ad_units, _units, (String value) {},true),
+                  child: CustomSearchField.buildSearchField(_unitController, 'Unit', Icons.ad_units, _units, (String value) {},true, true),
                 ),
               ],
             ),
@@ -384,8 +421,12 @@ class _AddShopProductState extends State<AddShopProduct> {
                   child: ElevatedButton(
                     onPressed: (){
                     if (_formKey.currentState!.validate()) {
-                        _addProduct();
-                      }
+                       widget.shopProducts != null ? _updateProduct() : _addProduct() ;
+                      }else{
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Please fill in all fields correctly')),
+                      );
+                    }
                     },
                     style: ElevatedButton.styleFrom(
                      backgroundColor: Colors.green // Text color

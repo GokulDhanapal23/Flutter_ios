@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:searchfield/searchfield.dart';
-import 'package:searchfield/searchfield.dart';
 
 class CustomSearchField extends StatelessWidget {
   final TextEditingController textEditingController;
@@ -12,6 +11,8 @@ class CustomSearchField extends StatelessWidget {
   final ValueChanged<String> onSelect;
   final double height; // Added height parameter
   final bool validate;
+  final bool setInitialValue;
+
   CustomSearchField({
     required this.textEditingController,
     required this.hintText,
@@ -22,41 +23,49 @@ class CustomSearchField extends StatelessWidget {
     required this.onSelect,
     this.height = 45.0, // Default height
     this.validate = false,
-    Key? key, required TextStyle hintTextStyle, required Icon suffixIcon,
-  }) : super(key: key);
+    this.setInitialValue = false,
+    Key? key,
+  }) : super(key: key) {
+    // Set the initial value if provided
+    if (setInitialValue && suggestions.isNotEmpty) {
+      textEditingController.text = suggestions.first.searchKey;
+    }
+  }
 
-  static Widget buildSearchField(TextEditingController controller, String hintText, IconData? icon, List<SearchFieldListItem<String>> suggestions, Function(String) onSelect,bool validation) {
+  static Widget buildSearchField(
+      TextEditingController controller,
+      String hintText,
+      IconData? icon,
+      List<SearchFieldListItem<String>> suggestions,
+      Function(String) onSelect,
+      bool validation,
+      bool setInitialValue,
+      ) {
     return CustomSearchField(
       textEditingController: controller,
       hintText: hintText,
       prefixIcon: Icon(icon, color: Colors.green),
-      suffixIcon: Icon(Icons.arrow_drop_down, color: Colors.green),
       suggestions: suggestions,
       initialValue: suggestions.isNotEmpty ? suggestions.first : null,
       onSelect: onSelect,
-      hintTextStyle: TextStyle(color: Colors.black),
       validate: validation,
+      setInitialValue: setInitialValue,
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
-    // Define the border radius
     final borderRadius = BorderRadius.circular(25); // Adjust the radius as needed
     return Container(
       height: height, // Set the height of the container
       child: SearchField<String>(
         validator: (value) {
-          if (validate) {
-            if (value == null || value.isEmpty) {
-              return 'Please enter $hintText';
-            }
+          if (validate && (value == null || value.isEmpty)) {
+            return 'Please enter $hintText';
           }
           return null; // No validation error
         },
         controller: textEditingController,
-        // hint: hintText,
         dynamicHeight: true,
         maxSuggestionBoxHeight: 200,
         initialValue: initialValue,
@@ -100,11 +109,10 @@ class CustomSearchField extends StatelessWidget {
             borderSide: const BorderSide(color: Colors.redAccent, width: 1.0),
             borderRadius: borderRadius,
           ),
-          // hintText: hintText,
           floatingLabelAlignment: FloatingLabelAlignment.start,
           labelStyle: TextStyle(color: Colors.black),
           contentPadding: EdgeInsets.symmetric(
-            vertical: 12, // Adjust this value to give enough height
+            vertical: 12,
             horizontal: 12,
           ),
         ),

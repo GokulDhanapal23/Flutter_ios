@@ -1,13 +1,13 @@
 class ShopBillProducts{
 
-  late String items;
+  late String item;
   late String units;
   late double price;
   late int quantity;
   late double totalPriceList;
 
   ShopBillProducts(
-      this.items, this.units, this.price, this.quantity, this.totalPriceList);
+      this.item, this.units, this.price, this.quantity, this.totalPriceList);
 
   // @override
   // String toString() {
@@ -15,7 +15,7 @@ class ShopBillProducts{
   // }
   factory ShopBillProducts.fromJson(Map<String, dynamic> json) {
     return ShopBillProducts(
-      json['items'],
+      json['item'],
       json['units'],
       (json['price']),
       (json['quantity']),
@@ -26,7 +26,7 @@ class ShopBillProducts{
 
   Map<String, dynamic> toJson() {
     return {
-      'items': items,
+      'item': item,
       'units': units,
       'price': price,
       'quantity': quantity,

@@ -37,7 +37,13 @@ class _ShopBillingHistoryState extends State<ShopBillingHistory> {
   void initState() {
     super.initState();
     _datePickerController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    getAllShops();
+    getAllShops().then((_) {
+      // Ensure this runs after the shops have been fetched
+      if (shopResponses.isNotEmpty) {
+        _shopNameController.text = shopResponses.first.shopName;
+        getAllBillByDate(_datePickerController.text,_shopNameController.text); // Fetch products after setting the shop name
+      }
+    });
   }
 
   Future<void> getAllShops() async {
@@ -151,7 +157,7 @@ class _ShopBillingHistoryState extends State<ShopBillingHistory> {
                       Icons.shop,
                       _shopItems,
                       _handleShopSelection,
-                      true,
+                      true, true
                     ),
                   ),
                 ],

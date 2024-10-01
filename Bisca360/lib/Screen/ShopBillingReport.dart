@@ -235,9 +235,15 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
   @override
   void initState() {
     super.initState();
-    getAllShops();
     _toDatePickerController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
     _selectedValue = 1;
+    getAllShops().then((_) {
+      // Ensure this runs after the shops have been fetched
+      if (shopResponses.isNotEmpty) {
+        _shopNameController.text = shopResponses.first.shopName;
+        getShopCustomer(_shopNameController.text); // Fetch products after setting the shop name
+      }
+    });
   }
 
   @override
@@ -260,12 +266,12 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CustomSearchField.buildSearchField(_shopNameController, 'Shop Name', Icons.shop, _shopItems, _handleShopSelection,true),
+            CustomSearchField.buildSearchField(_shopNameController, 'Shop Name', Icons.shop, _shopItems, _handleShopSelection,true, true),
 
             const SizedBox(height: 10),
-            CustomSearchField.buildSearchField(_customerController, 'Customer', Icons.person, _shopCustomer, _handleCustomerSelection,false),
+            CustomSearchField.buildSearchField(_customerController, 'Customer', Icons.person, _shopCustomer, _handleCustomerSelection,false, true),
             const SizedBox(height: 10),
-            CustomSearchField.buildSearchField(_reportTypeController, 'Report Type', Icons.note_alt, _reportType, (String value) {},true),
+            CustomSearchField.buildSearchField(_reportTypeController, 'Report Type', Icons.note_alt, _reportType, (String value) {},true, true),
             const SizedBox(height: 5),
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
@@ -370,11 +376,11 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
               child: Row(
                 children: [
                   Expanded(
-                    child: CustomSearchField.buildSearchField(_monthController, 'Month', Icons.calendar_today, _month, (String value) {},false),
+                    child: CustomSearchField.buildSearchField(_monthController, 'Month', Icons.calendar_today, _month, (String value) {},false, false),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: CustomSearchField.buildSearchField(_yearController, 'Year', Icons.calendar_today, _year, (String value) {},false),
+                    child: CustomSearchField.buildSearchField(_yearController, 'Year', Icons.calendar_today, _year, (String value) {},false, false),
                   ),
                 ],
               ),
@@ -384,7 +390,7 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
               child: Row(
                 children: [
                   Expanded(
-                    child: CustomSearchField.buildSearchField(_yearController, 'Year', Icons.calendar_today, _year, (String value) {},false),
+                    child: CustomSearchField.buildSearchField(_yearController, 'Year', Icons.calendar_today, _year, (String value) {},false, false),
                   ),
                 ],
               ),
@@ -413,8 +419,13 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
                   alignment: Alignment.bottomRight,
                   child: ElevatedButton(
                     onPressed: (){
-                      if(_formKey.currentState!.validate())
-                      _downloadReport();
+                      if (_formKey.currentState!.validate()) {
+                        _downloadReport();
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please fill in all fields correctly')),
+                        );
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,

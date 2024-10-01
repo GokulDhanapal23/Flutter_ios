@@ -53,6 +53,8 @@ class _ShopBillingState extends State<ShopBilling> {
   late double totalTaxS;
   late double netTotalS;
 
+  bool _isProductSelected = false;
+
 
   late List<String> mealTime = ['Break Fast', 'Lunch', 'Dinner'];
   late List<String> paymentType = ['Credit', 'Debit', 'Cash'];
@@ -124,6 +126,7 @@ class _ShopBillingState extends State<ShopBilling> {
   }
 
   static String geShopCustomer = '${dotenv.env['BASE_URL'] ?? ""}/shopcustomer/getby/shopname';
+
   Future<void> getShopCustomer(String shopName) async {
     try {
       final encodedShopName = Uri.encodeComponent(shopName);
@@ -148,7 +151,7 @@ class _ShopBillingState extends State<ShopBilling> {
   void _clear(){
     _customerController.clear();
     _productController.clear();
-    _qtyController.setText('1');
+    _qtyController.setText('0');
     billedProducts.clear();
   }
 
@@ -185,6 +188,7 @@ class _ShopBillingState extends State<ShopBilling> {
     }
 
   String? _downloadPath;
+
   Future<void> downloadPdf(BuildContext context, final url, String fileName) async {
     try{
       print('URL ; $url');
@@ -210,6 +214,7 @@ class _ShopBillingState extends State<ShopBilling> {
   }
 
   late final Shopresponse selectedShopData;
+
   void _handleShopSelection(String selectedShop) {
     _productController.clear();
     getShopProducts(selectedShop);
@@ -220,6 +225,7 @@ class _ShopBillingState extends State<ShopBilling> {
   }
 
   late var selectedProductData;
+
   void _handleProductSelection(String selectedProduct) {
     String productName = selectedProduct.trim().split('(')[0];
     print('ProductName: $productName');
@@ -229,9 +235,15 @@ class _ShopBillingState extends State<ShopBilling> {
     if (selectedProductData != null) {
       _priceController.text = selectedProductData.price.toString();
       _qtyController.text = '1';
+      setState(() {
+        _isProductSelected = true; // Mark the product as selected
+      });
     } else {
       _priceController.clear();
       _qtyController.clear();
+      setState(() {
+        _isProductSelected = false; // Mark the product as selected
+      });
     }
     _recalculateTotalPrice();
   }
@@ -245,6 +257,7 @@ class _ShopBillingState extends State<ShopBilling> {
       _priceController.text = totalPrice.toStringAsFixed(2);
     });
   }
+
   double get _cardTotalPrice {
     totalPriceS = billedProducts
         .map((product) => product.totalPriceList)
@@ -266,14 +279,19 @@ class _ShopBillingState extends State<ShopBilling> {
       return totalTaxS;
   }
 
-
-
   @override
   void initState() {
     super.initState();
-    getAllShops();
+    getAllShops().then((_) {
+      // Ensure this runs after the shops have been fetched
+      if (shopResponses.isNotEmpty) {
+        _shopNameController.text = shopResponses.first.shopName;
+        getShopProducts(_shopNameController.text); // Fetch products after setting the shop name
+        getShopCustomer(_shopNameController.text);
+      }
+    });
     _clear();
-    _qtyController.text = '1';
+    _qtyController.text = '0';
     _datePickerController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
     _qtyController.addListener(_recalculateTotalPrice);
   }
@@ -367,6 +385,7 @@ class _ShopBillingState extends State<ShopBilling> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all fields correctly')),
       );
+      print('Please fill in all fields correctly');
       return;
     }
 
@@ -380,7 +399,7 @@ class _ShopBillingState extends State<ShopBilling> {
 
     // Clear the input fields
     _productController.clear();
-    _qtyController.text = '1'; // Use text instead of setText for consistency
+    _qtyController.text = '0'; // Use text instead of setText for consistency
     _priceController.clear();
   }
 
@@ -685,7 +704,7 @@ class _ShopBillingState extends State<ShopBilling> {
                     Icons.shop,
                     _shopItems,
                     _handleShopSelection,
-                    true
+                    true, true
                 ),
                 const SizedBox(height: 10),
                 Row(
@@ -708,7 +727,7 @@ class _ShopBillingState extends State<ShopBilling> {
                           Icons.category,
                           _mealTime,
                               (String value) {},
-                          true
+                          true, true
                       ),
                     ),
                   ],
@@ -720,7 +739,7 @@ class _ShopBillingState extends State<ShopBilling> {
                     Icons.person,
                     _shopCustomer,
                         (String value) {},
-                    false
+                    false, true
                 ),
                 const SizedBox(height: 10),
                 CustomSearchField.buildSearchField(
@@ -729,8 +748,9 @@ class _ShopBillingState extends State<ShopBilling> {
                     Icons.fastfood,
                     _productItems,
                     _handleProductSelection,
-                    true
+                    true, false
                 ),
+              if (_isProductSelected) ...[
                 const SizedBox(height: 10),
                 Row(
                   children: [
@@ -771,7 +791,7 @@ class _ShopBillingState extends State<ShopBilling> {
                       ),
                     ),
                   ],
-                ),
+                ),],
                 const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -783,7 +803,13 @@ class _ShopBillingState extends State<ShopBilling> {
                         onPressed: () {
                           if (_formKey.currentState!.validate()) {
                             _billProduct();
-                            setState(() {}); // Trigger a rebuild
+                            setState(() {
+                              _isProductSelected = false;
+                            }); // Trigger a rebuild
+                          }else{
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Please fill in all fields correctly')),
+                            );
                           }
                         },
                         style: ElevatedButton.styleFrom(
@@ -814,15 +840,15 @@ class _ShopBillingState extends State<ShopBilling> {
                           child: Text('S.No', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                         )),
                         Expanded(child: Padding(
-                          padding: EdgeInsets.only(left: 30),
+                          padding: EdgeInsets.only(left: 0),
                           child: Text('Products', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                         )),
                         Expanded(child: Padding(
-                          padding: EdgeInsets.only(left: 90),
+                          padding: EdgeInsets.only(left: 30),
                           child: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                         )),
                         Expanded(child: Padding(
-                          padding: EdgeInsets.only(left: 40),
+                          padding: EdgeInsets.only(left: 0),
                           child: Text('Price', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                         )),
                       ],
@@ -847,7 +873,7 @@ class _ShopBillingState extends State<ShopBilling> {
                               flex: 3,
                               child: Padding(
                                 padding: const EdgeInsets.all(8.0),
-                                child: Text(product.items, style: TextStyle(fontSize: 15)),
+                                child: Text(product.item, style: TextStyle(fontSize: 15)),
                               ),
                             ),
                             Expanded(
@@ -1018,7 +1044,7 @@ class _ShopBillingState extends State<ShopBilling> {
         ),
         Expanded(
           flex: 6,
-          child:CustomSearchField.buildSearchField(_paymentTypeController, 'Select', null, _paymentType, (String value) {},true),
+          child:CustomSearchField.buildSearchField(_paymentTypeController, 'Select', null, _paymentType, (String value) {},true, true),
         ),
       ],
     );
