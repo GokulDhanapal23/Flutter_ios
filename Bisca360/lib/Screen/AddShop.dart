@@ -296,7 +296,7 @@ class _AddShopState extends State<AddShop> {
             AppTextFieldForm(
               _gstController,
               "GST Number",
-              const Icon(Icons.percent, color: Colors.green),
+              const Icon(Icons.numbers, color: Colors.green),
               TextInputAction.next,
               TextInputType.text,
               true,
@@ -524,7 +524,6 @@ class _AddShopState extends State<AddShop> {
                             decoration: InputDecoration(
                               hintText: 'Value for $taxType',
                             ),
-                            keyboardType: TextInputType.number,
                           ),
                         ),
                         const SizedBox(height: 8.0),

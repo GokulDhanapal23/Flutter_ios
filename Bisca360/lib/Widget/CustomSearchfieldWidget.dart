@@ -27,9 +27,9 @@ class CustomSearchField extends StatelessWidget {
     Key? key,
   }) : super(key: key) {
     // Set the initial value if provided
-    if (setInitialValue && suggestions.isNotEmpty) {
-      textEditingController.text = suggestions.first.searchKey;
-    }
+      if (setInitialValue && suggestions.isNotEmpty ) {
+        textEditingController.text = suggestions.first.searchKey;
+      }
   }
 
   static Widget buildSearchField(

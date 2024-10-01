@@ -177,9 +177,16 @@ class _AddShopProductState extends State<AddShopProduct> {
     if(_categoryController.text.isNotEmpty){
       getAllSubCategories(_getCategoryId());
     }
-    super.initState();
-    getAllShops();
+    getAllShops().then((_) {
+      // Ensure this runs after the shops have been fetched
+      if (shopResponses.isNotEmpty) {
+        _shopNameController.text = shopResponses.first.shopName;
+        getAllCategories(_shopNameController.text); // Fetch products after setting the shop name
+        getAllSubCategories(_getCategoryId());
+      }
+    });
     getUnits();
+    super.initState();
   }
 
   Future<void> getAllShops() async {
@@ -314,9 +321,10 @@ class _AddShopProductState extends State<AddShopProduct> {
   }
 
   void _handleCategorySelection(String selectedCategory) {
-    int categoryId = _getCategoryId();
-    getAllSubCategories(categoryId);
+    int categoryId = _getCategoryId(); // Get the ID of the selected category
+      getAllSubCategories(categoryId);
   }
+
 
   @override
   Widget build(BuildContext context) {

@@ -834,24 +834,24 @@ class _ShopBillingState extends State<ShopBilling> {
                     height: 24,
                     color: Colors.green,
                     child: const Row(
-                      children: [
-                        Expanded(child: Padding(
-                          padding: EdgeInsets.only(left: 6),
-                          child: Text('S.No', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                        )),
-                        Expanded(child: Padding(
-                          padding: EdgeInsets.only(left: 0),
-                          child: Text('Products', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                        )),
-                        Expanded(child: Padding(
-                          padding: EdgeInsets.only(left: 30),
-                          child: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                        )),
-                        Expanded(child: Padding(
-                          padding: EdgeInsets.only(left: 0),
-                          child: Text('Price', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                        )),
-                      ],
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(left: 6),
+                            child: Expanded(child: Text('S.No', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(left: 30),
+                            child: Expanded(child: Text('Products', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(left: 90),
+                            child: Expanded(child: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(left: 40),
+                            child: Expanded(child: Text('Price', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                          ),
+                        ],
                     ),
                   ),
                   const SizedBox(height: 5),
