@@ -107,7 +107,7 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
     }
   }
 
-  late final Shopresponse selectedShopData;
+  late Shopresponse selectedShopData;
   void _handleShopSelection(String selectedShop) {
     getShopCustomer(selectedShop);
     selectedShopData = shopResponses.firstWhere(
@@ -179,11 +179,15 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
   }
   }
   void _downloadReport(){
+    var selectedShop=_shopNameController.text;
+    selectedShopData = shopResponses.firstWhere(
+          (shop) => shop.shopName == selectedShop,
+    );
     String fromDate;
     String toDate;
     String month;
     String year;
-    int customerId;
+    int customerId = 0;
     String shopName;
     String type;
     if(_selectedValue==1){
@@ -203,13 +207,22 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
       year = _yearController.text;
     }
     shopName = selectedShopData.shopName;
-    customerId = selectedCustomerData.id;
+    if(_customerController.text.isNotEmpty){
+      customerId = selectedCustomerData.id;
+    }
     final encodedFromDate = Uri.encodeComponent(fromDate);
     final encodedToDate = Uri.encodeComponent(toDate);
     final encodedMonth = Uri.encodeComponent(month);
     final encodedYear = Uri.encodeComponent(year);
     final encodedShopName = Uri.encodeComponent(shopName);
     if(_reportTypeController.text=='Invoice'){
+      if(_customerController.text.isEmpty){
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please fill customer correctly')),
+        );
+        print('Please fill customer correctly');
+        return;
+      }
       final url = Uri.parse('${Apis.shopInvoicePdf}?fromDate=$encodedFromDate&toDate=$encodedToDate&month=$encodedMonth&year=$encodedYear&customerId=$customerId&shopName=$encodedShopName');
       String frtTwoLet = shopName.substring(0,3);
       String fileName = '$frtTwoLet-${DateTime.now()}';

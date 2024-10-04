@@ -37,6 +37,7 @@ class _ShopBillingState extends State<ShopBilling> {
   late TextEditingController _datePickerController = TextEditingController();
   final TextEditingController _mealTimeController = TextEditingController();
   final TextEditingController _paymentTypeController = TextEditingController();
+  final TextEditingController _discountController = TextEditingController();
 
   late List<Shopresponse> shopResponses = [];
   late List<ShoppProductResponse> shopProducts = [];
@@ -840,24 +841,24 @@ class _ShopBillingState extends State<ShopBilling> {
                     height: 24,
                     color: Colors.green,
                     child: const Row(
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.only(left: 6),
-                            child: Expanded(child: Text('S.No', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(left: 30),
-                            child: Expanded(child: Text('Products', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(left: 90),
-                            child: Expanded(child: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(left: 40),
-                            child: Expanded(child: Text('Price', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-                          ),
-                        ],
+                      children: [
+                        Expanded(child: Padding(
+                          padding: EdgeInsets.only(left: 6),
+                          child: Text('S.No', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                        )),
+                        Expanded(child: Padding(
+                          padding: EdgeInsets.only(left: 0),
+                          child: Text('Products', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                        )),
+                        Expanded(child: Padding(
+                          padding: EdgeInsets.only(left: 30),
+                          child: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                        )),
+                        Expanded(child: Padding(
+                          padding: EdgeInsets.only(left: 0),
+                          child: Text('Price', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                        )),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 5),
@@ -917,6 +918,8 @@ class _ShopBillingState extends State<ShopBilling> {
                           _buildRow('Total Price', '', '₹', _cardTotalPrice.toString()),
                           _buildDivider(),
                           _buildRow('Net Amount', '', '₹', (_cardTotalTax + _cardTotalPrice).toString()),
+                          // _buildDivider(),
+                          // _buildTextField(_discountController, 'Discount', TextInputType.text),
                           _buildDivider(),
                           _buildRow('Grand Total', '', '₹', (_cardTotalTax + _cardTotalPrice).toString()),
                           _buildDivider(),
@@ -964,26 +967,25 @@ class _ShopBillingState extends State<ShopBilling> {
   }
 
 
-  Widget _buildTextField(TextEditingController controller, String labelText, IconData icon, TextInputType keyboardType) {
-    return SizedBox(
-      height: 45,
-      child: TextField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: labelText,
-          labelStyle: TextStyle(color: Colors.black),
-          prefixIcon: Icon(icon, color: Colors.green),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
+  Widget _buildTextField(TextEditingController controller, String labelText, TextInputType keyboardType) {
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.5, // Half of the screen width
+      child: SizedBox(
+        height: 30,
+        child: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: labelText,
+            labelStyle: TextStyle(color: Colors.black),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            contentPadding: EdgeInsets.symmetric(vertical: 14),
+            filled: true,
+            fillColor: Colors.white,
           ),
-          contentPadding: EdgeInsets.symmetric(vertical: 14),
-          filled: true,
-          fillColor: Colors.white,
+          keyboardType: keyboardType,
         ),
-        keyboardType: keyboardType,
-        inputFormatters: [
-          FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
-        ],
       ),
     );
   }
@@ -1065,6 +1067,7 @@ class _ShopBillingState extends State<ShopBilling> {
       height: 10,
     );
   }
+
 
 
 }
