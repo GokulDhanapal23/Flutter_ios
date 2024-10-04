@@ -9,6 +9,7 @@ class ShopSalesDetailsRequest {
   late double totalPrice;
   late double totalTax;
   late double netTotalPrice;
+  late double grandTotalPrice;
   late String billDate;
   late String dayTime;
   late String customerName;
@@ -23,6 +24,7 @@ class ShopSalesDetailsRequest {
       this.totalPrice,
       this.totalTax,
       this.netTotalPrice,
+      this.grandTotalPrice,
       this.billDate,
       this.dayTime,
       this.customerName,
@@ -41,6 +43,7 @@ class ShopSalesDetailsRequest {
       (json['totalPrice'] as num).toDouble(),
       (json['totalTax'] as num).toDouble(),
       (json['netTotalPrice'] as num).toDouble(),
+      (json['grandTotalPrice'] as num).toDouble(),
       json['billDate'] as String,
       json['dayTime'] as String,
       json['customerName'] as String,
@@ -58,6 +61,7 @@ class ShopSalesDetailsRequest {
       'totalPrice': totalPrice,
       'totalTax': totalTax,
       'netTotalPrice': netTotalPrice,
+      'grandTotalPrice': grandTotalPrice,
       'billDate': billDate,
       'dayTime': dayTime,
       'customerName': customerName,
@@ -68,6 +72,6 @@ class ShopSalesDetailsRequest {
 
   @override
   String toString() {
-    return '{id: $id, shopName: $shopName, paymentType: $paymentType, listSellingData: $listSellingData, totalPrice: $totalPrice, totalTax: $totalTax, netTotalPrice: $netTotalPrice, billDate: $billDate, dayTime: $dayTime, customerName: $customerName, mobileNumber: $mobileNumber, shopCustomerId: $shopCustomerId}';
+    return '{id: $id, shopName: $shopName, paymentType: $paymentType, listSellingData: $listSellingData, totalPrice: $totalPrice, totalTax: $totalTax, netTotalPrice: $netTotalPrice, grandTotalPrice: $grandTotalPrice, billDate: $billDate, dayTime: $dayTime, customerName: $customerName, mobileNumber: $mobileNumber, shopCustomerId: $shopCustomerId}';
   }
 }

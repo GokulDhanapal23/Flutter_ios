@@ -43,7 +43,7 @@ class MyHttpOverrides extends HttpOverrides {
 
 void main() async{
 
-  const varName = String.fromEnvironment('env', defaultValue: 'ist');
+  const varName = String.fromEnvironment('env', defaultValue: 'prd');
   print('profile $varName');
   await dotenv.load(fileName: Environment.load(varName));
   WidgetsFlutterBinding.ensureInitialized();

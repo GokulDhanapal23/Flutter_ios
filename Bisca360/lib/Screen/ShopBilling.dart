@@ -213,10 +213,11 @@ class _ShopBillingState extends State<ShopBilling> {
     }
   }
 
-  late final Shopresponse selectedShopData;
+  late  Shopresponse selectedShopData;
 
   void _handleShopSelection(String selectedShop) {
     _productController.clear();
+    billedProducts.clear();
     getShopProducts(selectedShop);
     getShopCustomer(selectedShop);
     selectedShopData = shopResponses.firstWhere(
@@ -326,6 +327,7 @@ class _ShopBillingState extends State<ShopBilling> {
       totalPriceS,
       totalTaxS,
       netTotalS,
+      netTotalS,
       _datePickerController.text,
       _mealTimeController.text,
       _customerController.text,
@@ -362,6 +364,10 @@ class _ShopBillingState extends State<ShopBilling> {
     //   _priceController.clear();
     // }
   void _billProduct() {
+    var selectedShop=_shopNameController.text;
+    selectedShopData = shopResponses.firstWhere(
+          (shop) => shop.shopName == selectedShop,
+    );
     final String item = _productController.text.trim(); // Trim whitespace
     final int quantity = int.tryParse(_qtyController.text) ?? 0;
     final double price = double.tryParse(selectedProductData.price.toString()) ?? 0.0;
@@ -911,6 +917,8 @@ class _ShopBillingState extends State<ShopBilling> {
                           _buildRow('Total Price', '', '₹', _cardTotalPrice.toString()),
                           _buildDivider(),
                           _buildRow('Net Amount', '', '₹', (_cardTotalTax + _cardTotalPrice).toString()),
+                          _buildDivider(),
+                          _buildRow('Grand Total', '', '₹', (_cardTotalTax + _cardTotalPrice).toString()),
                           _buildDivider(),
                           _buildPaymentTypeRow(),
                         ],
