@@ -40,6 +40,7 @@ class _AddShopProductState extends State<AddShopProduct> {
   List<ShopProducts> addedProducts = [];
   List<ShopProducts> updateProducts = [];
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  List<SearchFieldListItem<String>> _productItems = [];
 
   void _addProduct() {
     var id = 0;
@@ -178,7 +179,6 @@ class _AddShopProductState extends State<AddShopProduct> {
       getAllSubCategories(_getCategoryId());
     }
     getAllShops().then((_) {
-      // Ensure this runs after the shops have been fetched
       if (shopResponses.isNotEmpty) {
         _shopNameController.text = shopResponses.first.shopName;
         getAllCategories(_shopNameController.text); // Fetch products after setting the shop name
@@ -303,11 +303,11 @@ class _AddShopProductState extends State<AddShopProduct> {
         .toList();
   }
 
-  List<SearchFieldListItem<String>> get _productItems {
-    return shopProducts
-        .map((product) => SearchFieldListItem<String>(product.product))
-        .toList();
-  }
+  // List<SearchFieldListItem<String>> get _productItems {
+  //   return shopProducts
+  //       .map((product) => SearchFieldListItem<String>(product.product))
+  //       .toList();
+  // }
 
   List<SearchFieldListItem<String>> get _units {
     return unitResponses
@@ -320,10 +320,37 @@ class _AddShopProductState extends State<AddShopProduct> {
     getAllCategories(selectedShop);
   }
 
+
   void _handleCategorySelection(String selectedCategory) {
-    int categoryId = _getCategoryId(); // Get the ID of the selected category
+    _productController.clear();
+    var selectedCategoryItem = categories.firstWhere(
+          (category) => category.categoryName == selectedCategory,
+    );
+
+    if (selectedCategoryItem != null) {
+      updateProductItems(selectedCategory);
+      int categoryId = _getCategoryId();
       getAllSubCategories(categoryId);
+    }
   }
+
+  void updateProductItems(String selectedCategory) {
+    var selectedCategoryItem = categories.firstWhere(
+          (category) => category.categoryName == selectedCategory,
+    );
+    if (selectedCategoryItem != null) {
+      setState(() {
+        _productItems = selectedCategoryItem.productName
+            .map((name) => SearchFieldListItem<String>(name))
+            .toList();
+      });
+    } else {
+      setState(() {
+        _productItems = [];
+      });
+    }
+  }
+
 
 
   @override
@@ -373,21 +400,23 @@ class _AddShopProductState extends State<AddShopProduct> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CustomSearchField.buildSearchField(_shopNameController, 'Shop name', Icons.shop, _shopItems, _handleShopSelection,true, true),
+            CustomSearchField.buildSearchField(_shopNameController, 'Shop name', Icons.shop, _shopItems, _handleShopSelection,false,true, true,false),
             const SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
-                  child: CustomSearchField.buildSearchField(_categoryController, 'Category', Icons.category, _categoryItems, _handleCategorySelection,true, true),
+                  child: CustomSearchField.buildSearchField(_categoryController, 'Category', Icons.category, _categoryItems, _handleCategorySelection,false,true, true,true),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: CustomSearchField.buildSearchField(_subCategoryController, 'Sub Category', Icons.category, _subCategoryItems, (String value) {},true, true),
+                  child: CustomSearchField.buildSearchField(_subCategoryController, 'Sub Category', Icons.category, _subCategoryItems, (String value) {},false,true, true,true),
                 ),
               ],
             ),
             const SizedBox(height: 10),
-            CustomSearchField.buildSearchField(_productController, 'Product', Icons.fastfood, _productItems, (String value) {},true, false),
+            CustomSearchField.buildSearchField(_productController, 'Product', Icons.fastfood,
+                _productItems,
+                (String value) {},false,true, false,true),
             const SizedBox(height: 10),
             Row(
               children: [
@@ -396,7 +425,7 @@ class _AddShopProductState extends State<AddShopProduct> {
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: CustomSearchField.buildSearchField(_unitController, 'Unit', Icons.ad_units, _units, (String value) {},true, true),
+                  child: CustomSearchField.buildSearchField(_unitController, 'Unit', Icons.ad_units, _units, (String value) {},false,true, true,true),
                 ),
               ],
             ),

@@ -18,11 +18,37 @@ class Shop extends StatefulWidget {
 
 class _ShopState extends State<Shop> {
   late List<Shopresponse> shopResponses = [];
-
+  late List<Shopresponse> filteredShops = [];
+  final TextEditingController _searchController = TextEditingController();
+  bool _isSearching = false;
   @override
   void initState() {
     super.initState();
     getAllShops();
+  }
+
+  void _filterShops(String query) {
+    final filtered = shopResponses.where((shop) {
+      return shop.shopName.toLowerCase().contains(query.toLowerCase()) ||
+          shop.shopType.toLowerCase().contains(query.toLowerCase());
+    }).toList();
+    setState(() {
+      filteredShops = filtered;
+    });
+  }
+
+  void _startSearch() {
+    setState(() {
+      _isSearching = true;
+    });
+  }
+
+  void _stopSearch() {
+    setState(() {
+      _isSearching = false;
+      _searchController.clear();
+      filteredShops = shopResponses; // Reset to all shops
+    });
   }
 
   @override
@@ -38,7 +64,32 @@ class _ShopState extends State<Shop> {
             Navigator.of(context).pop();
           },
         ),
-        title: const Text('Shops', style: TextStyle(color: Colors.white)),
+        title: _isSearching
+            ? TextField(
+          controller: _searchController,
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(
+            hintText: 'Search...',
+            border: InputBorder.none,
+            hintStyle: TextStyle(color: Colors.white),
+          ),
+          onChanged: (value) {
+            _filterShops(value);
+          },
+        )
+
+            : const Text('Shops', style: TextStyle(color: Colors.white)),
+        actions: [
+          _isSearching
+              ? IconButton(
+            icon: const Icon(Icons.clear, color: Colors.white),
+            onPressed: _stopSearch,
+          )
+              : IconButton(
+            icon: const Icon(Icons.search, color: Colors.white),
+            onPressed: _startSearch,
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -52,63 +103,62 @@ class _ShopState extends State<Shop> {
         backgroundColor: Colors.green,
         child: const Icon(Icons.add, color: Colors.white),
       ),
-      body: shopResponses.isEmpty
+      body: filteredShops.isEmpty && shopResponses.isEmpty
           ? const Center(child: Text('No Shops', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)))
           : ListView.builder(
-        itemCount: shopResponses.length,
+        itemCount: filteredShops.isEmpty ? shopResponses.length : filteredShops.length,
         shrinkWrap: true,
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         itemBuilder: (context, index) {
-          final shop = shopResponses[index];
+          final shop = filteredShops.isEmpty ? shopResponses[index] : filteredShops[index];
           final id = shop.id!;
-          String  uId ='S$id';
+          String uId = 'S$id';
           const docType = 'profile';
           return FutureBuilder<Uint8List?>(
-            future: ImageService.fetchImage(uId , docType),
+            future: ImageService.fetchImage(uId, docType),
             builder: (context, snapshot) {
-                final imageData = snapshot.data;
-                return Card(
-                  color: Colors.white,
-                  shadowColor: Colors.green,
-                  margin: const EdgeInsets.symmetric(vertical: 3, horizontal: 12),
-                  elevation: 3,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+              final imageData = snapshot.data;
+              return Card(
+                color: Colors.white,
+                shadowColor: Colors.green,
+                margin: const EdgeInsets.symmetric(vertical: 3, horizontal: 12),
+                elevation: 3,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.all(12),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AddShop(shopResponse: shop),
+                      ),
+                    );
+                  },
+                  title: Text(
+                    shop.shopName,
+                    style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(12),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AddShop(shopResponse: shop),
-                        ),
-                      );
+                  subtitle: Text(
+                    shop.shopType,
+                    style: const TextStyle(fontSize: 14, color: Colors.black54),
+                  ),
+                  leading: CircleAvatar(
+                    radius: 30,
+                    backgroundImage: imageData != null
+                        ? MemoryImage(imageData)
+                        : const AssetImage('assets/user_png.png'),
+                  ),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.phone, color: Colors.green),
+                    onPressed: () {
+                      // Handle call action
                     },
-                    title: Text(
-                      shop.shopName,
-                      style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: Text(
-                      shop.shopType,
-                      style: const TextStyle(fontSize: 14, color: Colors.black54),
-                    ),
-                    leading: CircleAvatar(
-                      radius: 30,
-                      backgroundImage: imageData != null
-                          ? MemoryImage(imageData)
-                          : const NetworkImage(
-                          'https://cdn-icons-png.flaticon.com/512/3607/3607444.png'),
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.phone, color: Colors.green),
-                      onPressed: () {
-                        // Handle call action
-                      },
-                    ),
                   ),
-                );
+                ),
+              );
             },
           );
         },
@@ -127,6 +177,7 @@ class _ShopState extends State<Shop> {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
           shopResponses = data.map((item) => Shopresponse.fromJson(item)).toList();
+          filteredShops = shopResponses; // Initially, show all shops
         });
       } else {
         print('Failed to load shops');
@@ -136,4 +187,29 @@ class _ShopState extends State<Shop> {
     }
   }
 
+  void showSearchDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Search Shops'),
+          content: TextField(
+            controller: _searchController,
+            decoration: const InputDecoration(hintText: 'Enter shop name or type'),
+            onChanged: (value) {
+              _filterShops(value);
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }

@@ -11,6 +11,7 @@ class Shopresponse{
   late String shopType;
   late String description;
   late bool taxEnable;
+  late bool includedTax;
   late List<OwnerTaxResponse> listOwnerTaxResponse;
   late String gstNumber;
   late var projectId;
@@ -27,6 +28,7 @@ class Shopresponse{
       this.shopType,
       this.description,
       this.taxEnable,
+      this.includedTax,
       this.listOwnerTaxResponse,
       this.gstNumber,
       this.panNumber,
@@ -36,7 +38,7 @@ class Shopresponse{
 
   @override
   String toString() {
-    return 'Shopresponse{id: $id, shopName: $shopName, ownerId: $ownerId, active: $active, contactNumber: $contactNumber, profileUri: $profileUri, address: $address, shopType: $shopType, description: $description, taxEnable: $taxEnable, listOwnerTaxResponse: $listOwnerTaxResponse, gstNumber: $gstNumber, panNumber: $panNumber, rounding: $rounding, projectId: $projectId, projectName: $projectName}';
+    return 'Shopresponse{id: $id, shopName: $shopName, ownerId: $ownerId, active: $active, contactNumber: $contactNumber, profileUri: $profileUri, address: $address, shopType: $shopType, description: $description, taxEnable: $taxEnable, includedTax: $includedTax, listOwnerTaxResponse: $listOwnerTaxResponse, gstNumber: $gstNumber, panNumber: $panNumber, rounding: $rounding, projectId: $projectId, projectName: $projectName}';
   }
 
   Shopresponse.fromJson(Map<String, dynamic> json)
@@ -50,6 +52,7 @@ class Shopresponse{
         shopType = json['shopType'] ?? '',
         description = json['description'] ?? '',
         taxEnable = json['taxEnable'] ?? false,
+        includedTax = json['includedTax'] ?? false,
         listOwnerTaxResponse = (json['listOwnerTaxResponse'] as List<dynamic>?)
             ?.map((e) => OwnerTaxResponse.fromJson(e as Map<String, dynamic>))
             .toList() ?? [],

@@ -10,6 +10,8 @@ class ShopRequest{
   late String taxType;
   late var projectId;
   late String? projectName;
+  late bool includedTax;
+  late String usersPermissions;
 
 
   ShopRequest(
@@ -26,11 +28,14 @@ class ShopRequest{
       this.panNumber,
       this.rounding,
       this.projectId,
-      this.projectName);
+      this.projectName,
+      this.includedTax,
+      this.usersPermissions,
+      );
 
   @override
   String toString() {
-    return '{id: $id, shopName: $shopName, active: $active, address: $address, contactNumber: $contactNumber, shopType: $shopType, description: $description, taxEnable: $taxEnable, taxType: $taxType, gstNumber: $gstNumber, panNumber: $panNumber, rounding: $rounding,projectId:$projectId, projectName:$projectName}';
+    return '{id: $id, shopName: $shopName, active: $active, address: $address, contactNumber: $contactNumber, shopType: $shopType, description: $description, taxEnable: $taxEnable, taxType: $taxType, gstNumber: $gstNumber, panNumber: $panNumber, rounding: $rounding,projectId:$projectId, projectName:$projectName, includedTax:$includedTax, usersPermissions:$usersPermissions}';
   }
 
   late String? gstNumber;
@@ -53,6 +58,8 @@ class ShopRequest{
       'rounding': rounding,
       'projectId': projectId,
       'projectName': projectName!.isNotEmpty ? projectName :'',
+      'includedTax': includedTax,
+      'usersPermissions': usersPermissions,
     };
   }
 }

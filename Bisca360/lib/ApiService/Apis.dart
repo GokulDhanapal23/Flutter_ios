@@ -40,6 +40,10 @@ class Apis{
   static String login = '${dotenv.env['BASE_URL'] ?? ""}/user/signin';
 
   static String getAllShop = '${dotenv.env['BASE_URL'] ?? ""}/shop/get';
+
+  static String getSupplierAndChairNo = '${dotenv.env['BASE_URL'] ?? ""}/shop/get/employee/seating';
+
+  static String getActiveShop = '${dotenv.env['BASE_URL'] ?? ""}/shop/get/active';
   static String saveShop = '${dotenv.env['BASE_URL'] ?? ""}/shop/save';
   static String saveShopProduct = '${dotenv.env['BASE_URL'] ?? ""}/shop/product/save';
 
@@ -62,7 +66,17 @@ class Apis{
   static String shopInvoicePdf = '${dotenv.env['BASE_URL'] ?? ""}/report/customer/invoice/pdf';
   static String shopBillPdf = '${dotenv.env['BASE_URL'] ?? ""}/shopsalesdetails/get/bill/invoice';
 
+  static String shopSalesSearch = '${dotenv.env['BASE_URL'] ?? ""}/shopsalesdetails/get/shopSales/search';
+
   static String shopSummary= '${dotenv.env['BASE_URL'] ?? ""}/report/customer/billing/';
+
+  static String getLastBillNo = '${dotenv.env['BASE_URL'] ?? ""}/shopsalesdetails/get/last/bill';
+
+  static String getDeleteRemarks = '${dotenv.env['BASE_URL'] ?? ""}/shopsalesdetails/bill/delete/remarks';
+
+  static String deleteLastBill = '${dotenv.env['BASE_URL'] ?? ""}/shopsalesdetails/bill/delete';
+
+  static String getProject = '${dotenv.env['BASE_URL'] ?? ""}/site-details/get';
 
 
   static Future<void> getToken() async {

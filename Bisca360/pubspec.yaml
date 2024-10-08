@@ -81,10 +81,8 @@ flutter:
 
   assets:
     - assets/
-    - assets/cert/certificate.crt
-    - assets/cert/bisca.crt
-    - assets/cert/private.key
-    - assets/user_png.png
+    - assets/cert/cert.crt
+    - assets/cert/bisca.key
     - .env
     - .env.dev
     - .env.ist

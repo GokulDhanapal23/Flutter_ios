@@ -125,7 +125,7 @@ class _CustomersState extends State<Customers> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              CustomSearchField.buildSearchField(_shopNameController, 'Shop Name', Icons.shop, _shopItems, _handleShopSelection,false, true),
+              CustomSearchField.buildSearchField(_shopNameController, 'Shop Name', Icons.shop, _shopItems, _handleShopSelection,false,false, true,false),
               const SizedBox(height: 10),
               Expanded(
                 child: shopCustomer.isEmpty

@@ -12,6 +12,7 @@ class CustomSearchField extends StatelessWidget {
   final double height; // Added height parameter
   final bool validate;
   final bool setInitialValue;
+  final bool allowManualInput;
 
   CustomSearchField({
     required this.textEditingController,
@@ -24,6 +25,7 @@ class CustomSearchField extends StatelessWidget {
     this.height = 45.0, // Default height
     this.validate = false,
     this.setInitialValue = false,
+    this.allowManualInput = true,
     Key? key,
   }) : super(key: key) {
     // Set the initial value if provided
@@ -38,18 +40,21 @@ class CustomSearchField extends StatelessWidget {
       IconData? icon,
       List<SearchFieldListItem<String>> suggestions,
       Function(String) onSelect,
+      bool enabled,
       bool validation,
       bool setInitialValue,
+      bool allowManualInput,
       ) {
     return CustomSearchField(
       textEditingController: controller,
       hintText: hintText,
       prefixIcon: Icon(icon, color: Colors.green),
       suggestions: suggestions,
-      initialValue: suggestions.isNotEmpty ? suggestions.first : null,
+      initialValue: suggestions.isNotEmpty &&  setInitialValue? suggestions.first : null,
       onSelect: onSelect,
       validate: validation,
       setInitialValue: setInitialValue,
+      allowManualInput: allowManualInput,
     );
   }
 
@@ -66,6 +71,7 @@ class CustomSearchField extends StatelessWidget {
           return null; // No validation error
         },
         controller: textEditingController,
+        inputType: allowManualInput ? TextInputType.text : TextInputType.none,
         dynamicHeight: true,
         maxSuggestionBoxHeight: 200,
         initialValue: initialValue,
@@ -85,7 +91,10 @@ class CustomSearchField extends StatelessWidget {
         textInputAction: TextInputAction.done,
         searchInputDecoration: SearchInputDecoration(
           labelText: hintText,
-          prefixIcon: prefixIcon,
+            prefixIcon: prefixIcon ?? null,
+          contentPadding: prefixIcon != null
+              ? const EdgeInsets.symmetric(vertical: 12, horizontal: 12)
+              : const EdgeInsets.symmetric(vertical: 12, horizontal: 0),
           suffixIcon: Icon(Icons.arrow_drop_down, color: Colors.green),
           filled: true,
           fillColor: Colors.white,
@@ -111,10 +120,10 @@ class CustomSearchField extends StatelessWidget {
           ),
           floatingLabelAlignment: FloatingLabelAlignment.start,
           labelStyle: TextStyle(color: Colors.black),
-          contentPadding: EdgeInsets.symmetric(
-            vertical: 12,
-            horizontal: 12,
-          ),
+          // contentPadding: EdgeInsets.symmetric(
+          //   vertical: 12,
+          //   horizontal: 12,
+          // ),
         ),
       ),
     );

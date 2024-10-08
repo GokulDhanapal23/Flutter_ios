@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:bisca360/Response/ProjectResponse.dart';
 import 'package:bisca360/Response/TaxResponse.dart';
 import 'package:bisca360/Service/ImageService.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +35,7 @@ class AddShop extends StatefulWidget {
 class _AddShopState extends State<AddShop> {
   final TextEditingController _shopNameController = TextEditingController();
   final TextEditingController _shopTypeController = TextEditingController();
+  final TextEditingController _projectController = TextEditingController();
   final TextEditingController _mobileNumberController = TextEditingController();
   final TextEditingController _gstController = TextEditingController();
   final TextEditingController _taxController = TextEditingController();
@@ -42,14 +44,18 @@ class _AddShopState extends State<AddShop> {
   final TextEditingController _descriptionController = TextEditingController();
 
   late List<Shopresponse> shopResponses = [];
+  late List<ProjectResponse> projectResponse = [];
   List<TaxResponse> taxResponse = [];
   late List<bool> _checkedItems;
+  bool _isEditMode = false;
   File? imageFile;
+  String? selectedValue;
 
-  final List<String> _shopTypes = ['Hotel', 'Hardware and Tools', 'Packing', 'Stationary'];
+  final List<String> _shopTypes = ['Hotel',  'Saloon','Hardware and Tools', 'Packing', 'Stationary'];
   final List<String> _PrRound = ['Round Up', 'Round Off'];
   String? _selectedValue;
   bool? _selectedBooleanValue = false;
+  bool? _isIncludedBooleanValue = false;
   Uint8List? _imageData;
   bool _isLoading = false;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -85,10 +91,12 @@ class _AddShopState extends State<AddShop> {
       _addressController.text = widget.shopResponse!.address;
       _descriptionController.text = widget.shopResponse!.description;
       _selectedBooleanValue = widget.shopResponse!.taxEnable;
+      _isIncludedBooleanValue= widget.shopResponse!.includedTax;
       if (widget.shopResponse != null) {
         _taxController.text = formatTaxRequest(widget.shopResponse!.listOwnerTaxResponse);
       }
       getTax();
+      getProjects();
     }
   }
   String formatTaxResponses(List<OwnerTaxResponse>? taxResponses) {
@@ -129,6 +137,22 @@ class _AddShopState extends State<AddShop> {
         .map((round) => SearchFieldListItem<String>(round))
         .toList();
   }
+  List<SearchFieldListItem<String>> get _projectNames {
+    return projectResponse.map((project) => SearchFieldListItem<String>(project.siteName)).toList();
+  }
+  int _getProjectId() {
+    // getAllCategories(_shopNameController.text);
+    int projectId = 0;
+    if (_projectController.text.isNotEmpty) {
+      for (ProjectResponse project in projectResponse) {
+        if (_projectController.text == project.siteName) {
+          projectId = project.id;
+          break;
+        }
+      }
+    }
+    return projectId;
+  }
 
   Future<void> getTax() async {
     try {
@@ -156,6 +180,23 @@ class _AddShopState extends State<AddShop> {
       print('Error fetching tax: $e');
     }
   }
+  Future<void> getProjects( ) async {
+    try {
+      final url = Uri.parse(Apis.getProject);
+      final response = await Apis.getClient().get(url, headers: Apis.getHeaders());
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          projectResponse = data.map((item) => ProjectResponse.fromJson(item)).toList();
+          print('projectResponse: $projectResponse');
+        });
+      } else {
+        print('Failed to load Project Response');
+      }
+    } catch (e) {
+      print('Error fetching Project Response: $e');
+    }
+  }
 
 
   void _saveForm() {
@@ -168,10 +209,13 @@ class _AddShopState extends State<AddShop> {
     String description = _descriptionController.text.isNotEmpty ? _descriptionController.text : '';
     String gst = _gstController.text.isNotEmpty ? _gstController.text : '';
     String rounding = _priceRoundingController.text.isNotEmpty ? _priceRoundingController.text : '';
-
     String taxes = '';
+    var projectId = 0;
     if(_selectedBooleanValue==true){
       taxes = _taxController.text;
+    }
+    if(_projectController.text.isNotEmpty){
+      projectId=_getProjectId();
     }
     ShopRequest shopRequest = ShopRequest(
         widget.shopResponse?.id ?? 0,
@@ -186,7 +230,7 @@ class _AddShopState extends State<AddShop> {
         _gstController.text.isEmpty ? '' : _gstController.text,
         '',
         _priceRoundingController.text,
-        0, ''
+        projectId, '',_isIncludedBooleanValue!,'[]'
     );
     ShopService.saveShop(shopRequest, context);
 
@@ -194,6 +238,12 @@ class _AddShopState extends State<AddShop> {
       _isLoading = false;
     });
 
+  }
+  void handleSelect(String? value) {
+    setState(() {
+      selectedValue = value;
+    });
+    print('Selected: $value');
   }
 
   @override
@@ -211,6 +261,26 @@ class _AddShopState extends State<AddShop> {
         title:  Text(widget.shopResponse != null ? 'Update Shop' : 'Add Shop', style: TextStyle(color: Colors.white)),
         centerTitle: true,
         elevation: 1,
+        actions: [
+          !_isEditMode
+              ?  ElevatedButton(
+      onPressed: () {
+        setState(() {
+          _isEditMode =true;
+        });
+          },
+        style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white,
+        ),
+        child: _isLoading
+          ? CircularProgressIndicator(color: Colors.green)
+          : Text(
+        _isEditMode ? '' : 'Edit',
+        style: const TextStyle(color: Colors.green),
+      ),
+    )
+              : Container(),
+        ],
       ),
       body: GestureDetector(
       onTap: () {
@@ -275,7 +345,7 @@ class _AddShopState extends State<AddShop> {
               const Icon(Icons.shop, color: Colors.green),
               TextInputAction.next,
               TextInputType.text,
-              true,
+              _isEditMode,
               true,
               maxLines: null,
               textAlignVertical: TextAlignVertical.center,
@@ -287,7 +357,7 @@ class _AddShopState extends State<AddShop> {
               const Icon(Icons.phone_android, color: Colors.green),
               TextInputAction.next,
               TextInputType.phone,
-              true,
+              _isEditMode,
               true,
               maxLines: null,
               textAlignVertical: TextAlignVertical.center,
@@ -299,15 +369,27 @@ class _AddShopState extends State<AddShop> {
               const Icon(Icons.numbers, color: Colors.green),
               TextInputAction.next,
               TextInputType.text,
-              true,
+              _isEditMode,
               false,
               maxLines: null,
               textAlignVertical: TextAlignVertical.center,
             ),
             const SizedBox(height: 10),
-            CustomSearchField.buildSearchField(_shopTypeController, 'Shop Type', Icons.shop, _shopTypeItems, (String value) {},true,true),
+            // CustomDropdownButton(
+            //   textEditingController: _shopTypeController,
+            //   hintText: 'Shop Type',
+            //   prefixIcon: Icon(Icons.shop, color: Colors.green),
+            //   items: _shopTypes,
+            //   selectedValue: selectedValue,
+            //   onSelect: handleSelect,
+            //   validate: true, // Set true if you want validation
+            // ),
+
+            CustomSearchField.buildSearchField(_shopTypeController, 'Shop Type', Icons.shop, _shopTypeItems, (String value) {},_isEditMode,true,widget.shopResponse == null? true:false,false),
             const SizedBox(height: 10),
-            CustomSearchField.buildSearchField(_priceRoundingController, 'Price Rounding', Icons.attach_money_outlined, _rounding, (String value) {},true,true),
+            CustomSearchField.buildSearchField(_projectController, 'Project', Icons.plagiarism_rounded, _projectNames, (String value) {},_isEditMode,false,widget.shopResponse == null? true:false,false),
+            const SizedBox(height: 10),
+            CustomSearchField.buildSearchField(_priceRoundingController, 'Price Rounding', Icons.attach_money_outlined, _rounding, (String value) {},_isEditMode,true,widget.shopResponse == null? true:false,false),
             const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
@@ -341,7 +423,7 @@ class _AddShopState extends State<AddShop> {
             ),
             // Conditionally render the GST TextField
         if (_selectedBooleanValue == true) ...[
-              const SizedBox(height: 10),
+              const SizedBox(height: 5),
               Row(
                 children: <Widget>[
                   Expanded(
@@ -391,6 +473,37 @@ class _AddShopState extends State<AddShop> {
                   ),
                 ],
               ),
+          const SizedBox(height: 5),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              const Text('Included Tax Price', style: TextStyle(fontWeight: FontWeight.bold)),
+              Expanded(
+                child: RadioListTile<bool?>(
+                  title: const Text('Yes'),
+                  value: true,
+                  groupValue: _isIncludedBooleanValue,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      _isIncludedBooleanValue = value;
+                    });
+                  },
+                ),
+              ),
+              Expanded(
+                child: RadioListTile<bool?>(
+                  title: const Text('No'),
+                  value: false,
+                  groupValue: _isIncludedBooleanValue,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      _isIncludedBooleanValue = value;
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
             ],
             const SizedBox(height: 10),
             AppTextFieldForm(
@@ -399,7 +512,7 @@ class _AddShopState extends State<AddShop> {
               const Icon(Icons.location_on, color: Colors.green),
               TextInputAction.next,
               TextInputType.text,
-              true,
+              _isEditMode,
               true,
               maxLines: null,
               textAlignVertical: TextAlignVertical.center,
@@ -411,12 +524,13 @@ class _AddShopState extends State<AddShop> {
               const Icon(Icons.description, color: Colors.green),
               TextInputAction.done,
               TextInputType.text,
-              true,
+              _isEditMode,
               false,
               maxLines: null,
               textAlignVertical: TextAlignVertical.center,
             ),
             const SizedBox(height: 10),
+            _isEditMode?
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -451,7 +565,7 @@ class _AddShopState extends State<AddShop> {
                   ),
                 ),
               ],
-            ),
+            ): Row(),
           ],
         ),
     ),

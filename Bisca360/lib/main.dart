@@ -10,36 +10,36 @@ import 'ApiService/Apis.dart';
 import 'Environment.dart';
 import 'Screen/LoginNew.dart';
 
-// class MyHttpOverrides extends HttpOverrides {
-//   ByteData data;
-//   ByteData key;
-//
-//   MyHttpOverrides(this.data, this.key);
-//
-//   @override
-//   HttpClient createHttpClient(SecurityContext? context) {
-//     context!.setClientAuthoritiesBytes(data.buffer.asUint8List());
-//     context!.usePrivateKeyBytes(key.buffer.asUint8List());
-//
-//     // Allow self-signed certificates during development
-//     context.setTrustedCertificatesBytes(data.buffer.asUint8List());
-//
-//     return super.createHttpClient(context);
-//   }
-//   HttpClient createHttpClientWithOptions(SecurityContext? context) {
-//     HttpClient client = super.createHttpClient(context);
-//     client.badCertificateCallback = (X509Certificate cert, String host, int port) => true; // Accept all certs
-//     return client;
-//   }
-// }
 class MyHttpOverrides extends HttpOverrides {
+  ByteData data;
+  ByteData key;
+
+  MyHttpOverrides(this.data, this.key);
+
   @override
   HttpClient createHttpClient(SecurityContext? context) {
-    return super.createHttpClient(context)
-      ..badCertificateCallback = (X509Certificate cert, String host,
-          int port) => true;
+    context!.setClientAuthoritiesBytes(data.buffer.asUint8List());
+    context!.usePrivateKeyBytes(key.buffer.asUint8List());
+
+    // Allow self-signed certificates during development
+    context.setTrustedCertificatesBytes(data.buffer.asUint8List());
+
+    return super.createHttpClient(context);
   }
+  // HttpClient createHttpClientWithOptions(SecurityContext? context) {
+  //   HttpClient client = super.createHttpClient(context);
+  //   client.badCertificateCallback = (X509Certificate cert, String host, int port) => true; // Accept all certs
+  //   return client;
+  // }
 }
+// class MyHttpOverrides extends HttpOverrides {
+//   @override
+//   HttpClient createHttpClient(SecurityContext? context) {
+//     return super.createHttpClient(context)
+//       ..badCertificateCallback = (X509Certificate cert, String host,
+//           int port) => true;
+//   }
+// }
 
 void main() async{
 
@@ -47,13 +47,13 @@ void main() async{
   print('profile $varName');
   await dotenv.load(fileName: Environment.load(varName));
   WidgetsFlutterBinding.ensureInitialized();
-  ByteData data = await rootBundle.load('assets/cert/bisca.crt');
-  ByteData key = await rootBundle.load('assets/cert/private.key');
+  ByteData data = await rootBundle.load('assets/cert/cert.crt');
+  ByteData key = await rootBundle.load('assets/cert/bisca.key');
   SecurityContext context = SecurityContext.defaultContext;
-  // HttpClient client=MyHttpOverrides(data, key).createHttpClient(context);
-  HttpOverrides.global = MyHttpOverrides();
-  // IOClient clientData=  IOClient(client);
-  // Apis.setClient(clientData);
+  HttpClient client=MyHttpOverrides(data, key).createHttpClient(context);
+  // HttpOverrides.global = MyHttpOverrides();
+  IOClient clientData=  IOClient(client);
+  Apis.setClient(clientData);
   runApp( MyApp());
 }
 

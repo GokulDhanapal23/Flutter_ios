@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:bisca360/Request/ShopBillProducts.dart';
+import 'package:bisca360/Response/BiilingResponse.dart';
+import 'package:bisca360/Response/EmployeeAndSeatingResponse.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -17,6 +19,7 @@ import '../Response/OwnerTaxResponse.dart';
 import '../Response/ShopCustomerResponse.dart';
 import '../Response/ShopProductResponse.dart';
 import '../Response/ShopResponse.dart';
+import '../Response/ShopSalesDetailsResponse.dart';
 import '../Service/LoginService.dart';
 import '../Widget/CustomSearchfieldWidget.dart';
 import '../Widget/TextDatewidget.dart';
@@ -32,18 +35,27 @@ class _ShopBillingState extends State<ShopBilling> {
   final TextEditingController _shopNameController = TextEditingController();
   final TextEditingController _productController = TextEditingController();
   final TextEditingController _customerController = TextEditingController();
+  final TextEditingController _customerMobileNumberController = TextEditingController();
   late TextEditingController _qtyController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   late TextEditingController _datePickerController = TextEditingController();
   final TextEditingController _mealTimeController = TextEditingController();
   final TextEditingController _paymentTypeController = TextEditingController();
   final TextEditingController _discountController = TextEditingController();
+  final TextEditingController _grandTotalController = TextEditingController();
+  final TextEditingController _tableOrChairController = TextEditingController();
+  final TextEditingController _supplierOrHairStylistController = TextEditingController();
 
   late List<Shopresponse> shopResponses = [];
+  ShopSalesDetailsResponse? lastBillResponse;
+  EmployeeAndSeatingResponse? employeeAndSeatingResponse;
   late List<ShoppProductResponse> shopProducts = [];
   late List<ShopCustomerResponse> shopCustomer = [];
   List<ShopBillProducts> billedProducts = [];
   List<OwnerTaxResponse> taxItems = [];
+  List<String> deleteRemarks = [];
+  List<SearchFieldListItem<String>> _supplierName = [];
+  List<SearchFieldListItem<String>> _chairNo = [];
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -53,12 +65,17 @@ class _ShopBillingState extends State<ShopBilling> {
   late double totalPriceS;
   late double totalTaxS;
   late double netTotalS;
+  late double discount;
+  late double grandTotal;
+
+  double totalTaxRate = 0;
+  double taxAmount = 0;
 
   bool _isProductSelected = false;
 
 
   late List<String> mealTime = ['Break Fast', 'Lunch', 'Dinner'];
-  late List<String> paymentType = ['Credit', 'Debit', 'Cash'];
+  late List<String> paymentType = [ 'Cash', 'UPI','Credit Card', 'Debit Card',];
 
   List<SearchFieldListItem<String>> get _paymentType {
     return paymentType.map((type) => SearchFieldListItem<String>(type)).toList();
@@ -84,11 +101,37 @@ class _ShopBillingState extends State<ShopBilling> {
   List<SearchFieldListItem<String>> get _shopCustomer {
     return shopCustomer.map((shop) => SearchFieldListItem<String>(shop.customerName)).toList();
   }
+  List<SearchFieldListItem<String>> get _shopCustomerNumber {
+    return shopCustomer
+        .where((shop) => shop.mobileNumber != 0) // Exclude shops with mobileNumber = 0
+        .map((shop) => SearchFieldListItem<String>(shop.mobileNumber.toString()))
+        .toList();
+  }
+
+  Future<void> deleteLastBill( BuildContext context,String remarks, int id) async {
+    try {
+      final encodedData = Uri.encodeComponent(remarks);
+      final url = Uri.parse('${Apis.deleteLastBill}?id=$id&remarks=$encodedData');
+      print(url.toString());
+      final res = await Apis.getClient().delete(url, headers: Apis.getHeaders());
+      final response = jsonDecode(res.body);
+      if (response['status'] == "OK") {
+        LoginService.showBlurredSnackBar(context, response['message'] , type: SnackBarType.success);
+        Navigator.of(context).pop();
+        print("Success");
+      } else {
+        LoginService.showBlurredSnackBar(context, response['message'] , type: SnackBarType.error);
+        print('Failed to Last Bill delete');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
 
   Future<void> getAllShops() async {
     try {
       final response = await Apis.getClient().get(
-        Uri.parse(Apis.getAllShop),
+        Uri.parse(Apis.getActiveShop),
         headers: Apis.getHeaders(),
       );
 
@@ -99,6 +142,66 @@ class _ShopBillingState extends State<ShopBilling> {
         });
       } else {
         print('Failed to load shops');
+      }
+    } catch (e) {
+      print('Error fetching shops: $e');
+    }
+  }
+  Future<void> getSupplierAndChairNo(var shopId) async {
+    try {
+      final res = await Apis.getClient().get(
+        Uri.parse('${Apis.getSupplierAndChairNo}?shopId=$shopId'),
+        headers: Apis.getHeaders(),
+      );
+      if (res.statusCode == 200) {
+        final response = jsonDecode(res.body);
+        setState(() {
+          employeeAndSeatingResponse = EmployeeAndSeatingResponse.fromJson(response);
+          print('employeeAndSeatingResponse: $employeeAndSeatingResponse');
+        });
+      } else {
+        print('Failed to load EmployeeAndSeatingResponse');
+      }
+    } catch (e) {
+      print('Error fetching EmployeeAndSeatingResponse: $e');
+    }
+  }
+
+  Future<void> getDeleteRemarks() async {
+    try {
+      final response = await Apis.getClient().get(
+        Uri.parse(Apis.getDeleteRemarks),
+        headers: Apis.getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          deleteRemarks = List<String>.from(data.map((item) => item.toString()));
+        });
+      } else {
+        print('Failed to load delete remarks, status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching delete remarks: $e');
+    }
+  }
+
+
+  Future<void> getLastBillNo() async {
+    try {
+      final res = await Apis.getClient().get(
+        Uri.parse(Apis.getLastBillNo),
+        headers: Apis.getHeaders(),
+      );
+       final response = jsonDecode(res.body);
+      if (response != null) {
+        setState(() {
+          lastBillResponse = ShopSalesDetailsResponse.fromJson(response);
+          print('lastBillResponse: $lastBillResponse');
+        });
+      } else {
+        print('Failed to load lastBillResponse');
       }
     } catch (e) {
       print('Error fetching shops: $e');
@@ -149,8 +252,11 @@ class _ShopBillingState extends State<ShopBilling> {
     }
   }
 
+
+
   void _clear(){
     _customerController.clear();
+    _customerMobileNumberController.clear();
     _productController.clear();
     _qtyController.setText('0');
     billedProducts.clear();
@@ -165,8 +271,8 @@ class _ShopBillingState extends State<ShopBilling> {
       final response = jsonDecode(res.body);
       if (response['status']== "OK") {
         String billNumber = response['shopBillNo'];
-        _downloadBill(shopSalesDetailsRequest.shopName,billNumber);
-        LoginService.showBlurredSnackBar(context, response['message'], type: SnackBarType.success);
+        _downloadBill(context, shopSalesDetailsRequest.shopName,billNumber);
+        // LoginService.showBlurredSnackBar(context, response['message'], type: SnackBarType.success);
         _clear();
         print('Success to save shop billing : $response');
       }
@@ -180,7 +286,8 @@ class _ShopBillingState extends State<ShopBilling> {
     }
   }
 
-  void _downloadBill(String shopName, String billNumber){
+
+  void _downloadBill(BuildContext context, String shopName, String billNumber){
     final encodedShopName = Uri.encodeComponent(shopName);
     final encodedBillNumber = Uri.encodeComponent(billNumber);
       final url = Uri.parse('${Apis.shopBillPdf}?shopName=$encodedShopName&billNumber=$encodedBillNumber');
@@ -214,7 +321,7 @@ class _ShopBillingState extends State<ShopBilling> {
     }
   }
 
-  late  Shopresponse selectedShopData;
+  late  Shopresponse? selectedShopData;
 
   void _handleShopSelection(String selectedShop) {
     _productController.clear();
@@ -224,7 +331,47 @@ class _ShopBillingState extends State<ShopBilling> {
     selectedShopData = shopResponses.firstWhere(
             (shop) => shop.shopName == selectedShop
     );
+    getSupplierAndChairNo(selectedShopData!.id).then((_) {
+      updateProductItems();
+    });
   }
+
+  void updateProductItems() {
+    if (employeeAndSeatingResponse != null) {
+      setState(() {
+        _supplierName = employeeAndSeatingResponse!.employees
+            .map((name) => SearchFieldListItem<String>(name))
+            .toList();
+        _chairNo = employeeAndSeatingResponse!.seating
+            .map((number) => SearchFieldListItem<String>(number))
+            .toList();
+      });
+    }
+  }
+
+
+
+  late  ShopCustomerResponse selectedCustomerData;
+  void _handleCustomerNameSelection(String selectedCustomer) {
+    _customerMobileNumberController.clear();
+    selectedCustomerData = shopCustomer.firstWhere(
+            (customer) => customer.customerName == selectedCustomer
+    );
+    if(selectedCustomerData.mobileNumber !=0) {
+      _customerMobileNumberController.setText(
+          selectedCustomerData.mobileNumber.toString());
+    }
+  }
+  void _handleCustomerNumberSelection(String selectedCustomer) {
+   int customerNo = int.parse(selectedCustomer);
+    selectedCustomerData = shopCustomer.firstWhere(
+            (customer) => customer.mobileNumber == customerNo
+    );
+    if(selectedCustomerData.customerName.isNotEmpty) {
+      _customerController.setText(selectedCustomerData.customerName);
+    }
+  }
+
 
   late var selectedProductData;
 
@@ -259,6 +406,20 @@ class _ShopBillingState extends State<ShopBilling> {
       _priceController.text = totalPrice.toStringAsFixed(2);
     });
   }
+  void _recalculateGrandTotal() {
+    final discount = double.tryParse(_discountController.text) ?? 0;
+    final netAmt;
+    if(selectedShopData!.includedTax){
+       netAmt = _cardTotalPrice ?? 0.00;
+    }else {
+       netAmt = _cardTotalPrice + _cardTotalTax ?? 0.0;
+    }
+    final discountAmount = discount > netAmt ? netAmt : discount; // Ensure discount doesn't exceed net amount
+    grandTotal = netAmt - discountAmount;
+    setState(() {
+      _grandTotalController.text = grandTotal.toStringAsFixed(2); // Display grand total with two decimal places
+    });
+  }
 
   double get _cardTotalPrice {
     totalPriceS = billedProducts
@@ -271,13 +432,14 @@ class _ShopBillingState extends State<ShopBilling> {
     double totalWoT = billedProducts
         .map((product) => product.totalPriceList)
         .fold(0.0, (previousValue, totalPrice) => previousValue + totalPrice);
-      taxItems = selectedShopData.listOwnerTaxResponse;
+    if(selectedShopData!=null){
+      taxItems = selectedShopData!.listOwnerTaxResponse;
+    }
       double totalTaxPercentage = taxItems.fold(
         0.0,
             (sum, item) => sum + (item.taxPercentage ?? 0.0),
       );
       totalTaxS = (totalWoT * totalTaxPercentage) / 100;
-
       return totalTaxS;
   }
 
@@ -288,6 +450,7 @@ class _ShopBillingState extends State<ShopBilling> {
       // Ensure this runs after the shops have been fetched
       if (shopResponses.isNotEmpty) {
         _shopNameController.text = shopResponses.first.shopName;
+        _handleShopSelection(_shopNameController.text);
         getShopProducts(_shopNameController.text); // Fetch products after setting the shop name
         getShopCustomer(_shopNameController.text);
       }
@@ -296,44 +459,76 @@ class _ShopBillingState extends State<ShopBilling> {
     _qtyController.text = '0';
     _datePickerController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
     _qtyController.addListener(_recalculateTotalPrice);
+    _discountController.addListener(_recalculateGrandTotal);
+    selectedShopData = null;
   }
 
   @override
   void dispose() {
     _qtyController.dispose(); // Clean up the controller when the widget is disposed
+    _discountController.dispose(); // Clean up the controller when the widget is disposed
     super.dispose();
   }
 
   void _saveBill() {
-    netTotalS = totalTaxS + totalPriceS;
+
+    discount = 0;
+    if(_discountController.text.isNotEmpty) {
+      discount = double.parse(_discountController.text);
+    }
+    if(selectedShopData!.includedTax){
+      netTotalS = totalPriceS;
+      totalTaxS= double.parse((_cardTotalPrice * totalTaxRate / (100 + totalTaxRate)).toStringAsFixed(2));
+    }else{
+      netTotalS = totalTaxS + totalPriceS;
+    }
+    grandTotal = netTotalS-discount;
     String customerNameS = _customerController.text;
     int customerId = 0;
     int customerNumber = 0; // Keep this as int
-
     if (customerNameS.isNotEmpty && shopCustomer.isNotEmpty) {
-      ShopCustomerResponse? customerData = shopCustomer.firstWhere(
-              (customer) => customer.customerName.trim() == customerNameS.trim(),
-          );
-      if (customerData != null) {
+      ShopCustomerResponse customerData = shopCustomer.firstWhere(
+            (customer) => customer.customerName.trim() == customerNameS.trim(),
+        orElse: () => ShopCustomerResponse(id: -1, mobileNumber: 0, customerName: _customerController.text, shopName: selectedShopData!.shopName,gstNumber: ''), // Provide a default instance
+      );
+
+      if (customerData.id != -1) { // Check if it’s a valid customer
         customerId = customerData.id;
         customerNumber = customerData.mobileNumber;
+      } else {
+        customerId = 0;
+        if(_customerMobileNumberController.text.isNotEmpty){
+          customerNumber = int.parse(_customerMobileNumberController.text);
+        }
       }
+    }
+    String tableNo ='';
+    String chairNo ='';
+    String hairStylist ='';
+    String supplier ='';
+    if(selectedShopData!.shopType == 'Hotel'){
+      tableNo = _tableOrChairController.text;
+      supplier = _supplierOrHairStylistController.text;
+    }else if(selectedShopData!.shopType == 'Saloon'){
+      chairNo = _tableOrChairController.text;
+      hairStylist = _supplierOrHairStylistController.text;
     }
 
     shopSalesDetailsRequest = ShopSalesDetailsRequest(
       0,
-      selectedShopData.shopName,
+      selectedShopData!.shopName,
       _paymentTypeController.text,
       billedProducts,
       totalPriceS,
       totalTaxS,
       netTotalS,
-      netTotalS,
+      discount,
+      grandTotal,
       _datePickerController.text,
       _mealTimeController.text,
-      _customerController.text,
+      customerNameS,
       customerNumber, // Ensure this is an int
-      customerId,
+      customerId,tableNo,chairNo,hairStylist,supplier
     );
 
     saveSalesBill(shopSalesDetailsRequest);
@@ -369,25 +564,26 @@ class _ShopBillingState extends State<ShopBilling> {
     selectedShopData = shopResponses.firstWhere(
           (shop) => shop.shopName == selectedShop,
     );
-    final String item = _productController.text.trim(); // Trim whitespace
+    if(selectedShopData!=null){
+      taxItems = selectedShopData!.listOwnerTaxResponse;
+    }
+    if (selectedShopData!.includedTax) {
+      totalTaxRate = taxItems.fold(0, (total, tax) => total + tax.taxPercentage);
+      taxAmount = _cardTotalPrice * totalTaxRate / (100 + totalTaxRate);
+    }
+    final String item = _productController.text; // Trim whitespace
     final int quantity = int.tryParse(_qtyController.text) ?? 0;
     final double price = double.tryParse(selectedProductData.price.toString()) ?? 0.0;
     final double totalPrice = price * quantity;
-
-    // Check if the product exists in the shopProducts list
     final productData = shopProducts.firstWhere(
             (product) => product.product == selectedProductData.product,
     );
-
-    // Show error if the product does not exist
     if (productData == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Selected product does not exist')),
       );
       return;
     }
-
-    // Validate inputs
     if (item.isEmpty || quantity <= 0 || price <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all fields correctly')),
@@ -395,18 +591,17 @@ class _ShopBillingState extends State<ShopBilling> {
       print('Please fill in all fields correctly');
       return;
     }
-
-    // Create a new product entry
     final newProduct = ShopBillProducts(item, productData.unit.toString(), price, quantity, totalPrice);
-
-    // Update the state
-    setState(() {
-      billedProducts.add(newProduct);
-    });
-
-    // Clear the input fields
+    bool productExists = billedProducts.any((product) => product.item == newProduct.item);
+    if (!productExists) {
+      setState(() {
+        billedProducts.add(newProduct);
+      });
+    } else {
+      LoginService.showBlurredSnackBar(context, 'This product is already added!' , type: SnackBarType.error);
+    }
     _productController.clear();
-    _qtyController.text = '0'; // Use text instead of setText for consistency
+    _qtyController.text = '0';
     _priceController.clear();
   }
 
@@ -683,6 +878,14 @@ class _ShopBillingState extends State<ShopBilling> {
 
   @override
   Widget build(BuildContext context) {
+    // double netAmount = _cardTotalTax + _cardTotalPrice;
+    // grandTotal = netAmount;
+    // setState(() {
+    //   _grandTotalController.text = grandTotal.toStringAsFixed(2);
+    // });
+    // if (grandTotal < 0) {
+    //   grandTotal = 0;
+    // }
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
@@ -710,8 +913,8 @@ class _ShopBillingState extends State<ShopBilling> {
                     'Shop Name',
                     Icons.shop,
                     _shopItems,
-                    _handleShopSelection,
-                    true, true
+                    _handleShopSelection,false,
+                    true, true,false
                 ),
                 const SizedBox(height: 10),
                 Row(
@@ -727,26 +930,51 @@ class _ShopBillingState extends State<ShopBilling> {
                       ),
                     ),
                     const SizedBox(width: 10),
-                    Expanded(
-                      child: CustomSearchField.buildSearchField(
-                          _mealTimeController,
-                          'Meal Time',
-                          Icons.category,
-                          _mealTime,
-                              (String value) {},
-                          true, true
+                    if (selectedShopData?.shopType == 'Hotel')
+                      Expanded(
+                        child: CustomSearchField.buildSearchField(
+                            _mealTimeController,
+                            'Meal Time',
+                            Icons.category,
+                            _mealTime,
+                                (String value) {},false,
+                            true,
+                            true,
+                            false
+                        ),
                       ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                if (selectedShopData?.shopType == 'Hotel' || selectedShopData?.shopType == 'Saloon')
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomSearchField.buildSearchField(_tableOrChairController, selectedShopData?.shopType == 'Hotel' ? 'Table No' : 'Chair No', selectedShopData?.shopType == 'Hotel' ?Icons.table_restaurant : Icons.chair, _chairNo, (String value) {},false, false,true,true),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: CustomSearchField.buildSearchField(_supplierOrHairStylistController, selectedShopData?.shopType == 'Hotel' ?'Supplier':'Hair Stylist', selectedShopData?.shopType == 'Hotel' ?Icons.supervised_user_circle : Icons.supervised_user_circle, _supplierName, (String value) {},false, false,true,true),
                     ),
                   ],
                 ),
                 const SizedBox(height: 10),
                 CustomSearchField.buildSearchField(
                     _customerController,
-                    'Customer',
+                    'Customer Name',
                     Icons.person,
                     _shopCustomer,
-                        (String value) {},
-                    false, true
+                    _handleCustomerNameSelection,false,
+                    false, true ,true
+                ),
+                const SizedBox(height: 10),
+                CustomSearchField.buildSearchField(
+                    _customerMobileNumberController,
+                    'Customer Mobile Number',
+                    Icons.phone_android,
+                    _shopCustomerNumber,
+                    _handleCustomerNumberSelection,false,
+                    false, true ,true
                 ),
                 const SizedBox(height: 10),
                 CustomSearchField.buildSearchField(
@@ -754,8 +982,8 @@ class _ShopBillingState extends State<ShopBilling> {
                     'Product',
                     Icons.fastfood,
                     _productItems,
-                    _handleProductSelection,
-                    true, false
+                    _handleProductSelection,false,
+                    true, false ,false
                 ),
               if (_isProductSelected) ...[
                 const SizedBox(height: 10),
@@ -801,9 +1029,44 @@ class _ShopBillingState extends State<ShopBilling> {
                 ),],
                 const SizedBox(height: 10),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     const SizedBox(width: 10),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.indigo.shade100,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: TextButton.icon(
+                        icon: const Icon(Icons.print, color: Colors.indigo),
+                        label: const Text('Last Bill', style: TextStyle(color: Colors.black)),
+                        onPressed: () {
+                          getLastBillNo().then((_) {
+                            _downloadBill(context, lastBillResponse!.shopName,
+                                lastBillResponse!.billNumber);
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.redAccent.shade100,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: TextButton.icon(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        label: const Text('Last Bill', style: TextStyle(color: Colors.black)),
+                        onPressed: () {
+                          getLastBillNo().then((_) {
+                            getDeleteRemarks().then((_){
+                              showDeleteBillDialog(context, lastBillResponse!.billNumber, deleteRemarks);
+                            });
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 50),
                     Align(
                       alignment: Alignment.bottomRight,
                       child: ElevatedButton(
@@ -813,7 +1076,7 @@ class _ShopBillingState extends State<ShopBilling> {
                             setState(() {
                               _isProductSelected = false;
                             }); // Trigger a rebuild
-                          }else{
+                          } else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('Please fill in all fields correctly')),
                             );
@@ -912,17 +1175,57 @@ class _ShopBillingState extends State<ShopBilling> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          ...taxItems.map((tax) => _buildRow('${tax.taxType} (${tax.taxPercentage})', '', '₹', (tax.taxPercentage * _cardTotalPrice / 100).toString())),
-                          _buildRow('Total Tax', '', '₹', _cardTotalTax.toString()),
+
+    if (selectedShopData!.taxEnable && selectedShopData!.includedTax ) ...[
+    ...taxItems.map((tax) =>
+    _buildRow(
+    '${tax.taxType} (${tax.taxPercentage})', '',
+    '₹',
+    (tax.taxPercentage * _cardTotalPrice / (100 + totalTaxRate)).toStringAsFixed(2))),
+      _buildRow('Total Tax', '', '₹', (_cardTotalPrice * totalTaxRate / (100 + totalTaxRate)).toStringAsFixed(2))
+    ],
+                          if(selectedShopData!.taxEnable && !selectedShopData!.includedTax) ...[
+                            ...taxItems.map((tax) =>
+                                _buildRow(
+                                    '${tax.taxType} (${tax.taxPercentage})', '',
+                                    '₹',
+                                    (tax.taxPercentage * _cardTotalPrice / 100)
+                                        .toString())),
+                            _buildRow('Total Tax', '', '₹', (_cardTotalTax).toStringAsFixed(2)),
+                            _buildDivider(),
+                          ],
+                          _buildRow('Total Price', '', '₹', _cardTotalPrice.toStringAsFixed(2)),
+                          if (selectedShopData!.taxEnable && selectedShopData!.includedTax ) ...[
+                          _buildRow('Net Amount', '', '₹', (_cardTotalPrice).toStringAsFixed(2)),
+                          ],
+                          if(selectedShopData!.taxEnable && !selectedShopData!.includedTax) ...[
+                            _buildRow('Net Amount', '', '₹', (_cardTotalTax + _cardTotalPrice).toStringAsFixed(2)),
+                            ],
                           _buildDivider(),
-                          _buildRow('Total Price', '', '₹', _cardTotalPrice.toString()),
-                          _buildDivider(),
-                          _buildRow('Net Amount', '', '₹', (_cardTotalTax + _cardTotalPrice).toString()),
-                          // _buildDivider(),
-                          // _buildTextField(_discountController, 'Discount', TextInputType.text),
-                          _buildDivider(),
-                          _buildRow('Grand Total', '', '₹', (_cardTotalTax + _cardTotalPrice).toString()),
-                          _buildDivider(),
+                          _buildTextField(_discountController, 'Discount', TextInputType.text),
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 5,
+                                child: Text('Grand Total:',style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.end,), // Replace with your _buildRow equivalent if needed
+                              ),
+                              Expanded(
+                                child: Text(' ₹',style :TextStyle(color: Colors.green), textAlign: TextAlign.start,),
+                              ),
+                              Expanded(
+                                child: TextField(
+                                  textAlign: TextAlign.start,
+                                  style: TextStyle(color: Colors.green),
+                                  controller: _grandTotalController,
+                                  readOnly: true,
+                                  onChanged: (_) => _recalculateGrandTotal(),
+                                  decoration: InputDecoration(
+                                    border: InputBorder.none, // Optional: style the TextField as needed
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                           _buildPaymentTypeRow(),
                         ],
                       ),
@@ -934,7 +1237,7 @@ class _ShopBillingState extends State<ShopBilling> {
                     children: [
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop();
+                         _clear();
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red,
@@ -968,27 +1271,51 @@ class _ShopBillingState extends State<ShopBilling> {
 
 
   Widget _buildTextField(TextEditingController controller, String labelText, TextInputType keyboardType) {
-    return Container(
-      width: MediaQuery.of(context).size.width * 0.5, // Half of the screen width
-      child: SizedBox(
-        height: 30,
-        child: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: labelText,
-            labelStyle: TextStyle(color: Colors.black),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
+    final borderRadius = BorderRadius.circular(20);
+    return Align(
+      alignment: Alignment.centerRight, // Align to the right
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.3, // Half of the screen width
+        child: SizedBox(
+          height: 30,
+          child: TextField(
+            controller: controller,
+            decoration: InputDecoration(
+              isDense: true,
+              errorStyle: const TextStyle(
+                fontSize: 10,
+                color: Colors.redAccent,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: const BorderSide(color: Colors.green, width: 1.0),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderSide: const BorderSide(color: Colors.grey, width: 1.0),
+                borderRadius: borderRadius,
+              ),
+              errorBorder: OutlineInputBorder(
+                borderSide: const BorderSide(color: Colors.redAccent, width: 1.0),
+                borderRadius: borderRadius,
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderSide: const BorderSide(color: Colors.redAccent, width: 1.0),
+                borderRadius: borderRadius,
+              ),
+              filled: true,
+              fillColor: Colors.white,
+              floatingLabelAlignment: FloatingLabelAlignment.start,
+              label: Text(
+                labelText,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
             ),
-            contentPadding: EdgeInsets.symmetric(vertical: 14),
-            filled: true,
-            fillColor: Colors.white,
+            keyboardType: keyboardType,
           ),
-          keyboardType: keyboardType,
         ),
       ),
     );
   }
+
 
   Widget _buildRow(String label, String title, String currencySymbol, String amount) {
     return Row(
@@ -1054,7 +1381,7 @@ class _ShopBillingState extends State<ShopBilling> {
         ),
         Expanded(
           flex: 6,
-          child:CustomSearchField.buildSearchField(_paymentTypeController, 'Select', null, _paymentType, (String value) {},true, true),
+          child:CustomSearchField.buildSearchField(_paymentTypeController, 'Select', Icons.money_outlined, _paymentType, (String value) {},false,true, true,false),
         ),
       ],
     );
@@ -1065,6 +1392,74 @@ class _ShopBillingState extends State<ShopBilling> {
       color: Colors.grey[300],
       thickness: 1,
       height: 10,
+    );
+  }
+
+  Future<void> showDeleteBillDialog(BuildContext context, String billNo, List<String> deleteRemarks) async {
+    String? selectedRemark; // To hold the selected remark
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete Bill( $billNo )',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20),),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                height: 50, // Set your desired height here
+                child: DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: 'Select Remark',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: deleteRemarks.map((remark) {
+                    return DropdownMenuItem<String>(
+                      value: remark,
+                      child: Text(remark),
+                    );
+                  }).toList(),
+                  value: selectedRemark,
+                  onChanged: (String? value) {
+                    setState(() {
+                      selectedRemark = value;
+                    });
+                  },
+                  validator: (value) => value == null ? 'Please select a remark' : null,
+                ),
+              ),
+
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.blueGrey,
+              ),
+              child: const Text('Cancel', style: TextStyle(color: Colors.white)),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.green,
+              ),
+              child: const Text('Delete', style: TextStyle(color: Colors.white)),
+              onPressed: () {
+                if (selectedRemark != null) {
+                  deleteLastBill(context, selectedRemark!, lastBillResponse!.id); // Pass selected remark
+                } else {
+                  // Show a snackbar or alert if no remark is selected
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Please select a remark before deleting')),
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 

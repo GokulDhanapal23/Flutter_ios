@@ -36,12 +36,13 @@ class HomeState extends State<Home> {
     String uId = 'U$id';
     imageData = ImageService.fetchImage(uId, 'profile');
     imageData = ImageService.fetchImage(uId, 'profile');
+    imageData = ImageService.fetchImage(uId, 'profile');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Colors.white,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -72,7 +73,7 @@ class HomeState extends State<Home> {
                         actions: <Widget>[
                           TextButton(
                             style: TextButton.styleFrom(
-                              backgroundColor: Colors.red,
+                              backgroundColor: Colors.blueGrey,
                             ),
                             child: const Text('No', style: TextStyle(color: Colors.white)),
                             onPressed: () {
@@ -184,9 +185,9 @@ class HomeState extends State<Home> {
             itemDashboard('Shops', CupertinoIcons.house_alt, Colors.deepOrange, Shop()),
             itemDashboard('Products', CupertinoIcons.graph_circle, Colors.green, ShopProduct()),
             itemDashboard('Billing', CupertinoIcons.money_dollar, Colors.purple, ShopBilling()),
-            itemDashboard('Customers', CupertinoIcons.person, Colors.teal, Customers()),
-            itemDashboard('Bill History', CupertinoIcons.clock, Colors.brown, ShopBillingHistory()),
-            itemDashboard('Report', CupertinoIcons.chart_bar, Colors.indigo, ShopBillingReport()),
+            // itemDashboard('Customers', CupertinoIcons.person, Colors.teal, Customers()),
+            // itemDashboard('Bill History', CupertinoIcons.clock, Colors.brown, ShopBillingHistory()),
+            itemDashboard('History', CupertinoIcons.chart_bar, Colors.indigo, ShopBillingReport()),
             itemDashboard('Settings', CupertinoIcons.settings, Colors.blue, Settings()),
             itemDashboard('Profile', CupertinoIcons.person_alt_circle, Colors.pinkAccent, ProfileScreen(signInResponse:  widget.signinResponse,)),
           ],

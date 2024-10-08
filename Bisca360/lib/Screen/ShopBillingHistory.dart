@@ -156,8 +156,8 @@ class _ShopBillingHistoryState extends State<ShopBillingHistory> {
                       'Shop Name',
                       Icons.shop,
                       _shopItems,
-                      _handleShopSelection,
-                      true, true
+                      _handleShopSelection,false,
+                      true, true ,false
                     ),
                   ),
                 ],

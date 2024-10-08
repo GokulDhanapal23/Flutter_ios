@@ -4,9 +4,11 @@ import 'ShopSalesDetailsResponse.dart';
 class BillingResponse {
   late List<ShopSalesDetailsResponse> listShopSalesDetailsResponse;
   late int billingCount;
+  late int deletedCount;
   late double totalTax;
   late double totalPrice;
   late double netTotalPrice;
+  late double grandTotalPrice;
 
   BillingResponse(
       this.listShopSalesDetailsResponse,
@@ -14,6 +16,8 @@ class BillingResponse {
       this.totalTax,
       this.totalPrice,
       this.netTotalPrice,
+      this.deletedCount,
+      this.grandTotalPrice,
       );
 
   factory BillingResponse.fromJson(Map<String, dynamic> json) {
@@ -25,6 +29,8 @@ class BillingResponse {
       (json['totalTax'] as num).toDouble(),
       (json['totalPrice'] as num).toDouble(),
       (json['netTotalPrice'] as num).toDouble(),
+      json['deletedCount'] as int,
+      json['grandTotalPrice'] as double,
     );
   }
 
@@ -35,11 +41,13 @@ class BillingResponse {
       'totalTax': totalTax,
       'totalPrice': totalPrice,
       'netTotalPrice': netTotalPrice,
+      'deletedCount': deletedCount,
+      'grandTotalPrice': grandTotalPrice,
     };
   }
 
   @override
   String toString() {
-    return '{listShopSalesDetailsResponse: $listShopSalesDetailsResponse, billingCount: $billingCount, totalTax: $totalTax, totalPrice: $totalPrice, netTotalPrice: $netTotalPrice}';
+    return '{listShopSalesDetailsResponse: $listShopSalesDetailsResponse, billingCount: $billingCount, totalTax: $totalTax, totalPrice: $totalPrice, netTotalPrice: $netTotalPrice, deletedCount: $deletedCount, grandTotalPrice: $grandTotalPrice}';
   }
 }
