@@ -10,6 +10,7 @@ import 'package:searchfield/searchfield.dart';
 
 import '../ApiService/Apis.dart';
 import '../Response/ShopResponse.dart';
+import '../Service/LoginService.dart';
 import '../Widget/CustomSearchfieldWidget.dart';
 import 'AddShopProduct.dart';
 
@@ -53,6 +54,23 @@ class _ShopProductState extends State<ShopProduct> {
       print('Error fetching shops: $e');
     }
   }
+  getChangeProductStatus(var id , bool status) async {
+    try {
+      final response = await Apis.getClient().get(
+        Uri.parse('${Apis.getChangeProductStatus}?id=$id&status=$status'),
+        headers: Apis.getHeaders(),
+      );
+      if (response.statusCode == 200) {
+         LoginService.showBlurredSnackBar(context, 'Product Status Changed Successfully', type: SnackBarType.success);
+          print('Success Change Product Status');
+      } else {
+          LoginService.showBlurredSnackBar(context, 'Failed to change Status', type: SnackBarType.error);
+        print('Failed to Change Product Status ');
+      }
+    } catch (e) {
+      print('Error fetching Change Product Status: $e');
+    }
+  }
   List<SearchFieldListItem<String>> get _shopItems {
     return shopResponses
         .map((shop) => SearchFieldListItem<String>(shop.shopName))
@@ -79,6 +97,7 @@ class _ShopProductState extends State<ShopProduct> {
       print('Error fetching shops: $e');
     }
   }
+
   void _handleShopSelection(String selectedShop) {
     getShopProducts(selectedShop);
   }
@@ -228,47 +247,75 @@ class _ShopProductState extends State<ShopProduct> {
             //     },
             //   ),
             // ),
-      Expanded(
-        child: (shopProducts.isEmpty)
-            ? Center(child: Text('No products'))
-            : ListView.builder(
-          itemCount: filteredProducts.isEmpty ? shopProducts.length : filteredProducts.length,
-          itemBuilder: (context, index) {
-            final product = filteredProducts.isEmpty ? shopProducts[index] : filteredProducts[index];
-            return Card(
-              color: Colors.white,
-              shadowColor: Colors.green,
-              elevation: 3,
-              margin: const EdgeInsets.symmetric(vertical: 3),
-              child: ListTile(
-                contentPadding: const EdgeInsets.all(5),
-                title: Text(
-                  '${index + 1}. Product: ${product.product}',
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Category: ${product.categoryName}', style: const TextStyle(fontSize: 14)),
-                    Text('Subcategory: ${product.subcategoryName}', style: const TextStyle(fontSize: 14)),
-                    Text('Price: ${product.price}', style: const TextStyle(fontSize: 14)),
-                  ],
-                ),
-                trailing: IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.green),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AddShopProduct(shopProducts: shopProducts[index]),
+            Expanded(
+              child: (shopProducts.isEmpty)
+                  ? Center(child: Text('No products'))
+                  : ListView.builder(
+                itemCount: filteredProducts.isEmpty ? shopProducts.length : filteredProducts.length,
+                itemBuilder: (context, index) {
+                  final product = filteredProducts.isEmpty ? shopProducts[index] : filteredProducts[index];
+                  bool isActive = product.status; // Assuming isActive is a property of your product
+
+                  return Card(
+                    color: Colors.white,
+                    shadowColor: Colors.green,
+                    elevation: 3,
+                    margin: const EdgeInsets.symmetric(vertical: 3),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(5),
+                      title: Text(
+                        '${index + 1}. Product: ${product.product}',
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                       ),
-                    );
-                  },
-                ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Category: ${product.categoryName}', style: const TextStyle(fontSize: 14)),
+                          Text('Subcategory: ${product.subcategoryName}', style: const TextStyle(fontSize: 14)),
+                          Row(
+                            children: [
+                              Text('Price: ${product.price}', style: const TextStyle(fontSize: 14)),
+                              SizedBox(width: 30),
+                              Text('Unit: ${product.unit}', style: const TextStyle(fontSize: 14)),
+                            ],
+                          ),
+                        ],
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.indigoAccent),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AddShopProduct(shopProducts: shopProducts[index]),
+                                ),
+                              );
+                            },
+                          ),
+                          Transform.scale(
+                            scale: 0.8,
+                            child: Switch(
+                              activeColor: Colors.indigoAccent,
+                              value: isActive,
+                              onChanged: (value) {
+                                getChangeProductStatus(product.id,value);
+                                setState(() {
+                                  product.status = value;
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
-            );
-          },
-        ),),
+            )
+
           ],
         ),
       ),

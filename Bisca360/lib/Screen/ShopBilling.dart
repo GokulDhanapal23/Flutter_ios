@@ -325,6 +325,9 @@ class _ShopBillingState extends State<ShopBilling> {
 
   void _handleShopSelection(String selectedShop) {
     _productController.clear();
+    _customerController.clear();
+    _tableOrChairController.clear();
+    _supplierOrHairStylistController.clear();
     billedProducts.clear();
     getShopProducts(selectedShop);
     getShopCustomer(selectedShop);
@@ -442,6 +445,36 @@ class _ShopBillingState extends State<ShopBilling> {
       totalTaxS = (totalWoT * totalTaxPercentage) / 100;
       return totalTaxS;
   }
+  double get _netTotalAmtInTax {
+    double netAMT = _cardTotalTax + _cardTotalPrice;
+
+    // Check for 'Round Up' condition
+    if (selectedShopData!.rounding == 'Round Up') {
+      if (netAMT % 1 < 0.5) {
+        return netAMT.floorToDouble(); // Round down
+      } else {
+        return netAMT.ceilToDouble(); // Round up
+      }
+    } else {
+        return netAMT.floorToDouble(); // Round down
+    }
+  }
+  double get _netTotalAmtOutTax {
+    double netAMT =_cardTotalPrice;
+
+    // Check for 'Round Up' condition
+    if (selectedShopData!.rounding == 'Round Up') {
+      if (netAMT % 1 < 0.5) {
+        return netAMT.floorToDouble(); // Round down
+      } else {
+        return netAMT.ceilToDouble(); // Round up
+      }
+    } else {
+        return netAMT.floorToDouble(); // Round down
+    }
+  }
+
+
 
   @override
   void initState() {
@@ -454,6 +487,7 @@ class _ShopBillingState extends State<ShopBilling> {
         getShopProducts(_shopNameController.text); // Fetch products after setting the shop name
         getShopCustomer(_shopNameController.text);
       }
+      getLastBillNo();
     });
     _clear();
     _qtyController.text = '0';
@@ -473,14 +507,18 @@ class _ShopBillingState extends State<ShopBilling> {
   void _saveBill() {
 
     discount = 0;
+    totalTaxS = 0;
     if(_discountController.text.isNotEmpty) {
       discount = double.parse(_discountController.text);
     }
-    if(selectedShopData!.includedTax){
+    if(selectedShopData!.includedTax && selectedShopData!.taxEnable){
       netTotalS = totalPriceS;
       totalTaxS= double.parse((_cardTotalPrice * totalTaxRate / (100 + totalTaxRate)).toStringAsFixed(2));
-    }else{
-      netTotalS = totalTaxS + totalPriceS;
+    }else if(selectedShopData!.taxEnable){
+    netTotalS =  totalTaxS + totalPriceS;
+    }
+    else{
+      netTotalS =  totalPriceS;
     }
     grandTotal = netTotalS-discount;
     String customerNameS = _customerController.text;
@@ -1029,7 +1067,7 @@ class _ShopBillingState extends State<ShopBilling> {
                 ),],
                 const SizedBox(height: 10),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     const SizedBox(width: 10),
                     Container(
@@ -1049,6 +1087,7 @@ class _ShopBillingState extends State<ShopBilling> {
                       ),
                     ),
                     const SizedBox(width: 10),
+                    lastBillResponse?.status == 'Active'?
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.redAccent.shade100,
@@ -1065,7 +1104,7 @@ class _ShopBillingState extends State<ShopBilling> {
                           });
                         },
                       ),
-                    ),
+                    ): Container(),
                     const SizedBox(width: 50),
                     Align(
                       alignment: Alignment.bottomRight,
@@ -1196,10 +1235,10 @@ class _ShopBillingState extends State<ShopBilling> {
                           ],
                           _buildRow('Total Price', '', '₹', _cardTotalPrice.toStringAsFixed(2)),
                           if (selectedShopData!.taxEnable && selectedShopData!.includedTax ) ...[
-                          _buildRow('Net Amount', '', '₹', (_cardTotalPrice).toStringAsFixed(2)),
+                          _buildRow('Net Amount', '', '₹',_netTotalAmtOutTax.toStringAsFixed(2)),
                           ],
                           if(selectedShopData!.taxEnable && !selectedShopData!.includedTax) ...[
-                            _buildRow('Net Amount', '', '₹', (_cardTotalTax + _cardTotalPrice).toStringAsFixed(2)),
+                            _buildRow('Net Amount', '', '₹', _netTotalAmtInTax.toStringAsFixed(2)),
                             ],
                           _buildDivider(),
                           _buildTextField(_discountController, 'Discount', TextInputType.text),

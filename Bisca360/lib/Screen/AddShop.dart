@@ -83,6 +83,7 @@ class _AddShopState extends State<AddShop> {
     super.initState();
     if (widget.shopResponse != null) {
       _loadImage(widget.shopResponse!.id!);
+      _isEditMode =false;
       _shopNameController.text = widget.shopResponse!.shopName;
       _shopTypeController.text = widget.shopResponse!.shopType;
       _mobileNumberController.text = widget.shopResponse!.contactNumber.toString();
@@ -263,22 +264,25 @@ class _AddShopState extends State<AddShop> {
         elevation: 1,
         actions: [
           !_isEditMode
-              ?  ElevatedButton(
-      onPressed: () {
-        setState(() {
-          _isEditMode =true;
-        });
-          },
-        style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white,
-        ),
-        child: _isLoading
-          ? CircularProgressIndicator(color: Colors.green)
-          : Text(
-        _isEditMode ? '' : 'Edit',
-        style: const TextStyle(color: Colors.green),
-      ),
-    )
+              ?  Container(
+            margin: EdgeInsets.fromLTRB(0, 4, 10, 4),
+                child: ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _isEditMode =true;
+                        });
+                          },
+                        style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        ),
+                        child: _isLoading
+                          ? CircularProgressIndicator(color: Colors.green)
+                          : Text(
+                        _isEditMode ? '' : 'Edit',
+                        style: const TextStyle(color: Colors.green),
+                      ),
+                    ),
+              )
               : Container(),
         ],
       ),
@@ -399,6 +403,7 @@ class _AddShopState extends State<AddShop> {
                   child: RadioListTile<bool?>(
                     title: const Text('Yes'),
                     value: true,
+
                     groupValue: _selectedBooleanValue,
                     onChanged: (bool? value) {
                       setState(() {

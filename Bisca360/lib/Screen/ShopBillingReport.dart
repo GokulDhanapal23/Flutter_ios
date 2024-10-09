@@ -68,6 +68,14 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
   List<SearchFieldListItem<String>> get _shopCustomer {
     return shopCustomer.map((shop) => SearchFieldListItem<String>(shop.customerName)).toList();
   }
+  // List<SearchFieldListItem<String>> get _shopCustomer {
+  //   List<SearchFieldListItem<String>> customers = [
+  //     SearchFieldListItem<String>("ALL"),
+  //   ];
+  //   customers.addAll(shopCustomer.map((shop) => SearchFieldListItem<String>(shop.customerName)).toList());
+  //   return customers;
+  // }
+
   List<SearchFieldListItem<String>> get _reportType {
     return reportType.map((report) => SearchFieldListItem<String>(report)).toList();
   }
@@ -861,24 +869,23 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Bill Details for ${bill.billNumber}'),
+          title: Center(child: Text('${bill.billNumber}')),
           content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Shop Name: ${bill.shopName}'),
-                Text('Customer Name: ${bill.customerName}'),
-                Text('Date: ${bill.dateAndTime}'),
-                Text('Payment Type: ${bill.paymentType}'),
-                Text('Total Price: ${bill.totalPrice}'),
-                Text('Total Tax: ${bill.totalTax}'),
-                Text('Net Total Price: ${bill.netTotalPrice}'),
-                Text('Discount Price: ${bill.discountPrice}'),
-                Text('Grand Total Price: ${bill.grandTotalPrice}'),
-                // const SizedBox(height: 10),
+                _buildRow('Shop Name:', bill.shopName),
+                _buildRow('Customer Name:', bill.customerName),
+                _buildRow('Date:', bill.dateAndTime),
+                _buildRow('Payment Type:', bill.paymentType),
+                _buildRow('Total Price:', bill.totalPrice.toString()),
+                _buildRow('Total Tax:', bill.totalTax.toString()),
+                _buildRow('Net Total Price:', bill.netTotalPrice.toString()),
+                _buildRow('Discount Price:', bill.discountPrice.toString()),
+                _buildRow('Grand Total Price:', bill.grandTotalPrice.toString()),
+                const SizedBox(height: 10),
                 // Text('Selling Data:', style: TextStyle(fontWeight: FontWeight.bold)),
-                // // Display the list of selling data
-                // for (var sellingData in bill.listSellingData) // Assuming this is a list
+                // for (var sellingData in bill.listSellingData)
                 //   Padding(
                 //     padding: const EdgeInsets.symmetric(vertical: 2),
                 //     child: Text(
@@ -900,6 +907,38 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
       },
     );
   }
+
+  Widget _buildRow(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 1.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.black, // Grey color for titles
+              ),
+            ),
+          ),
+          const SizedBox(width: 10), // Space between title and value
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.black45, // Black color for values
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
 }
 

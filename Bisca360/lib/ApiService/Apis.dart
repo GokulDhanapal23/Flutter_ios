@@ -40,6 +40,7 @@ class Apis{
   static String login = '${dotenv.env['BASE_URL'] ?? ""}/user/signin';
 
   static String getAllShop = '${dotenv.env['BASE_URL'] ?? ""}/shop/get';
+  static String getAllMeasurements = '${dotenv.env['BASE_URL'] ?? ""}/measurements/get';
 
   static String getSupplierAndChairNo = '${dotenv.env['BASE_URL'] ?? ""}/shop/get/employee/seating';
 
@@ -48,6 +49,7 @@ class Apis{
   static String saveShopProduct = '${dotenv.env['BASE_URL'] ?? ""}/shop/product/save';
 
   static String getShopProduct = '${dotenv.env['BASE_URL'] ?? ""}/shop/product/get/';
+  static String getChangeProductStatus = '${dotenv.env['BASE_URL'] ?? ""}/shop/product/status/change';
   static String getShopCustomer = '${dotenv.env['BASE_URL'] ?? ""}/shopcustomer/getby/shopname';
 
   static String getAllCategory = '${dotenv.env['BASE_URL'] ?? ""}/category/getCategoryAll/';
