@@ -11,6 +11,9 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pinput/pinput.dart';
 import 'package:searchfield/searchfield.dart';
+import 'package:printing/printing.dart';
+import 'package:pdf/pdf.dart';
+
 
 import '../ApiService/Apis.dart';
 import '../Request/ShopSalesDetailsRequest.dart';
@@ -314,10 +317,26 @@ class _ShopBillingState extends State<ShopBilling> {
       final filePath = '$_downloadPath/$fileName.pdf';
       final file = File(filePath);
       await file.writeAsBytes(bytes);
-      LoginService.showBlurredSnackBarFile(context, 'Bill Downloaded Successfully ', filePath, type: SnackBarType.success);
+      if (filePath != null) {
+        await printPdf(filePath);
+      } else {
+        print("Failed to download PDF");
+      }
+      // LoginService.showBlurredSnackBarFile(context, 'Bill Downloaded Successfully ', filePath, type: SnackBarType.success);
       print('File Service : Bill download Success $filePath');
     } catch(e){
       print('File Service : Error on Bill download failed $e');
+    }
+  }
+  Future<void> printPdf(String filePath) async {
+    final file = File(filePath);
+    print(filePath);
+    if (await file.exists()) {
+      await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => file.readAsBytes(),
+      );
+    } else {
+      print("File does not exist");
     }
   }
 
@@ -1104,8 +1123,7 @@ class _ShopBillingState extends State<ShopBilling> {
                           });
                         },
                       ),
-                    ): Container(),
-                    const SizedBox(width: 50),
+                    ): Container(),SizedBox(width: 10,),
                     Align(
                       alignment: Alignment.bottomRight,
                       child: ElevatedButton(

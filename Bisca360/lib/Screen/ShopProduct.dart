@@ -54,7 +54,7 @@ class _ShopProductState extends State<ShopProduct> {
       print('Error fetching shops: $e');
     }
   }
-  getChangeProductStatus(var id , bool status) async {
+  Future<bool> getChangeProductStatus(var id , bool status) async {
     try {
       final response = await Apis.getClient().get(
         Uri.parse('${Apis.getChangeProductStatus}?id=$id&status=$status'),
@@ -63,12 +63,15 @@ class _ShopProductState extends State<ShopProduct> {
       if (response.statusCode == 200) {
          LoginService.showBlurredSnackBar(context, 'Product Status Changed Successfully', type: SnackBarType.success);
           print('Success Change Product Status');
+          return true;
       } else {
           LoginService.showBlurredSnackBar(context, 'Failed to change Status', type: SnackBarType.error);
         print('Failed to Change Product Status ');
+        return false;
       }
     } catch (e) {
       print('Error fetching Change Product Status: $e');
+      return false;
     }
   }
   List<SearchFieldListItem<String>> get _shopItems {
@@ -300,11 +303,12 @@ class _ShopProductState extends State<ShopProduct> {
                             child: Switch(
                               activeColor: Colors.indigoAccent,
                               value: isActive,
-                              onChanged: (value) {
-                                getChangeProductStatus(product.id,value);
-                                setState(() {
-                                  product.status = value;
-                                });
+                              onChanged: (value) async {
+                                if(await getChangeProductStatus(product.id,value)){
+                                  setState(() {
+                                    product.status = value;
+                                  });
+                                }
                               },
                             ),
                           ),

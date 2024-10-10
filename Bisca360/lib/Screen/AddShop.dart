@@ -47,7 +47,7 @@ class _AddShopState extends State<AddShop> {
   late List<ProjectResponse> projectResponse = [];
   List<TaxResponse> taxResponse = [];
   late List<bool> _checkedItems;
-  bool _isEditMode = false;
+  bool _isEditMode = true;
   File? imageFile;
   String? selectedValue;
 
@@ -96,9 +96,9 @@ class _AddShopState extends State<AddShop> {
       if (widget.shopResponse != null) {
         _taxController.text = formatTaxRequest(widget.shopResponse!.listOwnerTaxResponse);
       }
-      getTax();
-      getProjects();
     }
+    getTax();
+    getProjects();
   }
   String formatTaxResponses(List<OwnerTaxResponse>? taxResponses) {
     if (taxResponses == null || taxResponses.isEmpty) {

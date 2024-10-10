@@ -14,7 +14,7 @@ class UsersAccountsResponse{
   late bool mpinEnabled;
   late String roleName;
   late int id;
-  late int mobileNumber;
+  late var mobileNumber;
   late int ownerId;
   late bool owner;
 

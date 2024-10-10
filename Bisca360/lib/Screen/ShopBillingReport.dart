@@ -14,7 +14,9 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:pinput/pinput.dart';
+import 'package:printing/printing.dart';
 import 'package:searchfield/searchfield.dart';
+import 'package:pdf/pdf.dart';
 
 import '../ApiService/Apis.dart';
 import '../Response/ShopCustomerResponse.dart';
@@ -49,7 +51,7 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
   late List<Shopresponse> shopResponses = [];
   late List<ShopCustomerResponse> shopCustomer = [];
   BillingResponse? billingResponse;
-  late List<String> reportType = ['Summarized Report','Detailed Report','Invoice'];
+  late List<String> reportType = ['Summarized Report','Detailed Report'];
   late List<String> month = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   List<String> year = [];
 
@@ -65,16 +67,16 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
   }
 
 
-  List<SearchFieldListItem<String>> get _shopCustomer {
-    return shopCustomer.map((shop) => SearchFieldListItem<String>(shop.customerName)).toList();
-  }
   // List<SearchFieldListItem<String>> get _shopCustomer {
-  //   List<SearchFieldListItem<String>> customers = [
-  //     SearchFieldListItem<String>("ALL"),
-  //   ];
-  //   customers.addAll(shopCustomer.map((shop) => SearchFieldListItem<String>(shop.customerName)).toList());
-  //   return customers;
+  //   return shopCustomer.map((shop) => SearchFieldListItem<String>(shop.customerName)).toList();
   // }
+  List<SearchFieldListItem<String>> get _shopCustomer {
+    List<SearchFieldListItem<String>> customers = [
+      SearchFieldListItem<String>("ALL"),
+    ];
+    customers.addAll(shopCustomer.map((shop) => SearchFieldListItem<String>(shop.customerName)).toList());
+    return customers;
+  }
 
   List<SearchFieldListItem<String>> get _reportType {
     return reportType.map((report) => SearchFieldListItem<String>(report)).toList();
@@ -199,10 +201,26 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
       final filePath = '$_downloadPath/$fileName.pdf';
       final file = File(filePath);
       await file.writeAsBytes(bytes);
-      LoginService.showBlurredSnackBarFile(context, 'File Downloaded Successfully ', filePath, type: SnackBarType.success);
+      if (filePath != null) {
+        await printPdf(filePath);
+      } else {
+        print("Failed to download PDF");
+      }
+      // LoginService.showBlurredSnackBarFile(context, 'File Downloaded Successfully ', filePath, type: SnackBarType.success);
       print('File Service : pdf download Success $filePath');
     } catch(e){
       print('File Service : Error on pdf download failed $e');
+    }
+  }
+  Future<void> printPdf(String filePath) async {
+    final file = File(filePath);
+    print(filePath);
+    if (await file.exists()) {
+      await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => file.readAsBytes(),
+      );
+    } else {
+      print("File does not exist");
     }
   }
 
@@ -267,8 +285,10 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
       date = _DatePickerController.text;
     }
     shopName = selectedShopData.shopName;
-    if(_customerController.text.isNotEmpty){
+    if(_customerController.text.isNotEmpty && _customerController.text != 'ALL'){
       customerId = selectedCustomerData!.id;
+    }else{
+      customerId = 0;
     }
     final encodedFromDate = Uri.encodeComponent(fromDate);
     final encodedToDate = Uri.encodeComponent(toDate);
@@ -397,8 +417,10 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
       ReportFor = 'byDate';
     }
     shopName = selectedShopData.shopName;
-    if(_customerController.text.isNotEmpty){
+    if(_customerController.text.isNotEmpty && _customerController.text != 'ALL'){
       customerId = selectedCustomerData!.id;
+    }else{
+      customerId = 0;
     }
     SearchSalesRequest searchSalesRequest = new SearchSalesRequest(reportFor: ReportFor, reportType: '', fromDate: fromDate, toDate: toDate, month: month, year: year, customerId: customerId, shopName: shopName, date: date, ownerId: 0);
 
@@ -653,7 +675,13 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
                     icon: const Icon(Icons.picture_as_pdf, color: Colors.red),
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        _downloadPdfReport();
+                        if(_customerController.text.isNotEmpty && _customerController.text == 'ALL'){
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please fill in Customer fields correctly')),
+                          );
+                        }else{
+                          _downloadPdfReport();
+                        }
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Please fill in all fields correctly')),

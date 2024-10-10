@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ui';
 
 import 'package:bisca360/Response/UsersAccountsResponse.dart';
@@ -5,8 +6,12 @@ import 'package:bisca360/Screen/LoginMPIN.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../ApiService/Apis.dart';
+import '../Request/requestOTP.dart';
+import '../Service/LoginService.dart';
 import '../Service/NavigationHelper.dart';
 import 'LoginNew.dart';
+import 'LoginWithOTP.dart';
 
 class ChooseLoginType extends StatefulWidget {
   final UsersAccountsResponse userAccounts;
@@ -18,6 +23,29 @@ class ChooseLoginType extends StatefulWidget {
 
 class _ChooseLoginTypeState extends State<ChooseLoginType> {
 
+  Future<void> requestOTP(var data, BuildContext context) async {
+    try {
+      print(data);
+      var res = await Apis.getClient().post(
+          Uri.parse(Apis.requestOTP),
+          body :jsonEncode(data.toJson()),
+          headers: Apis.getHeaderNoToken());
+      final response = jsonDecode(res.body);
+      if (response['status'] == "OK") {
+        print(response);
+        LoginService.showBlurredSnackBar(context, response['message'] , type: SnackBarType.success);
+        NavigationHelper.navigateWithFadeSlide(
+            context,
+            LoginWithOTP(usersAccountsResponse: widget.userAccounts)
+        );
+      } else {
+        LoginService.showBlurredSnackBar(context, response['message'] , type: SnackBarType.error);
+        print('Failed to load data');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +111,8 @@ class _ChooseLoginTypeState extends State<ChooseLoginType> {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20))),
                     onPressed: () {
-
+                      RequestOtp otp = RequestOtp(mobileNumber: widget.userAccounts.mobileNumber.toString(), ownerId: widget.userAccounts.ownerId);
+                      requestOTP(otp,context);
                     },
                     child: const Text("Get OTP",style: TextStyle(color: Colors.white),)),
               ),

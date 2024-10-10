@@ -51,6 +51,31 @@ class LoginService{
       // showBlurredSnackBar(context);
     }
   }
+  static Future<void> signInWithMobile(var data, BuildContext context) async {
+    try {
+      final res = await Apis.getClient()
+          .post(Uri.parse(Apis.signInWithMobile),
+          body: data,
+          headers: {"Content-Type": "application/json"});
+      final response = jsonDecode(res.body);
+      print('Data: ${response}');
+      if (response['status'] == "OK") {
+        showBlurredSnackBar(context, response['message'] , type: SnackBarType.success);
+        final signinResponse = SigninResponse.fromJson(response);
+        storeLoginSession(signinResponse);
+        NavigationHelper.navigateWithFadeSlide(
+          context,
+          Home(signinResponse: signinResponse),
+        );
+      } else {
+        showBlurredSnackBar(context, response['message'] , type: SnackBarType.error);
+          print('Data: ${res.statusCode}');
+        }
+    } catch (e) {
+      print('Error: $e');
+      showBlurredSnackBar(context, e.toString() , type: SnackBarType.error);
+    }
+  }
  static storeLoginSession(SigninResponse signIn) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('signIn', jsonEncode(signIn));
@@ -93,6 +118,8 @@ class LoginService{
       print('Error: $e');
     }
   }
+
+
 
   static Future<File?> imageLoad(var doctype,var id) async {
     final response = await Apis.getClient().get(

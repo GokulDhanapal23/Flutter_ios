@@ -38,9 +38,13 @@ class Apis{
   static String checkMobileNumber = '${dotenv.env['BASE_URL'] ?? ""}/user/check/mobilenumber';
   // static String checkMobileNumber = 'http://192.168.0.15:9092/user/check/mobilenumber';
   static String login = '${dotenv.env['BASE_URL'] ?? ""}/user/signin';
+  static String signInWithMobile = '${dotenv.env['BASE_URL'] ?? ""}/user/signinwithmobile';
 
   static String getAllShop = '${dotenv.env['BASE_URL'] ?? ""}/shop/get';
+
   static String getAllMeasurements = '${dotenv.env['BASE_URL'] ?? ""}/measurements/get';
+  static String saveMeasurement = '${dotenv.env['BASE_URL'] ?? ""}/measurements/save';
+  static String changeMeasurementsStatus = '${dotenv.env['BASE_URL'] ?? ""}/measurements/set/status';
 
   static String getSupplierAndChairNo = '${dotenv.env['BASE_URL'] ?? ""}/shop/get/employee/seating';
 
@@ -79,6 +83,11 @@ class Apis{
   static String deleteLastBill = '${dotenv.env['BASE_URL'] ?? ""}/shopsalesdetails/bill/delete';
 
   static String getProject = '${dotenv.env['BASE_URL'] ?? ""}/site-details/get';
+  static String saveProject = '${dotenv.env['BASE_URL'] ?? ""}/site-details/save';
+  static String getAllProcessStatus = '${dotenv.env['BASE_URL'] ?? ""}/process/status/list/all/active';
+
+  static String requestOTP = '${dotenv.env['BASE_URL'] ?? ""}/otp/get';
+  static String validateOTP = '${dotenv.env['BASE_URL'] ?? ""}/otp/validate';
 
 
   static Future<void> getToken() async {

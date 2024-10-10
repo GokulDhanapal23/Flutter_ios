@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +12,8 @@ import '../Response/BiilingResponse.dart';
 import '../Response/ShopResponse.dart';
 import '../Widget/CustomSearchfieldWidget.dart';
 import '../Widget/TextDatewidget.dart';
-import 'ShopBillingReport.dart';
+import 'package:printing/printing.dart';
+import 'package:pdf/pdf.dart';
 
 class ShopBillingHistory extends StatefulWidget {
   const ShopBillingHistory({super.key});
@@ -32,6 +34,8 @@ class _ShopBillingHistoryState extends State<ShopBillingHistory> {
   List<SearchFieldListItem<String>> get _shopItems {
     return shopResponses.map((shop) => SearchFieldListItem<String>(shop.shopName)).toList();
   }
+
+
 
   @override
   void initState() {

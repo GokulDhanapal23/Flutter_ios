@@ -4,6 +4,7 @@ import 'package:bisca360/Screen/Measurements.dart';
 import 'package:bisca360/Screen/ShopBillingHistory.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../Response/SigninResponse.dart';
 import '../Service/ImageService.dart';
@@ -87,9 +88,10 @@ class HomeState extends State<Home> {
                               backgroundColor: Colors.green,
                             ),
                             child: const Text('Yes', style: TextStyle(color: Colors.white)),
-                            onPressed: () {
-                              Navigator.of(context).pop(); // Close the dialog
-                              // Navigate to MyPhone screen
+                            onPressed: () async {
+                              SharedPreferences preferences = await SharedPreferences.getInstance();
+                              await preferences.remove('');
+                              Navigator.of(context).pop();
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(builder: (context) => const MyPhone()),
@@ -187,11 +189,11 @@ class HomeState extends State<Home> {
             itemDashboard('Shops', CupertinoIcons.house_alt, Colors.deepOrange, Shop()),
             itemDashboard('Products', CupertinoIcons.graph_circle, Colors.green, ShopProduct()),
             itemDashboard('Billing', CupertinoIcons.money_dollar, Colors.purple, ShopBilling()),
-            // itemDashboard('Project', Icons.home_work_outlined, Colors.orange, Projects()),
+            itemDashboard('Project', Icons.home_work_outlined, Colors.orange, Projects()),
             // itemDashboard('Customers', CupertinoIcons.person, Colors.teal, Customers()),
             // itemDashboard('Bill History', CupertinoIcons.clock, Colors.brown, ShopBillingHistory()),
             itemDashboard('History', CupertinoIcons.chart_bar, Colors.indigo, ShopBillingReport()),
-            // itemDashboard('Measurements', Icons.ad_units_sharp, Colors.brown, Measurements()),
+            itemDashboard('Measurements', Icons.ad_units_sharp, Colors.brown, Measurements()),
             itemDashboard('Settings', CupertinoIcons.settings, Colors.blue, Settings()),
             itemDashboard('Profile', CupertinoIcons.person_alt_circle, Colors.pinkAccent, ProfileScreen(signInResponse:  widget.signinResponse,)),
           ],

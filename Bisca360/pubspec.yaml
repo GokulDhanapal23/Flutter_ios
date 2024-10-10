@@ -53,6 +53,7 @@ dependencies:
   fluttertoast: ^8.2.8
   open_file: ^3.5.4
   connectivity_plus: ^6.0.5
+  printing: ^5.0.0
 
 dev_dependencies:
   flutter_test:

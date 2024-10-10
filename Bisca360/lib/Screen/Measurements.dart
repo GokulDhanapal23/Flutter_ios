@@ -1,10 +1,14 @@
 import 'dart:convert';
 
+import 'package:bisca360/Request/MeasurementRequest.dart';
 import 'package:bisca360/Response/Measurementresponse.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../ApiService/Apis.dart';
+import '../Service/LoginService.dart';
+import '../Widget/AppTextFormField.dart';
+import 'MeasurementForm.dart';
 
 class Measurements extends StatefulWidget {
   const Measurements({super.key});
@@ -19,6 +23,10 @@ class _MeasurementsState extends State<Measurements> {
   late List<MeasurementResponse> shopUnits = [];
   late List<MeasurementResponse> filteredUnits = [];
   final TextEditingController _searchController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _measurementNameController = TextEditingController();
+  final _measurementCodeController = TextEditingController();
+  final _descriptionController = TextEditingController();
   bool _isSearching = false;
   @override
   void initState() {
@@ -51,6 +59,16 @@ class _MeasurementsState extends State<Measurements> {
     });
   }
 
+  void _saveForm() {
+     var id = 0;
+     String measurementCode = _measurementCodeController.text.isNotEmpty ? _measurementCodeController.text :'';
+     String measurementName = _measurementNameController.text.isNotEmpty ? _measurementNameController.text :'';
+     String description =  _descriptionController.text.isNotEmpty ? _descriptionController.text :'';
+     bool active = true;
+    MeasurementRequest measurementRequest = new MeasurementRequest(measurementCode: measurementCode, measurementName: measurementName, description: description, active: active);
+     saveMeasurement(measurementRequest, context);
+  }
+
   getAllMeasurements() async {
     try {
       final response = await Apis.getClient().get(
@@ -71,6 +89,129 @@ class _MeasurementsState extends State<Measurements> {
       print('Error fetching measurements: $e');
     }
   }
+  Future<bool> getChangeProductStatus(var id , bool status) async {
+    try {
+      final response = await Apis.getClient().get(
+        Uri.parse('${Apis.changeMeasurementsStatus}?measurementId=$id&status=$status'),
+        headers: Apis.getHeaders(),
+      );
+      if (response.statusCode == 200) {
+        LoginService.showBlurredSnackBar(context, 'Product Status Changed Successfully', type: SnackBarType.success);
+        print('Success Change Product Status');
+        return true;
+      } else {
+        LoginService.showBlurredSnackBar(context, 'Failed to change Status', type: SnackBarType.error);
+        print('Failed to Change Product Status ');
+        return false;
+      }
+    } catch (e) {
+      print('Error fetching Change Product Status: $e');
+      return false;
+    }
+  }
+
+  Future<void> saveMeasurement(MeasurementRequest request, BuildContext context) async {
+    try {
+      var res = await Apis.getClient().post(
+          Uri.parse(Apis.saveMeasurement),
+          body :jsonEncode(request.toJson()),
+          headers: Apis.getHeaders());
+      final response = jsonDecode(res.body);
+      if (response['status']== "OK") {
+        LoginService.showBlurredSnackBar(context, response['message'] , type: SnackBarType.success);
+        Navigator.of(context).pop();
+        print("Success");
+      } else {
+        LoginService.showBlurredSnackBar(context, response['message'] , type: SnackBarType.error);
+        print('Failed to load data');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
+  void _showAddMeasurementDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Center(child: Text('Add Measurement')),
+          content: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  AppTextFieldForm(
+                    _measurementCodeController,
+                    "Measurements Code",
+                    const Icon(Icons.abc, color: Colors.green),
+                    TextInputAction.next,
+                    TextInputType.text,
+                    true,
+                    true,
+                    maxLines: null,
+                    textAlignVertical: TextAlignVertical.center,
+                  ),
+                  const SizedBox(height: 10),
+                  AppTextFieldForm(
+                    _measurementNameController,
+                    "Measurement Name",
+                    const Icon(Icons.ad_units_outlined, color: Colors.green),
+                    TextInputAction.next,
+                    TextInputType.text,
+                    true,
+                    true,
+                    maxLines: null,
+                    textAlignVertical: TextAlignVertical.center,
+                  ),
+                  const SizedBox(height: 10),
+                  AppTextFieldForm(
+                    _descriptionController,
+                    "Description",
+                    const Icon(Icons.file_present, color: Colors.green),
+                    TextInputAction.next,
+                    TextInputType.text,
+                    true,
+                    false,
+                    maxLines: null,
+                    textAlignVertical: TextAlignVertical.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.blueGrey,
+              ),
+              child: const Text('Cancel', style: TextStyle(color: Colors.white)),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.green,
+              ),
+              child: const Text('Submit', style: TextStyle(color: Colors.white)),
+              onPressed: () async {
+                if (_formKey.currentState!.validate()) {
+                  _saveForm();
+                }else{
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please fill in all fields correctly')),
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  
 
   @override
   Widget build(BuildContext context) {
@@ -110,92 +251,81 @@ class _MeasurementsState extends State<Measurements> {
         ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Navigator.push(
-          //   context,
-          //   MaterialPageRoute(
-          //     builder: (context) => const AddShop(shopResponse: null),
-          //   ),
-          // );
+          _showAddMeasurementDialog(context);
         },
         backgroundColor: Colors.green,
         child: const Icon(Icons.add, color: Colors.white),
       ),
       body: filteredUnits.isEmpty && measurements.isEmpty
-          ? const Center(child: Text('No Units', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)))
-          :  Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Expanded(
-                    child: (measurements.isEmpty)
-              ? Center(child: Text('No Units'))
-              : ListView.builder(
-            itemCount: filteredUnits.isEmpty ? measurements.length : filteredUnits.length,
-            itemBuilder: (context, index) {
-              final unit = filteredUnits.isEmpty ? measurements[index] : filteredUnits[index];
-              bool isActive = unit.active;
+          ? const Center(
+        child: Text(
+          'No Units',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+      )
+          : Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: Column(
+          children: [
+            Expanded(
+              child: measurements.isEmpty
+                  ? Center(child: Text('No Units'))
+                  : ListView.builder(
+                itemCount: filteredUnits.isEmpty ? measurements.length : filteredUnits.length,
+                itemBuilder: (context, index) {
+                  final unit = filteredUnits.isEmpty ? measurements[index] : filteredUnits[index];
+                  bool isActive = unit.active;
+                  return Card(
+                    color: Colors.white,
+                    shadowColor: Colors.green,
+                    elevation: 3,
+                    margin: const EdgeInsets.symmetric(vertical: 3),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(5),
+                      title: Text(
+                        '${index + 1}. Name: ${unit.measurementName}',
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Description: ${unit.description}', style: const TextStyle(fontSize: 14)),
+                        ],
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.indigoAccent),
+                            onPressed: () {
+                              // Add your edit functionality here
+                            },
+                          ),
+                          Transform.scale(
+                            scale: 0.8,
+                            child: Switch(
+                              activeColor: Colors.indigoAccent,
+                              value: isActive,
+                              onChanged: (value) async {
+                                if (await getChangeProductStatus(unit.id, value)) {
+                                  setState(() {
+                                    unit.active = value;
+                                  });
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
 
-              return Card(
-                color: Colors.white,
-                shadowColor: Colors.green,
-                elevation: 3,
-                margin: const EdgeInsets.symmetric(vertical: 3),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(5),
-                  title: Text(
-                    '${index + 1}. Name: ${unit.measurementName}',
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Description: ${unit.description}', style: const TextStyle(fontSize: 14)),
-                    ],
-                  ),
-                  leading: Container(
-                    width: 50, // Adjust width as needed
-                    height: 50, // Adjust height as needed
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.blue, // Change to your desired background color
-                    ),
-                    child: CircleAvatar(
-                      radius: 30,
-                      backgroundImage: const AssetImage('assets/unit_jpeg.jpg'),
-                    ),
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.indigoAccent),
-                        onPressed: () {
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //     builder: (context) => AddShopProduct(shopProducts: shopProducts[index]),
-                          //   ),
-                          // );
-                        },
-                      ),
-                      Transform.scale(
-                        scale: 0.8,
-                        child: Switch(
-                          activeColor: Colors.indigoAccent,
-                          value: isActive,
-                          onChanged: (value) {
-                            setState(() {
-                              unit.active = value;
-                            });
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-                    ),
-                  ),
-          )
     );
   }
 }

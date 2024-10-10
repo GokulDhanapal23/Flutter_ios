@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:bisca360/Screen/CreateProject.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -54,7 +55,7 @@ class _ProjectsState extends State<Projects> {
   }
   void _filterProjects(String query) {
     final filtered = projectResponse.where((project) {
-      return project.siteName.toLowerCase().contains(query.toLowerCase()) || project.description.toLowerCase().contains(query.toLowerCase());
+      return project.siteName.toLowerCase().contains(query.toLowerCase()) || project.siteStatusName.toLowerCase().contains(query.toLowerCase());
     }).toList();
     setState(() {
       filteredProjects = filtered;
@@ -106,7 +107,7 @@ class _ProjectsState extends State<Projects> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: (){
-          // Navigator.push(context, MaterialPageRoute(builder: (context)=>AddShopProduct( shopProducts: null,)));
+          Navigator.push(context, MaterialPageRoute(builder: (context)=>CreateProject( projectResponse: null,)));
         },
         backgroundColor: Colors.green,
         child: const Icon(
@@ -136,7 +137,7 @@ class _ProjectsState extends State<Projects> {
                       child: ListTile(
                         contentPadding: const EdgeInsets.all(5),
                         title: Text(
-                          '${index + 1}. Project: ${project.siteName}',
+                          '${index + 1}. ${project.siteName}',
                           style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                         ),
                         subtitle: Column(
@@ -149,15 +150,30 @@ class _ProjectsState extends State<Projects> {
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: project.contract ? Colors.indigoAccent[100] : Colors.grey,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                project.contract ? 'Contract':'Not Contract',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 5,),
                             IconButton(
                               icon: const Icon(Icons.edit, color: Colors.indigoAccent),
                               onPressed: () {
-                                // Navigator.push(
-                                //   context,
-                                //   MaterialPageRoute(
-                                //     builder: (context) => AddShopProduct(shopProducts: shopProducts[index]),
-                                //   ),
-                                // );
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => CreateProject(projectResponse: project),
+                                  ),
+                                );
                               },
                             ),
                           ],
@@ -167,7 +183,6 @@ class _ProjectsState extends State<Projects> {
                   },
                 ),
               )
-
             ],
           ),
         ),
