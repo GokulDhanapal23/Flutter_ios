@@ -451,6 +451,8 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final textSize = screenWidth * 0.03;
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
@@ -499,8 +501,8 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
                           });
                         },
                       ),
-                      const Expanded(
-                        child: Text('Date'),
+                       Expanded(
+                        child: Text('Date' ,style: TextStyle(fontSize: textSize),),
                       ),
                     ],
                   ),
@@ -520,8 +522,8 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
                           });
                         },
                       ),
-                      const Expanded(
-                        child: Text('Range'),
+                       Expanded(
+                        child: Text('Range',style: TextStyle(fontSize: textSize),),
                       ),
                     ],
                   ),
@@ -541,8 +543,8 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
                           });
                         },
                       ),
-                      const Expanded(
-                        child: Text('Month'),
+                       Expanded(
+                        child: Text('Month',style: TextStyle(fontSize: textSize),),
                       ),
                     ],
                   ),
@@ -563,8 +565,8 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
                           });
                         },
                       ),
-                      const Expanded(
-                        child: Text('Year'),
+                       Expanded(
+                        child: Text('Year',style: TextStyle(fontSize: textSize),),
                       ),
                     ],
                   ),
@@ -703,7 +705,7 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
                         borderRadius: BorderRadius.circular(25),
                       ),
                     ),
-                    child: const Text('    Clear   ', style: TextStyle(color: Colors.white)),
+                    child: const Text('Clear', style: TextStyle(color: Colors.white)),
                   ),
                 ),
                 const SizedBox(width: 10),

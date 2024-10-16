@@ -89,23 +89,23 @@ class _MeasurementsState extends State<Measurements> {
       print('Error fetching measurements: $e');
     }
   }
-  Future<bool> getChangeProductStatus(var id , bool status) async {
+  Future<bool> getChangeMeasurementStatus(var id , bool status) async {
     try {
       final response = await Apis.getClient().get(
         Uri.parse('${Apis.changeMeasurementsStatus}?measurementId=$id&status=$status'),
         headers: Apis.getHeaders(),
       );
       if (response.statusCode == 200) {
-        LoginService.showBlurredSnackBar(context, 'Product Status Changed Successfully', type: SnackBarType.success);
-        print('Success Change Product Status');
+        LoginService.showBlurredSnackBar(context, 'Measurement Status Changed Successfully', type: SnackBarType.success);
+        print('Success Change Measurement Status');
         return true;
       } else {
-        LoginService.showBlurredSnackBar(context, 'Failed to change Status', type: SnackBarType.error);
-        print('Failed to Change Product Status ');
+        LoginService.showBlurredSnackBar(context, 'Measurement to change Status', type: SnackBarType.error);
+        print('Failed to Change Measurement Status ');
         return false;
       }
     } catch (e) {
-      print('Error fetching Change Product Status: $e');
+      print('Error fetching Change Measurement Status: $e');
       return false;
     }
   }
@@ -307,7 +307,7 @@ class _MeasurementsState extends State<Measurements> {
                               activeColor: Colors.indigoAccent,
                               value: isActive,
                               onChanged: (value) async {
-                                if (await getChangeProductStatus(unit.id, value)) {
+                                if (await getChangeMeasurementStatus(unit.id, value)) {
                                   setState(() {
                                     unit.active = value;
                                   });

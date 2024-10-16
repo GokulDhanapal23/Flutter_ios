@@ -1040,7 +1040,7 @@ class _ShopBillingState extends State<ShopBilling> {
                     Icons.fastfood,
                     _productItems,
                     _handleProductSelection,false,
-                    true, false ,false
+                    true, false ,true
                 ),
               if (_isProductSelected) ...[
                 const SizedBox(height: 10),

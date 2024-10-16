@@ -249,6 +249,8 @@ class _AddShopState extends State<AddShop> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final textSize = screenWidth * 0.03;
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
@@ -401,7 +403,7 @@ class _AddShopState extends State<AddShop> {
                 const Text('GST Enabled:', style: TextStyle(fontWeight: FontWeight.bold)),
                 Expanded(
                   child: RadioListTile<bool?>(
-                    title: const Text('Yes'),
+                    title:  Text('Yes',style: TextStyle(fontSize: textSize),),
                     value: true,
 
                     groupValue: _selectedBooleanValue,
@@ -414,7 +416,7 @@ class _AddShopState extends State<AddShop> {
                 ),
                 Expanded(
                   child: RadioListTile<bool?>(
-                    title: const Text('No'),
+                    title:  Text('No',style: TextStyle(fontSize: textSize),),
                     value: false,
                     groupValue: _selectedBooleanValue,
                     onChanged: (bool? value) {
