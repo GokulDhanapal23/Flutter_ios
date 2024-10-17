@@ -326,41 +326,34 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
     String shopName;
     String type;
     String date;
-    if(_selectedValue==1){
-      fromDate = _fromDatePickerController.text;
-      toDate = _toDatePickerController.text;
-      month = '';
-      year = '';
-      date = '';
-    }else if(_selectedValue==2){
-      fromDate = '';
-      toDate = '';
-      month = _monthController.text;
-      year = _yearController.text;
-      date = '';
-    }else if(_selectedValue==3){
-      fromDate = '';
-      toDate = '';
-      month = '';
-      year = _yearController.text;
-      date = '';
-    }else{
-      fromDate = '';
-      toDate = '';
-      month = '';
-      year = '';
-      date = _DatePickerController.text;
-    }
     shopName = selectedShopData.shopName;
     if(_customerController.text.isNotEmpty){
       customerId = selectedCustomerData!.id;
     }
-    final encodedFromDate = Uri.encodeComponent(fromDate);
-    final encodedToDate = Uri.encodeComponent(toDate);
-    final encodedMonth = Uri.encodeComponent(month);
-    final encodedYear = Uri.encodeComponent(year);
-    final encodedDate = Uri.encodeComponent(date);
     final encodedShopName = Uri.encodeComponent(shopName);
+    final url;
+    if(_selectedValue==1){
+      fromDate = _fromDatePickerController.text;
+      toDate = _toDatePickerController.text;
+      final encodedFromDate = Uri.encodeComponent(fromDate);
+      final encodedToDate = Uri.encodeComponent(toDate);
+      url = Uri.parse('${Apis.shopInvoicePdf}?fromDate=$encodedFromDate&toDate=$encodedToDate&customerId=$customerId&shopName=$encodedShopName');
+    }else if(_selectedValue==2){
+      month = _monthController.text;
+      year = _yearController.text;
+      final encodedMonth = Uri.encodeComponent(month);
+      final encodedYear = Uri.encodeComponent(year);
+      url = Uri.parse('${Apis.shopInvoicePdf}?month=$encodedMonth&year=$encodedYear&customerId=$customerId&shopName=$encodedShopName');
+    }else if(_selectedValue==3){
+      year = _yearController.text;
+      final encodedYear = Uri.encodeComponent(year);
+      url = Uri.parse('${Apis.shopInvoicePdf}?year=$encodedYear&customerId=$customerId&shopName=$encodedShopName');
+    }else{
+      date = _DatePickerController.text;
+      final encodedDate = Uri.encodeComponent(date);
+      url = Uri.parse('${Apis.shopInvoicePdf}?customerId=$customerId&shopName=$encodedShopName&date=$encodedDate');
+    }
+
       if(_customerController.text.isEmpty){
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please fill customer correctly')),
@@ -368,7 +361,6 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
         print('Please fill customer correctly');
         return;
       }
-      final url = Uri.parse('${Apis.shopInvoicePdf}?fromDate=$encodedFromDate&toDate=$encodedToDate&month=$encodedMonth&year=$encodedYear&customerId=$customerId&shopName=$encodedShopName&date=$encodedDate');
       String frtTwoLet = shopName.substring(0,3);
       String fileName = '$frtTwoLet-${DateTime.now()}';
       downloadPdf(context,url,fileName);
