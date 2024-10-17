@@ -231,7 +231,10 @@ class _AddShopState extends State<AddShop> {
         _gstController.text.isEmpty ? '' : _gstController.text,
         '',
         _priceRoundingController.text,
-        projectId, '',_isIncludedBooleanValue!,'[]'
+        projectId,
+        '',
+        _selectedBooleanValue! ? _isIncludedBooleanValue! : false,
+        '[]'
     );
     ShopService.saveShop(shopRequest, context);
 

@@ -7,6 +7,7 @@ class ShoppProductResponse {
   late String shopName;
   late var ownerId;
   late String product;
+  late var productUid;
   late String unit;
   late var price;
   late int quantity;
@@ -21,6 +22,7 @@ class ShoppProductResponse {
       this.shopName,
       this.ownerId,
       this.product,
+      this.productUid,
       this.unit,
       this.price,
       this.quantity,
@@ -29,7 +31,7 @@ class ShoppProductResponse {
 
   @override
   String toString() {
-    return 'ShoppProductResponse{categoryName: $categoryName, subcategoryName: $subcategoryName, categoryId: $categoryId, subcategoryId: $subcategoryId, id: $id, shopName: $shopName, ownerId: $ownerId, product: $product, unit: $unit, price: $price, quantity: $quantity, status: $status}';
+    return 'ShoppProductResponse{categoryName: $categoryName, subcategoryName: $subcategoryName, categoryId: $categoryId, subcategoryId: $subcategoryId, id: $id, shopName: $shopName, ownerId: $ownerId, product: $product,, productUid: $productUid, unit: $unit, price: $price, quantity: $quantity, status: $status}';
   }
   factory ShoppProductResponse.fromJson(Map<String, dynamic> json) {
     return ShoppProductResponse(
@@ -41,6 +43,7 @@ class ShoppProductResponse {
       json['shopName'] as String,
       json['ownerId'],
       json['product'] as String,
+      json['productUid'],
       json['unit'] as String,
       json['price'],
       json['quantity'] as int,
@@ -59,6 +62,7 @@ class ShoppProductResponse {
       'shopName': shopName,
       'ownerId': ownerId,
       'product': product,
+      'productUid': productUid,
       'unit': unit,
       'price': price,
       'quantity': quantity,

@@ -95,7 +95,7 @@ class _ShopBillingState extends State<ShopBilling> {
   List<SearchFieldListItem<String>> get _productItems {
     productList = shopProducts.map((shop) =>
         SearchFieldListItem<String>(
-            '${shop.product}(${shop.subcategoryName})(${shop.unit})'
+            '#${shop.productUid} ${shop.product}(${shop.subcategoryName})(${shop.unit})'
         )
     ).toList();
     return productList;
@@ -263,6 +263,8 @@ class _ShopBillingState extends State<ShopBilling> {
     _productController.clear();
     _qtyController.setText('0');
     billedProducts.clear();
+    _discountController.clear();
+    _grandTotalController.clear();
   }
 
   Future<void> saveSalesBill(ShopSalesDetailsRequest shopSalesDetailsRequest) async {
@@ -398,7 +400,7 @@ class _ShopBillingState extends State<ShopBilling> {
   late var selectedProductData;
 
   void _handleProductSelection(String selectedProduct) {
-    String productName = selectedProduct.trim().split('(')[0];
+    String productName = selectedProduct.trim().split('(')[0].trim().split(' ').skip(1).join(' ');
     print('ProductName: $productName');
     selectedProductData = shopProducts.firstWhere(
           (product) => product.product.trim() == productName.trim(),
@@ -533,13 +535,12 @@ class _ShopBillingState extends State<ShopBilling> {
     if(selectedShopData!.includedTax && selectedShopData!.taxEnable){
       netTotalS = totalPriceS;
       totalTaxS= double.parse((_cardTotalPrice * totalTaxRate / (100 + totalTaxRate)).toStringAsFixed(2));
-    }else if(selectedShopData!.taxEnable){
+    }else if(selectedShopData!.taxEnable && !selectedShopData!.includedTax){
     netTotalS =  totalTaxS + totalPriceS;
     }
     else{
       netTotalS =  totalPriceS;
     }
-    grandTotal = netTotalS-discount;
     String customerNameS = _customerController.text;
     int customerId = 0;
     int customerNumber = 0; // Keep this as int
@@ -628,7 +629,7 @@ class _ShopBillingState extends State<ShopBilling> {
       totalTaxRate = taxItems.fold(0, (total, tax) => total + tax.taxPercentage);
       taxAmount = _cardTotalPrice * totalTaxRate / (100 + totalTaxRate);
     }
-    final String item = _productController.text; // Trim whitespace
+    final String item = _productController.text.trim().split(' ').skip(1).join(' ');; // Trim whitespace
     final int quantity = int.tryParse(_qtyController.text) ?? 0;
     final double price = double.tryParse(selectedProductData.price.toString()) ?? 0.0;
     final double totalPrice = price * quantity;
@@ -653,6 +654,7 @@ class _ShopBillingState extends State<ShopBilling> {
     if (!productExists) {
       setState(() {
         billedProducts.add(newProduct);
+        _recalculateGrandTotal();
       });
     } else {
       LoginService.showBlurredSnackBar(context, 'This product is already added!' , type: SnackBarType.error);
@@ -1259,15 +1261,24 @@ class _ShopBillingState extends State<ShopBilling> {
                             _buildRow('Net Amount', '', '₹', _netTotalAmtInTax.toStringAsFixed(2)),
                             ],
                           _buildDivider(),
-                          _buildTextField(_discountController, 'Discount', TextInputType.text),
+                          _buildTextField(_discountController, 'Discount', TextInputType.number),
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.end, // Align all children to the end
                             children: [
                               Expanded(
                                 flex: 5,
-                                child: Text('Grand Total:',style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.end,), // Replace with your _buildRow equivalent if needed
+                                child: Text(
+                                  'Grand Total: ',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  textAlign: TextAlign.end,
+                                ),
                               ),
                               Expanded(
-                                child: Text(' ₹',style :TextStyle(color: Colors.green), textAlign: TextAlign.start,),
+                                child: Text(
+                                  ' ₹',
+                                  style: TextStyle(color: Colors.green),
+                                  textAlign: TextAlign.end,
+                                ),
                               ),
                               Expanded(
                                 child: TextField(
@@ -1283,6 +1294,7 @@ class _ShopBillingState extends State<ShopBilling> {
                               ),
                             ],
                           ),
+
                           _buildPaymentTypeRow(),
                         ],
                       ),
