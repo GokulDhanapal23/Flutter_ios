@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:bisca360/Service/ImageService.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -14,6 +15,7 @@ class Shop extends StatefulWidget {
 
   @override
   State<Shop> createState() => _ShopState();
+
 }
 
 class _ShopState extends State<Shop> {
@@ -21,6 +23,7 @@ class _ShopState extends State<Shop> {
   late List<Shopresponse> filteredShops = [];
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
+  int updateProfile = 0;
   @override
   void initState() {
     super.initState();
@@ -49,6 +52,20 @@ class _ShopState extends State<Shop> {
       _searchController.clear();
       filteredShops = shopResponses; // Reset to all shops
     });
+  }
+
+   void setUpdateProfile(int value) {
+    print("Updated Profile count: $value");
+    setState(() {
+      updateProfile = value;
+    });
+  }
+
+  void refresh(){
+    if(updateProfile == 1){
+      getAllShops();
+      updateProfile = 0;
+    }
   }
 
   @override
@@ -89,20 +106,28 @@ class _ShopState extends State<Shop> {
             icon: const Icon(Icons.search, color: Colors.white),
             onPressed: _startSearch,
           ),
+          IconButton(onPressed: (){
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AddShop(shopResponse: null, ),
+                ),
+              );
+          }, icon: Icon(CupertinoIcons.plus_app_fill,color: Colors.white)),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AddShop(shopResponse: null),
-            ),
-          );
-        },
-        backgroundColor: Colors.green,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      //     Navigator.push(
+      //       context,
+      //       MaterialPageRoute(
+      //         builder: (context) => const AddShop(shopResponse: null),
+      //       ),
+      //     );
+      //   },
+      //   backgroundColor: Colors.green,
+      //   child: const Icon(Icons.add, color: Colors.white),
+      // ),
       body: filteredShops.isEmpty && shopResponses.isEmpty
           ? const Center(child: Text('No Shops', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)))
           : ListView.builder(
@@ -132,9 +157,12 @@ class _ShopState extends State<Shop> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => AddShop(shopResponse: shop),
+                        builder: (context) => AddShop(
+                          shopResponse: shop
+                        ),
                       ),
                     );
+
                   },
                   title: Text(
                     shop.shopName,

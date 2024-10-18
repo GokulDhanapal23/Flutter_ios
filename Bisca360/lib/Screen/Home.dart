@@ -186,7 +186,8 @@ class HomeState extends State<Home> {
           crossAxisSpacing: 20,
           mainAxisSpacing: 5,
           children: [
-            itemDashboard('Shops', CupertinoIcons.house_alt, Colors.deepOrange, Shop()),
+            itemDashboard('Shops', CupertinoIcons.shopping_cart, Colors.deepOrange, Shop()),
+            // itemDashboardImg('Shops', "https://cdn.pixabay.com/photo/2013/07/13/11/31/shop-158317_640.png", Colors.grey, Shop()),
             itemDashboard('Products', CupertinoIcons.graph_circle, Colors.green, ShopProduct()),
             itemDashboard('Billing', CupertinoIcons.money_dollar, Colors.purple, ShopBilling()),
             itemDashboard('Project', Icons.home_work_outlined, Colors.orange, Projects()),
@@ -245,4 +246,55 @@ class HomeState extends State<Home> {
       ),
     );
   }
+  Widget itemDashboardImg(String title, String imageUrl, Color background, Widget screen) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => screen));
+      },
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                offset: const Offset(1, 2),
+                color: Colors.green,
+                spreadRadius: 0.3,
+                blurRadius: 2,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: background,
+                  shape: BoxShape.circle,
+                ),
+                child: ClipPath( // Ensure the image is circular
+                  child: Image.network(
+                    imageUrl,
+                    width: 50, // Set width of the image
+                    height: 50, // Set height of the image
+                    fit: BoxFit.cover, // Cover the entire circular area
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                title.toUpperCase(),
+                style: TextStyle(fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
 }

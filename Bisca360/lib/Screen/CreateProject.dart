@@ -280,7 +280,7 @@ class _CreateProjectState extends State<CreateProject> {
                 //   validate: true, // Set true if you want validation
                 // ),
 
-                CustomSearchField.buildSearchField(_projectStatusController, 'Select Project Status', Icons.shop, _projectAccessItems, (String value) {},true,true,widget.projectResponse == null? true:false,false),
+                CustomSearchField.buildSearchField(_projectStatusController, 'Select Project Status', Icons.shop, _projectAccessItems, (String value) {},true,true,widget.projectResponse == null? true:false,true),
                 const SizedBox(height: 10),
                 AppTextFieldForm(
                   _descriptionController,

@@ -350,6 +350,11 @@ class _ShopBillingState extends State<ShopBilling> {
     _tableOrChairController.clear();
     _supplierOrHairStylistController.clear();
     billedProducts.clear();
+    _shopCustomer.clear();
+    _shopCustomerNumber.clear();
+    _productItems.clear();
+    _supplierName.clear();
+    _chairNo.clear();
     getShopProducts(selectedShop);
     getShopCustomer(selectedShop);
     selectedShopData = shopResponses.firstWhere(
@@ -668,6 +673,7 @@ class _ShopBillingState extends State<ShopBilling> {
   void _deleteProduct(int index) {
     setState(() {
       billedProducts.removeAt(index);
+      _recalculateGrandTotal();
     });
   }
 
@@ -973,7 +979,7 @@ class _ShopBillingState extends State<ShopBilling> {
                     Icons.shop,
                     _shopItems,
                     _handleShopSelection,false,
-                    true, true,false
+                    true, true,true
                 ),
                 const SizedBox(height: 10),
                 Row(
@@ -1004,9 +1010,9 @@ class _ShopBillingState extends State<ShopBilling> {
                       ),
                   ],
                 ),
-                const SizedBox(height: 10),
                 if (selectedShopData?.shopType == 'Hotel' || selectedShopData?.shopType == 'Saloon')
-                Row(
+                  const SizedBox(height: 10),
+                  Row(
                   children: [
                     Expanded(
                       child: CustomSearchField.buildSearchField(_tableOrChairController, selectedShopData?.shopType == 'Hotel' ? 'Table No' : 'Chair No', selectedShopData?.shopType == 'Hotel' ?Icons.table_restaurant : Icons.chair, _chairNo, (String value) {},false, false,true,true),

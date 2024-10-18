@@ -180,7 +180,7 @@ class _AddShopProductState extends State<AddShopProduct> {
     }
     getAllShops().then((_) {
       if (shopResponses.isNotEmpty) {
-        _shopNameController.text = shopResponses.first.shopName;
+        _shopNameController.text = (widget.shopProducts == null ? shopResponses.first.shopName : widget.shopProducts!.product);
         getAllCategories(_shopNameController.text); // Fetch products after setting the shop name
         getAllSubCategories(_getCategoryId());
       }
@@ -317,6 +317,13 @@ class _AddShopProductState extends State<AddShopProduct> {
 
   void _handleShopSelection(String selectedShop) {
     _categoryController.clear();
+    _subCategoryController.clear();
+    _productController.clear();
+    _categoryItems.clear();
+    _subCategoryItems.clear();
+    _productItems.clear();
+    _qtyController.clear();
+    _priceController.clear();
     getAllCategories(selectedShop);
   }
 
@@ -400,19 +407,11 @@ class _AddShopProductState extends State<AddShopProduct> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CustomSearchField.buildSearchField(_shopNameController, 'Shop name', Icons.shop, _shopItems, _handleShopSelection,false,true, true,false),
+            CustomSearchField.buildSearchField(_shopNameController, 'Shop name', Icons.shop, _shopItems, _handleShopSelection,false,true, true,true),
             const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: CustomSearchField.buildSearchField(_categoryController, 'Category', Icons.category, _categoryItems, _handleCategorySelection,false,true, true,true),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: CustomSearchField.buildSearchField(_subCategoryController, 'Sub Category', Icons.category, _subCategoryItems, (String value) {},false,true, true,true),
-                ),
-              ],
-            ),
+            CustomSearchField.buildSearchField(_categoryController, 'Category', Icons.category, _categoryItems, _handleCategorySelection,false,true, true,true),
+            const SizedBox(height: 10),
+            CustomSearchField.buildSearchField(_subCategoryController, 'Sub Category', Icons.category, _subCategoryItems, (String value) {},false,true, true,true),
             const SizedBox(height: 10),
             CustomSearchField.buildSearchField(_productController, 'Product', Icons.fastfood,
                 _productItems,

@@ -466,10 +466,10 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CustomSearchField.buildSearchField(_shopNameController, 'Shop Name', Icons.shop, _shopItems, _handleShopSelection,false,true, true , false),
+            CustomSearchField.buildSearchField(_shopNameController, 'Shop Name', Icons.shop, _shopItems, _handleShopSelection,false,true, true , true),
 
             const SizedBox(height: 10),
-            CustomSearchField.buildSearchField(_customerController, 'Customer', Icons.person, _shopCustomer, _handleCustomerSelection,false,false, true, false),
+            CustomSearchField.buildSearchField(_customerController, 'Customer', Icons.person, _shopCustomer, _handleCustomerSelection,false,false, true, true),
             const SizedBox(height: 10),
             CustomSearchField.buildSearchField(_reportTypeController, 'Report Type', Icons.note_alt, _reportType, (String value) {},false,true, true, false),
             const SizedBox(height: 5),
@@ -616,11 +616,11 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
               child: Row(
                 children: [
                   Expanded(
-                    child: CustomSearchField.buildSearchField(_monthController, 'Month', Icons.calendar_today, _month, (String value) {},false,false, false, false),
+                    child: CustomSearchField.buildSearchField(_monthController, 'Month', Icons.calendar_today, _month, (String value) {},false,false, true, true),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: CustomSearchField.buildSearchField(_yearController, 'Year', Icons.calendar_today, _year, (String value) {},false,false, false, false),
+                    child: CustomSearchField.buildSearchField(_yearController, 'Year', Icons.calendar_today, _year, (String value) {},false,false, true, true),
                   ),
                 ],
               ),
@@ -630,7 +630,7 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
               child: Row(
                 children: [
                   Expanded(
-                    child: CustomSearchField.buildSearchField(_yearController, 'Year', Icons.calendar_today, _year, (String value) {},false,false, false, false),
+                    child: CustomSearchField.buildSearchField(_yearController, 'Year', Icons.calendar_today, _year, (String value) {},false,false, true, true),
                   ),
                 ],
               ),

@@ -6,7 +6,7 @@ class MeasurementRequest {
   late bool active;
 
   MeasurementRequest( {
-    this.id,
+    required this.id,
     required this.measurementCode,
     required this.measurementName,
     required this.description,

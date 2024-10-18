@@ -59,13 +59,12 @@ class _MeasurementsState extends State<Measurements> {
     });
   }
 
-  void _saveForm() {
-     var id = 0;
+  void _saveForm(var id) {
      String measurementCode = _measurementCodeController.text.isNotEmpty ? _measurementCodeController.text :'';
      String measurementName = _measurementNameController.text.isNotEmpty ? _measurementNameController.text :'';
      String description =  _descriptionController.text.isNotEmpty ? _descriptionController.text :'';
      bool active = true;
-    MeasurementRequest measurementRequest = new MeasurementRequest(measurementCode: measurementCode, measurementName: measurementName, description: description, active: active);
+    MeasurementRequest measurementRequest = new MeasurementRequest(measurementCode: measurementCode, measurementName: measurementName, description: description, active: active, id: id);
      saveMeasurement(measurementRequest, context);
   }
 
@@ -120,6 +119,7 @@ class _MeasurementsState extends State<Measurements> {
       if (response['status']== "OK") {
         LoginService.showBlurredSnackBar(context, response['message'] , type: SnackBarType.success);
         Navigator.of(context).pop();
+        clear();
         print("Success");
       } else {
         LoginService.showBlurredSnackBar(context, response['message'] , type: SnackBarType.error);
@@ -130,7 +130,20 @@ class _MeasurementsState extends State<Measurements> {
     }
   }
 
-  void _showAddMeasurementDialog(BuildContext context) {
+  void clear(){
+    _measurementNameController.clear();
+    _measurementCodeController.clear();
+    _descriptionController.clear();
+  }
+
+  void _showAddMeasurementDialog(BuildContext context, MeasurementResponse? measurement) {
+    var id =0;
+    if(measurement != null){
+      _measurementNameController.text = measurement.measurementName;
+      _measurementCodeController.text = measurement.measurementCode;
+      _descriptionController.text = measurement.description;
+      id = measurement.id;
+    }
     showDialog(
       context: context,
       builder: (context) {
@@ -187,6 +200,7 @@ class _MeasurementsState extends State<Measurements> {
               ),
               child: const Text('Cancel', style: TextStyle(color: Colors.white)),
               onPressed: () {
+                clear();
                 Navigator.of(context).pop(); // Close the dialog
               },
             ),
@@ -197,7 +211,7 @@ class _MeasurementsState extends State<Measurements> {
               child: const Text('Submit', style: TextStyle(color: Colors.white)),
               onPressed: () async {
                 if (_formKey.currentState!.validate()) {
-                  _saveForm();
+                  _saveForm(id);
                 }else{
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Please fill in all fields correctly')),
@@ -217,13 +231,14 @@ class _MeasurementsState extends State<Measurements> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          centerTitle: true,
           backgroundColor: Colors.green,
           leading: IconButton(onPressed: () {
             Navigator.of(context).pop();
           }, icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white,)),
           title: _isSearching
               ? TextField(
+            textInputAction: TextInputAction.next,
+
             controller: _searchController,
             style: const TextStyle(color: Colors.white),
             decoration: const InputDecoration(
@@ -247,15 +262,19 @@ class _MeasurementsState extends State<Measurements> {
               icon: const Icon(Icons.search, color: Colors.white),
               onPressed: _startSearch,
             ),
+            IconButton(onPressed: (){
+              _showAddMeasurementDialog(context, null);
+            }, icon: Icon(CupertinoIcons.plus_app_fill,color: Colors.white)),
+
           ],
         ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showAddMeasurementDialog(context);
-        },
-        backgroundColor: Colors.green,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      //     _showAddMeasurementDialog(context);
+      //   },
+      //   backgroundColor: Colors.green,
+      //   child: const Icon(Icons.add, color: Colors.white),
+      // ),
       body: filteredUnits.isEmpty && measurements.isEmpty
           ? const Center(
         child: Text(
@@ -298,7 +317,7 @@ class _MeasurementsState extends State<Measurements> {
                           IconButton(
                             icon: const Icon(Icons.edit, color: Colors.indigoAccent),
                             onPressed: () {
-                              // Add your edit functionality here
+                              _showAddMeasurementDialog(context, unit);
                             },
                           ),
                           Transform.scale(

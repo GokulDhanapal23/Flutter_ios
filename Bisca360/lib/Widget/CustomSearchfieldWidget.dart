@@ -50,7 +50,7 @@ class CustomSearchField extends StatelessWidget {
       hintText: hintText,
       prefixIcon: Icon(icon, color: Colors.green),
       suggestions: suggestions,
-      initialValue: suggestions.isNotEmpty &&  setInitialValue? suggestions.first : null,
+      initialValue: suggestions.isNotEmpty &&  setInitialValue ? suggestions.first : null,
       onSelect: onSelect,
       validate: validation,
       setInitialValue: setInitialValue,

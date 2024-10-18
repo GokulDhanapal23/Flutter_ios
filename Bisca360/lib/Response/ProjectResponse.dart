@@ -43,7 +43,7 @@ class ProjectResponse{
       siteName: json['siteName'] ?? '',
       siteOwner: json['siteOwner'] ?? '',
       siteArea: json['siteArea'] ?? '',
-      ownerMobileNumber: json[''] ?? 0,
+      ownerMobileNumber: json['ownerMobileNumber'] ?? 0,
       contract: json['contract'] ?? false,
       contractAmount: json['contractAmount'] ?? 0.0,
       advanceAmount: json['advanceAmount'] ?? 0.0,

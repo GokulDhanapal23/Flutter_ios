@@ -93,6 +93,7 @@ class _AddShopState extends State<AddShop> {
       _descriptionController.text = widget.shopResponse!.description;
       _selectedBooleanValue = widget.shopResponse!.taxEnable;
       _isIncludedBooleanValue= widget.shopResponse!.includedTax;
+      _projectController.text = widget.shopResponse!.projectName!;
       if (widget.shopResponse != null) {
         _taxController.text = formatTaxRequest(widget.shopResponse!.listOwnerTaxResponse);
       }
@@ -394,16 +395,16 @@ class _AddShopState extends State<AddShop> {
             //   validate: true, // Set true if you want validation
             // ),
 
-            CustomSearchField.buildSearchField(_shopTypeController, 'Shop Type', Icons.shop, _shopTypeItems, (String value) {},_isEditMode,true,widget.shopResponse == null? true:false,false),
+            CustomSearchField.buildSearchField(_shopTypeController, 'Shop Type', Icons.shop, _shopTypeItems, (String value) {},_isEditMode,true,widget.shopResponse == null? true:false,true),
             const SizedBox(height: 10),
-            CustomSearchField.buildSearchField(_projectController, 'Project', Icons.plagiarism_rounded, _projectNames, (String value) {},_isEditMode,false,widget.shopResponse == null? true:false,false),
+            CustomSearchField.buildSearchField(_projectController, 'Project', Icons.plagiarism_rounded, _projectNames, (String value) {},_isEditMode,false,widget.shopResponse == null? true:false,true),
             const SizedBox(height: 10),
-            CustomSearchField.buildSearchField(_priceRoundingController, 'Price Rounding', Icons.attach_money_outlined, _rounding, (String value) {},_isEditMode,true,widget.shopResponse == null? true:false,false),
+            CustomSearchField.buildSearchField(_priceRoundingController, 'Price Rounding', Icons.attach_money_outlined, _rounding, (String value) {},_isEditMode,true,widget.shopResponse == null? true:false,true),
             const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                const Text('GST Enabled:', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text('GST Enabled:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: textSize)),
                 Expanded(
                   child: RadioListTile<bool?>(
                     title:  Text('Yes',style: TextStyle(fontSize: textSize),),
@@ -487,10 +488,10 @@ class _AddShopState extends State<AddShop> {
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              const Text('Included Tax Price', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('Included Tax Price', style: TextStyle(fontWeight: FontWeight.bold, fontSize: textSize)),
               Expanded(
                 child: RadioListTile<bool?>(
-                  title: const Text('Yes'),
+                  title:  Text('Yes',style: TextStyle(fontSize: textSize),),
                   value: true,
                   groupValue: _isIncludedBooleanValue,
                   onChanged: (bool? value) {
@@ -502,7 +503,7 @@ class _AddShopState extends State<AddShop> {
               ),
               Expanded(
                 child: RadioListTile<bool?>(
-                  title: const Text('No'),
+                  title:  Text('No',style: TextStyle(fontSize: textSize),),
                   value: false,
                   groupValue: _isIncludedBooleanValue,
                   onChanged: (bool? value) {

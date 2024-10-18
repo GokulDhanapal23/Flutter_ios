@@ -130,15 +130,15 @@ class _ShopProductState extends State<ShopProduct> {
 
   @override
   void initState() {
-    super.initState(); // Always call super.initState() first
+    super.initState();
     getAllShops().then((_) {
-      // Ensure this runs after the shops have been fetched
       if (shopResponses.isNotEmpty) {
         _shopNameController.text = shopResponses.first.shopName;
-        getShopProducts(_shopNameController.text); // Fetch products after setting the shop name
+        getShopProducts(_shopNameController.text);
       }
     });
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -174,17 +174,20 @@ class _ShopProductState extends State<ShopProduct> {
             icon: const Icon(Icons.search, color: Colors.white),
             onPressed: _startSearch,
           ),
+          IconButton(onPressed: (){
+            Navigator.push(context, MaterialPageRoute(builder: (context)=>AddShopProduct( shopProducts: null,)));
+          }, icon: Icon(CupertinoIcons.plus_app_fill,color: Colors.white)),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: (){
-          Navigator.push(context, MaterialPageRoute(builder: (context)=>AddShopProduct( shopProducts: null,)));
-        },
-        backgroundColor: Colors.green,
-        child: const Icon(
-          Icons.add,color: Colors.white,
-        ),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: (){
+      //     Navigator.push(context, MaterialPageRoute(builder: (context)=>AddShopProduct( shopProducts: null,)));
+      //   },
+      //   backgroundColor: Colors.green,
+      //   child: const Icon(
+      //     Icons.add,color: Colors.white,
+      //   ),
+      // ),
       body:GestureDetector(
     onTap: () {
     FocusScope.of(context).unfocus();
@@ -193,7 +196,7 @@ class _ShopProductState extends State<ShopProduct> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            CustomSearchField.buildSearchField(_shopNameController, 'Shop name', Icons.shop, _shopItems, _handleShopSelection,false,false, true, false),
+            CustomSearchField.buildSearchField(_shopNameController, 'Shop name', Icons.shop, _shopItems, _handleShopSelection,false,false, true, true),
             const SizedBox(height: 10),
             // Expanded(
             //   child: shopProducts.isEmpty

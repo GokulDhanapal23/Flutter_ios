@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../ApiService/Apis.dart';
 import '../Response/ProjectResponse.dart';
+import 'ProjectsInfo.dart';
 
 class Projects extends StatefulWidget {
   const Projects({super.key});
@@ -103,17 +104,20 @@ class _ProjectsState extends State<Projects> {
             icon: const Icon(Icons.search, color: Colors.white),
             onPressed: _startSearch,
           ),
+          IconButton(onPressed: (){
+            Navigator.push(context, MaterialPageRoute(builder: (context)=>CreateProject( projectResponse: null,)));
+          }, icon: Icon(CupertinoIcons.plus_app_fill,color: Colors.white)),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: (){
-          Navigator.push(context, MaterialPageRoute(builder: (context)=>CreateProject( projectResponse: null,)));
-        },
-        backgroundColor: Colors.green,
-        child: const Icon(
-          Icons.add,color: Colors.white,
-        ),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: (){
+      //     Navigator.push(context, MaterialPageRoute(builder: (context)=>CreateProject( projectResponse: null,)));
+      //   },
+      //   backgroundColor: Colors.green,
+      //   child: const Icon(
+      //     Icons.add,color: Colors.white,
+      //   ),
+      // ),
       body:GestureDetector(
         onTap: () {
           FocusScope.of(context).unfocus();
@@ -135,6 +139,7 @@ class _ProjectsState extends State<Projects> {
                       elevation: 3,
                       margin: const EdgeInsets.symmetric(vertical: 3),
                       child: ListTile(
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder:  (context) =>ProjectsInfo(projectResponse :project))),
                         contentPadding: const EdgeInsets.all(5),
                         title: Text(
                           '${index + 1}. ${project.siteName}',
