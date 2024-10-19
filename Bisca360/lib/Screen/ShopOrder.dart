@@ -1,11 +1,9 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:bisca360/Request/ShopBillProducts.dart';
-import 'package:bisca360/Response/BiilingResponse.dart';
-import 'package:bisca360/Response/EmployeeAndSeatingResponse.dart';
+
+import 'package:bisca360/Response/ShopOrderClosedBill.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -14,10 +12,11 @@ import 'package:searchfield/searchfield.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
 
-
 import '../ApiService/Apis.dart';
+import '../Request/ShopBillProducts.dart';
 import '../Request/ShopSalesDetailsRequest.dart';
 import '../Response/DefaultResponse.dart';
+import '../Response/EmployeeAndSeatingResponse.dart';
 import '../Response/OwnerTaxResponse.dart';
 import '../Response/ShopCustomerResponse.dart';
 import '../Response/ShopProductResponse.dart';
@@ -27,14 +26,15 @@ import '../Service/LoginService.dart';
 import '../Widget/CustomSearchfieldWidget.dart';
 import '../Widget/TextDatewidget.dart';
 
-class ShopBilling extends StatefulWidget {
-  const ShopBilling({Key? key}) : super(key: key);
+class ShopOrder extends StatefulWidget {
+  const ShopOrder({super.key});
 
   @override
-  State<ShopBilling> createState() => _ShopBillingState();
+  State<ShopOrder> createState() => _ShopOrderState();
 }
 
-class _ShopBillingState extends State<ShopBilling> {
+class _ShopOrderState extends State<ShopOrder> {
+
   final TextEditingController _shopNameController = TextEditingController();
   final TextEditingController _productController = TextEditingController();
   final TextEditingController _customerController = TextEditingController();
@@ -54,6 +54,7 @@ class _ShopBillingState extends State<ShopBilling> {
   EmployeeAndSeatingResponse? employeeAndSeatingResponse;
   late List<ShoppProductResponse> shopProducts = [];
   late List<ShopCustomerResponse> shopCustomer = [];
+  late List<ShopOrderClosedBill> shopOrderClosedBill = [];
   List<ShopBillProducts> billedProducts = [];
   List<OwnerTaxResponse> taxItems = [];
   List<String> deleteRemarks = [];
@@ -197,7 +198,7 @@ class _ShopBillingState extends State<ShopBilling> {
         Uri.parse(Apis.getLastBillNo),
         headers: Apis.getHeaders(),
       );
-       final response = jsonDecode(res.body);
+      final response = jsonDecode(res.body);
       if (response != null) {
         setState(() {
           lastBillResponse = ShopSalesDetailsResponse.fromJson(response);
@@ -295,10 +296,10 @@ class _ShopBillingState extends State<ShopBilling> {
   void _downloadBill(BuildContext context, String shopName, String billNumber){
     final encodedShopName = Uri.encodeComponent(shopName);
     final encodedBillNumber = Uri.encodeComponent(billNumber);
-      final url = Uri.parse('${Apis.shopBillPdf}?shopName=$encodedShopName&billNumber=$encodedBillNumber');
-      String fileName = '$billNumber-${DateTime.now()}';
-      downloadPdf(context,url,fileName);
-    }
+    final url = Uri.parse('${Apis.shopBillPdf}?shopName=$encodedShopName&billNumber=$encodedBillNumber');
+    String fileName = '$billNumber-${DateTime.now()}';
+    downloadPdf(context,url,fileName);
+  }
 
   String? _downloadPath;
 
@@ -395,7 +396,7 @@ class _ShopBillingState extends State<ShopBilling> {
     }
   }
   void _handleCustomerNumberSelection(String selectedCustomer) {
-   int customerNo = int.parse(selectedCustomer);
+    int customerNo = int.parse(selectedCustomer);
     selectedCustomerData = shopCustomer.firstWhere(
             (customer) => customer.mobileNumber == customerNo
     );
@@ -412,7 +413,7 @@ class _ShopBillingState extends State<ShopBilling> {
     print('ProductName: $productName');
     selectedProductData = shopProducts.firstWhere(
           (product) => product.product.trim() == productName.trim(),
-      );
+    );
     if (selectedProductData != null) {
       _priceController.text = selectedProductData.price.toString();
       _qtyController.text = '1';
@@ -433,7 +434,7 @@ class _ShopBillingState extends State<ShopBilling> {
     final quantity = int.tryParse(_qtyController.text) ?? 0;
     final price = double.tryParse(selectedProductData.price.toString()) ?? 0.0;
     double totalPrice;
-      totalPrice = price * quantity;
+    totalPrice = price * quantity;
     setState(() {
       _priceController.text = totalPrice.toStringAsFixed(2);
     });
@@ -442,9 +443,9 @@ class _ShopBillingState extends State<ShopBilling> {
     final discount = double.tryParse(_discountController.text) ?? 0;
     final netAmt;
     if(selectedShopData!.includedTax){
-       netAmt = _cardTotalPrice ?? 0.00;
+      netAmt = _cardTotalPrice ?? 0.00;
     }else {
-       netAmt = _cardTotalPrice + _cardTotalTax ?? 0.0;
+      netAmt = _cardTotalPrice + _cardTotalTax ?? 0.0;
     }
     final discountAmount = discount > netAmt ? netAmt : discount; // Ensure discount doesn't exceed net amount
     grandTotal = netAmt - discountAmount;
@@ -467,12 +468,12 @@ class _ShopBillingState extends State<ShopBilling> {
     if(selectedShopData!=null){
       taxItems = selectedShopData!.listOwnerTaxResponse;
     }
-      double totalTaxPercentage = taxItems.fold(
-        0.0,
-            (sum, item) => sum + (item.taxPercentage ?? 0.0),
-      );
-      totalTaxS = (totalWoT * totalTaxPercentage) / 100;
-      return totalTaxS;
+    double totalTaxPercentage = taxItems.fold(
+      0.0,
+          (sum, item) => sum + (item.taxPercentage ?? 0.0),
+    );
+    totalTaxS = (totalWoT * totalTaxPercentage) / 100;
+    return totalTaxS;
   }
   double get _netTotalAmtInTax {
     double netAMT = _cardTotalTax + _cardTotalPrice;
@@ -485,7 +486,7 @@ class _ShopBillingState extends State<ShopBilling> {
         return netAMT.ceilToDouble(); // Round up
       }
     } else {
-        return netAMT.floorToDouble(); // Round down
+      return netAMT.floorToDouble(); // Round down
     }
   }
   double get _netTotalAmtOutTax {
@@ -499,7 +500,7 @@ class _ShopBillingState extends State<ShopBilling> {
         return netAMT.ceilToDouble(); // Round up
       }
     } else {
-        return netAMT.floorToDouble(); // Round down
+      return netAMT.floorToDouble(); // Round down
     }
   }
 
@@ -544,7 +545,7 @@ class _ShopBillingState extends State<ShopBilling> {
       netTotalS = totalPriceS;
       totalTaxS= double.parse((_cardTotalPrice * totalTaxRate / (100 + totalTaxRate)).toStringAsFixed(2));
     }else if(selectedShopData!.taxEnable && !selectedShopData!.includedTax){
-    netTotalS =  totalTaxS + totalPriceS;
+      netTotalS =  totalTaxS + totalPriceS;
     }
     else{
       netTotalS =  totalPriceS;
@@ -581,50 +582,50 @@ class _ShopBillingState extends State<ShopBilling> {
     }
 
     shopSalesDetailsRequest = ShopSalesDetailsRequest(
-      0,
-      selectedShopData!.shopName,
-      _paymentTypeController.text,
-      billedProducts,
-      totalPriceS,
-      totalTaxS,
-      netTotalS,
-      discount,
-      grandTotal,
-      _datePickerController.text,
-      _mealTimeController.text,
-      customerNameS,
-      customerNumber, // Ensure this is an int
-      customerId,tableNo,chairNo,hairStylist,supplier
+        0,
+        selectedShopData!.shopName,
+        _paymentTypeController.text,
+        billedProducts,
+        totalPriceS,
+        totalTaxS,
+        netTotalS,
+        discount,
+        grandTotal,
+        _datePickerController.text,
+        _mealTimeController.text,
+        customerNameS,
+        customerNumber, // Ensure this is an int
+        customerId,tableNo,chairNo,hairStylist,supplier
     );
 
     saveSalesBill(shopSalesDetailsRequest);
   }
 
-    // void _billProduct() {
-    //   final String item = _productController.text;
-    //   final int  quantity = int.tryParse(_qtyController.text) ?? 0;
-    //   final double price = double.tryParse(selectedProductData.price.toString()) ?? 0.0;
-    //   final double totalPrice = price * quantity;
-    //   final productData = shopProducts.firstWhere(
-    //       (product) => product.product == selectedProductData.product);
-    //
-    //   if (item.isEmpty || quantity <= 0 || price <= 0) {
-    //     ScaffoldMessenger.of(context).showSnackBar(
-    //       const SnackBar(content: Text('Please fill in all fields correctly')),
-    //     );
-    //     return;
-    //   }
-    //
-    //   final newProduct = ShopBillProducts(item, productData.unit.toString(), price, quantity, totalPrice);
-    //
-    //   setState(() {
-    //     billedProducts.add(newProduct);
-    //   });
-    //
-    //   _productController.clear();
-    //   _qtyController.setText('1');
-    //   _priceController.clear();
-    // }
+  // void _billProduct() {
+  //   final String item = _productController.text;
+  //   final int  quantity = int.tryParse(_qtyController.text) ?? 0;
+  //   final double price = double.tryParse(selectedProductData.price.toString()) ?? 0.0;
+  //   final double totalPrice = price * quantity;
+  //   final productData = shopProducts.firstWhere(
+  //       (product) => product.product == selectedProductData.product);
+  //
+  //   if (item.isEmpty || quantity <= 0 || price <= 0) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text('Please fill in all fields correctly')),
+  //     );
+  //     return;
+  //   }
+  //
+  //   final newProduct = ShopBillProducts(item, productData.unit.toString(), price, quantity, totalPrice);
+  //
+  //   setState(() {
+  //     billedProducts.add(newProduct);
+  //   });
+  //
+  //   _productController.clear();
+  //   _qtyController.setText('1');
+  //   _priceController.clear();
+  // }
   void _billProduct() {
     var selectedShop=_shopNameController.text;
     selectedShopData = shopResponses.firstWhere(
@@ -642,7 +643,7 @@ class _ShopBillingState extends State<ShopBilling> {
     final double price = double.tryParse(selectedProductData.price.toString()) ?? 0.0;
     final double totalPrice = price * quantity;
     final productData = shopProducts.firstWhere(
-            (product) => product.product == selectedProductData.product,
+          (product) => product.product == selectedProductData.product,
     );
     if (productData == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -680,280 +681,8 @@ class _ShopBillingState extends State<ShopBilling> {
     });
   }
 
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Scaffold(
-  //     backgroundColor: Colors.grey[200],
-  //     appBar: AppBar(
-  //       centerTitle: true,
-  //       backgroundColor: Colors.green,
-  //       leading: IconButton(
-  //         onPressed: () => Navigator.of(context).pop(),
-  //         icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-  //       ),
-  //       title: const Text('Shop Billing', style: TextStyle(color: Colors.white)),
-  //     ),
-  //     body:
-  //   GestureDetector(
-  //   onTap: () {
-  //   FocusScope.of(context).unfocus();
-  //   },
-  //   child : Form(
-  //   key: _formKey,
-  //   child:SingleChildScrollView(
-  //       padding: const EdgeInsets.all(16.0),
-  //       child: Column(
-  //         crossAxisAlignment: CrossAxisAlignment.start,
-  //         children: [
-  //           CustomSearchField.buildSearchField(_shopNameController, 'Shop Name', Icons.shop, _shopItems, _handleShopSelection,true),
-  //           const SizedBox(height: 10),
-  //           Row(
-  //             children: [
-  //               Expanded(
-  //                 child: TextFieldDateWidget(
-  //                   _datePickerController,
-  //                   "Bill Date",
-  //                   const Icon(Icons.date_range, color: Colors.green),
-  //                   TextInputAction.next,
-  //                   TextInputType.text,
-  //                   "PAST",
-  //                 ),
-  //               ),
-  //               const SizedBox(width: 10),
-  //               Expanded(
-  //                 child:  CustomSearchField.buildSearchField(_mealTimeController, 'Meal Time', Icons.category, _mealTime, (String value) {},true),
-  //               ),
-  //             ],
-  //           ),
-  //           const SizedBox(height: 10),
-  //           CustomSearchField.buildSearchField(_customerController, 'Customer', Icons.person, _shopCustomer, (String value) {},false),
-  //           const SizedBox(height: 10),
-  //           CustomSearchField.buildSearchField(_productController, 'Product', Icons.fastfood, _productItems, _handleProductSelection,true),
-  //           const SizedBox(height: 10),
-  //           Row(
-  //             children: [
-  //                       const Expanded(
-  //                         flex: 3,
-  //                         child: Padding(
-  //                           padding: EdgeInsets.symmetric(horizontal: 8.0),
-  //                           child: Text(
-  //                             'Quantity:',
-  //                             style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: Colors.black),
-  //                           ),
-  //                         ),
-  //                       ),
-  //                       Expanded(
-  //                         flex: 3,
-  //                         child: TextField(
-  //                           controller: _qtyController,
-  //                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-  //                           cursorColor: Colors.black,
-  //                           onChanged: (_) => _recalculateTotalPrice(),
-  //                         ),
-  //                       ),
-  //                       const Expanded(
-  //                         flex: 3,
-  //                         child: Padding(
-  //                           padding: EdgeInsets.symmetric(horizontal: 8.0),
-  //                           child: Text(
-  //                             'Price (₹):',
-  //                             style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: Colors.black),
-  //                           ),
-  //                         ),
-  //                       ),
-  //                       Expanded(
-  //                         flex: 3,
-  //                         child: TextField(
-  //                           controller: _priceController,
-  //                           readOnly: true,
-  //                         ),
-  //                       ),
-  //                     ],
-  //                   ),
-  //           const SizedBox(height: 10),
-  //           Row(
-  //             mainAxisAlignment: MainAxisAlignment.end,
-  //             children: [
-  //               // Align(
-  //               //   alignment: Alignment.bottomLeft,
-  //               //   child: ElevatedButton(
-  //               //     onPressed: () {
-  //               //       Navigator.of(context).pop();
-  //               //     },
-  //               //     style: ElevatedButton.styleFrom(
-  //               //       backgroundColor: Colors.red,
-  //               //       shape: RoundedRectangleBorder(
-  //               //         borderRadius: BorderRadius.circular(25),
-  //               //       ),
-  //               //     ),
-  //               //     child: const Text('Clear', style: TextStyle(color: Colors.white)),
-  //               //   ),
-  //               // ),
-  //               const SizedBox(width: 10),
-  //               Align(
-  //                 alignment: Alignment.bottomRight,
-  //                 child: ElevatedButton(
-  //                   onPressed:(){ if(_formKey.currentState!.validate()){_billProduct();}},
-  //                   style: ElevatedButton.styleFrom(
-  //                     backgroundColor: Colors.green,
-  //                     shape: RoundedRectangleBorder(
-  //                       borderRadius: BorderRadius.circular(25),
-  //                     ),
-  //                   ),
-  //                   child: const Text('Add', style: TextStyle(color: Colors.white)),
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //           const SizedBox(height: 10),
-  //           if (billedProducts.isNotEmpty) ...[
-  //             const Text(
-  //               'Added Products',
-  //               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-  //             ),
-  //             const SizedBox(height: 10),
-  //             Container(
-  //               height: 24,
-  //               color: Colors.green,
-  //               child: const Row(
-  //                 children: [
-  //                   Padding(
-  //                     padding: EdgeInsets.only(left: 6),
-  //                     child: Expanded(child: Text('S.No', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-  //                   ),
-  //                   Padding(
-  //                     padding: EdgeInsets.only(left: 30),
-  //                     child: Expanded(child: Text('Products', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-  //                   ),
-  //                   Padding(
-  //                     padding: EdgeInsets.only(left: 90),
-  //                     child: Expanded(child: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-  //                   ),
-  //                   Padding(
-  //                     padding: EdgeInsets.only(left: 40),
-  //                     child: Expanded(child: Text('Price', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-  //                   ),
-  //                 ],
-  //               ),
-  //             ),
-  //             const SizedBox(height: 5),
-  //             Column(
-  //               children: billedProducts.map((product) {
-  //                 final index = billedProducts.indexOf(product);
-  //                 return Card(
-  //                   elevation: 3,
-  //                   margin: const EdgeInsets.symmetric(vertical: 3),
-  //                   child: Row(
-  //                     children: [
-  //                       Expanded(
-  //                         child: Padding(
-  //                           padding: const EdgeInsets.all(8.0),
-  //                           child: Text('${index + 1}', style: TextStyle(fontSize: 15)),
-  //                         ),
-  //                       ),
-  //                       Expanded(
-  //                         flex: 3,
-  //                         child: Padding(
-  //                           padding: const EdgeInsets.all(8.0),
-  //                           child: Text(product.items, style: TextStyle(fontSize: 15)),
-  //                         ),
-  //                       ),
-  //                       Expanded(
-  //                         child: Padding(
-  //                           padding: const EdgeInsets.all(8.0),
-  //                           child: Text('${product.quantity}', style: TextStyle(fontSize: 15)),
-  //                         ),
-  //                       ),
-  //                       Expanded(
-  //                         child: Padding(
-  //                           padding: const EdgeInsets.all(8.0),
-  //                           child: Text('${product.totalPriceList.toStringAsFixed(0)}', style: TextStyle(fontSize: 15)),
-  //                         ),
-  //                       ),
-  //                       IconButton(
-  //                         icon: Icon(Icons.highlight_remove_outlined, color: Colors.red),
-  //                         onPressed: () => _deleteProduct(index),
-  //                       ),
-  //                     ],
-  //                   ),
-  //                 );
-  //               }).toList(),
-  //             ),
-  //             const SizedBox(height: 10),
-  //             Card(
-  //               elevation: 3,
-  //               child: Padding(
-  //                 padding: const EdgeInsets.all(8.0),
-  //                 child: Column(
-  //                   crossAxisAlignment: CrossAxisAlignment.start,
-  //                   children: [
-  //                     ...taxItems.map((tax) => _buildRow('${tax.taxType} (${tax.taxPercentage})', '', '₹', (tax.taxPercentage * _cardTotalPrice / 100).toString())),
-  //                     _buildRow('Total Tax', '', '₹', _cardTotalTax.toString()),
-  //                     _buildDivider(),
-  //                     _buildRow('Total Price', '', '₹', _cardTotalPrice.toString()),
-  //                     _buildDivider(),
-  //                     _buildRow('Net Amount', '', '₹', (_cardTotalTax + _cardTotalPrice).toString()),
-  //                     _buildDivider(),
-  //                     _buildPaymentTypeRow(),
-  //                   ],
-  //                 ),
-  //               ),
-  //             ),
-  //             const SizedBox(height: 10),
-  //             Row(
-  //               mainAxisAlignment: MainAxisAlignment.end,
-  //               children: [
-  //                 Align(
-  //                   alignment: Alignment.bottomLeft,
-  //                   child: ElevatedButton(
-  //                     onPressed: () {
-  //                       Navigator.of(context).pop();
-  //                     },
-  //                     style: ElevatedButton.styleFrom(
-  //                       backgroundColor: Colors.red,
-  //                       shape: RoundedRectangleBorder(
-  //                         borderRadius: BorderRadius.circular(25),
-  //                       ),
-  //                     ),
-  //                     child: const Text('Cancel', style: TextStyle(color: Colors.white)),
-  //                   ),
-  //                 ),
-  //                 const SizedBox(width: 10),
-  //                 Align(
-  //                   alignment: Alignment.bottomRight,
-  //                   child: ElevatedButton(
-  //                     onPressed: _saveBill,
-  //                     style: ElevatedButton.styleFrom(
-  //                       backgroundColor: Colors.green,
-  //                       shape: RoundedRectangleBorder(
-  //                         borderRadius: BorderRadius.circular(25),
-  //                       ),
-  //                     ),
-  //                     child: const Text('Save', style: TextStyle(color: Colors.white)),
-  //                   ),
-  //                 ),
-  //               ],
-  //             ),
-  //           ],
-  //
-  //         ],
-  //       ),
-  //     ),
-  //   ),
-  //   ),
-  //   );
-  // }
-
   @override
   Widget build(BuildContext context) {
-    // double netAmount = _cardTotalTax + _cardTotalPrice;
-    // grandTotal = netAmount;
-    // setState(() {
-    //   _grandTotalController.text = grandTotal.toStringAsFixed(2);
-    // });
-    // if (grandTotal < 0) {
-    //   grandTotal = 0;
-    // }
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
@@ -963,7 +692,7 @@ class _ShopBillingState extends State<ShopBilling> {
           onPressed: () => Navigator.of(context).pop(),
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
         ),
-        title: const Text('Shop Billing', style: TextStyle(color: Colors.white)),
+        title: const Text('Shop Order', style: TextStyle(color: Colors.white)),
       ),
       body: GestureDetector(
         onTap: () {
@@ -1013,6 +742,15 @@ class _ShopBillingState extends State<ShopBilling> {
                       ),
                   ],
                 ),
+                const SizedBox(height: 10),
+                CustomSearchField.buildSearchField(
+                    _customerController,
+                    'Order No',
+                    Icons.numbers,
+                    _shopCustomer,
+                    _handleCustomerNameSelection,false,
+                    false, true ,true
+                ),
                 if (selectedShopData?.shopType == 'Hotel' || selectedShopData?.shopType == 'Saloon') ...[
                   const SizedBox(height: 10),
                   Row(
@@ -1049,24 +787,6 @@ class _ShopBillingState extends State<ShopBilling> {
                 ],
                 const SizedBox(height: 10),
                 CustomSearchField.buildSearchField(
-                    _customerController,
-                    'Customer Name',
-                    Icons.person,
-                    _shopCustomer,
-                    _handleCustomerNameSelection,false,
-                    false, true ,true
-                ),
-                const SizedBox(height: 10),
-                CustomSearchField.buildSearchField(
-                    _customerMobileNumberController,
-                    'Customer Mobile Number',
-                    Icons.phone_android,
-                    _shopCustomerNumber,
-                    _handleCustomerNumberSelection,false,
-                    false, true ,true
-                ),
-                const SizedBox(height: 10),
-                CustomSearchField.buildSearchField(
                     _productController,
                     'Product',
                     Icons.fastfood,
@@ -1074,88 +794,52 @@ class _ShopBillingState extends State<ShopBilling> {
                     _handleProductSelection,false,
                     true, false ,true
                 ),
-              if (_isProductSelected) ...[
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    const Expanded(
-                      flex: 3,
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8.0),
-                        child: Text(
-                          'Quantity:',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: Colors.black),
+                if (_isProductSelected) ...[
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      const Expanded(
+                        flex: 3,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Text(
+                            'Quantity:',
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: Colors.black),
+                          ),
                         ),
                       ),
-                    ),
-                    Expanded(
-                      flex: 3,
-                      child: TextField(
-                        controller: _qtyController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        cursorColor: Colors.black,
-                        onChanged: (_) => _recalculateTotalPrice(),
-                      ),
-                    ),
-                    const Expanded(
-                      flex: 3,
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8.0),
-                        child: Text(
-                          'Price (₹):',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: Colors.black),
+                      Expanded(
+                        flex: 3,
+                        child: TextField(
+                          controller: _qtyController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          cursorColor: Colors.black,
+                          onChanged: (_) => _recalculateTotalPrice(),
                         ),
                       ),
-                    ),
-                    Expanded(
-                      flex: 3,
-                      child: TextField(
-                        controller: _priceController,
-                        readOnly: true,
+                      const Expanded(
+                        flex: 3,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Text(
+                            'Price (₹):',
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: Colors.black),
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
-                ),],
+                      Expanded(
+                        flex: 3,
+                        child: TextField(
+                          controller: _priceController,
+                          readOnly: true,
+                        ),
+                      ),
+                    ],
+                  ),],
                 const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    const SizedBox(width: 10),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.indigo.shade100,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: TextButton.icon(
-                        icon: const Icon(Icons.print, color: Colors.indigo),
-                        label: const Text('Last Bill', style: TextStyle(color: Colors.black)),
-                        onPressed: () {
-                          getLastBillNo().then((_) {
-                            _downloadBill(context, lastBillResponse!.shopName,
-                                lastBillResponse!.billNumber);
-                          });
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    lastBillResponse?.status == 'Active'?
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.redAccent.shade100,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: TextButton.icon(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        label: const Text('Last Bill', style: TextStyle(color: Colors.black)),
-                        onPressed: () {
-                          getLastBillNo().then((_) {
-                            getDeleteRemarks().then((_){
-                              showDeleteBillDialog(context, lastBillResponse!.billNumber, deleteRemarks);
-                            });
-                          });
-                        },
-                      ),
-                    ): Container(),SizedBox(width: 10,),
                     Align(
                       alignment: Alignment.bottomRight,
                       child: ElevatedButton(
@@ -1265,14 +949,14 @@ class _ShopBillingState extends State<ShopBilling> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
 
-    if (selectedShopData!.taxEnable && selectedShopData!.includedTax ) ...[
-    ...taxItems.map((tax) =>
-    _buildRow(
-    '${tax.taxType} (${tax.taxPercentage})', '',
-    '₹',
-    (tax.taxPercentage * _cardTotalPrice / (100 + totalTaxRate)).toStringAsFixed(2))),
-      _buildRow('Total Tax', '', '₹', (_cardTotalPrice * totalTaxRate / (100 + totalTaxRate)).toStringAsFixed(2))
-    ],
+                          if (selectedShopData!.taxEnable && selectedShopData!.includedTax ) ...[
+                            ...taxItems.map((tax) =>
+                                _buildRow(
+                                    '${tax.taxType} (${tax.taxPercentage})', '',
+                                    '₹',
+                                    (tax.taxPercentage * _cardTotalPrice / (100 + totalTaxRate)).toStringAsFixed(2))),
+                            _buildRow('Total Tax', '', '₹', (_cardTotalPrice * totalTaxRate / (100 + totalTaxRate)).toStringAsFixed(2))
+                          ],
                           if(selectedShopData!.taxEnable && !selectedShopData!.includedTax) ...[
                             ...taxItems.map((tax) =>
                                 _buildRow(
@@ -1285,11 +969,11 @@ class _ShopBillingState extends State<ShopBilling> {
                           ],
                           _buildRow('Total Price', '', '₹', _cardTotalPrice.toStringAsFixed(2)),
                           if (selectedShopData!.taxEnable && selectedShopData!.includedTax ) ...[
-                          _buildRow('Net Amount', '', '₹',_netTotalAmtOutTax.toStringAsFixed(2)),
+                            _buildRow('Net Amount', '', '₹',_netTotalAmtOutTax.toStringAsFixed(2)),
                           ],
                           if(selectedShopData!.taxEnable && !selectedShopData!.includedTax) ...[
                             _buildRow('Net Amount', '', '₹', _netTotalAmtInTax.toStringAsFixed(2)),
-                            ],
+                          ],
                           _buildDivider(),
                           _buildTextField(_discountController, 'Discount', TextInputType.number),
                           Row(
@@ -1336,7 +1020,7 @@ class _ShopBillingState extends State<ShopBilling> {
                     children: [
                       ElevatedButton(
                         onPressed: () {
-                         _clear();
+                          _clear();
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red,
@@ -1367,7 +1051,6 @@ class _ShopBillingState extends State<ShopBilling> {
       ),
     );
   }
-
 
   Widget _buildTextField(TextEditingController controller, String labelText, TextInputType keyboardType) {
     final borderRadius = BorderRadius.circular(20);
@@ -1561,7 +1244,6 @@ class _ShopBillingState extends State<ShopBilling> {
       },
     );
   }
-
 
 
 }

@@ -467,7 +467,6 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CustomSearchField.buildSearchField(_shopNameController, 'Shop Name', Icons.shop, _shopItems, _handleShopSelection,false,true, true , true),
-
             const SizedBox(height: 10),
             CustomSearchField.buildSearchField(_customerController, 'Customer', Icons.person, _shopCustomer, _handleCustomerSelection,false,false, true, true),
             const SizedBox(height: 10),

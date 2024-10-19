@@ -89,6 +89,11 @@ class Apis{
   static String requestOTP = '${dotenv.env['BASE_URL'] ?? ""}/otp/get';
   static String validateOTP = '${dotenv.env['BASE_URL'] ?? ""}/otp/validate';
 
+  static String saveShopOrder  = '${dotenv.env['BASE_URL'] ?? ""}/shoporder/save';
+  static String getShopOrderStatus  = '${dotenv.env['BASE_URL'] ?? ""}/shoporder/get/status';
+  static String getShopOrderDetails  = '${dotenv.env['BASE_URL'] ?? ""}/shoporder/get/details';
+  static String updateShopOrderStatus  = '${dotenv.env['BASE_URL'] ?? ""}/shoporder/get/update/status';
+
 
   static Future<void> getToken() async {
     SigninResponse? signInResponse = await getSignInResponse();
