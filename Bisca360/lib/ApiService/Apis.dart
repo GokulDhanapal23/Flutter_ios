@@ -39,67 +39,48 @@ class Apis{
   // static String checkMobileNumber = 'http://192.168.0.15:9092/user/check/mobilenumber';
   static String login = '${dotenv.env['BASE_URL'] ?? ""}/user/signin';
   static String signInWithMobile = '${dotenv.env['BASE_URL'] ?? ""}/user/signinwithmobile';
-
+  static String setUpMPIN = '${dotenv.env['BASE_URL'] ?? ""}/user/setmpin';
   static String getAllShop = '${dotenv.env['BASE_URL'] ?? ""}/shop/get';
-
   static String getAllMeasurements = '${dotenv.env['BASE_URL'] ?? ""}/measurements/get';
   static String saveMeasurement = '${dotenv.env['BASE_URL'] ?? ""}/measurements/save';
   static String changeMeasurementsStatus = '${dotenv.env['BASE_URL'] ?? ""}/measurements/set/status';
-
   static String getSupplierAndChairNo = '${dotenv.env['BASE_URL'] ?? ""}/shop/get/employee/seating';
-
   static String getActiveShop = '${dotenv.env['BASE_URL'] ?? ""}/shop/get/active';
   static String saveShop = '${dotenv.env['BASE_URL'] ?? ""}/shop/save';
   static String saveShopProduct = '${dotenv.env['BASE_URL'] ?? ""}/shop/product/save';
-
   static String getShopProduct = '${dotenv.env['BASE_URL'] ?? ""}/shop/product/get/';
   static String getChangeProductStatus = '${dotenv.env['BASE_URL'] ?? ""}/shop/product/status/change';
   static String getShopCustomer = '${dotenv.env['BASE_URL'] ?? ""}/shopcustomer/getby/shopname';
-
   static String getAllCategory = '${dotenv.env['BASE_URL'] ?? ""}/category/getCategoryAll/';
   static String getAllSubCategory = '${dotenv.env['BASE_URL'] ?? ""}/subCategory/getsubCategoryAll/';
-
   static String saveShopSales = '${dotenv.env['BASE_URL'] ?? ""}/shopsalesdetails/save';
-
   static String getAllBillByDate = '${dotenv.env['BASE_URL'] ?? ""}/shopsalesdetails/get/bydate';
-
   static String getUnits ='${dotenv.env['BASE_URL'] ?? ""}/measurements/get';
-
   static String getTax ='${dotenv.env['BASE_URL'] ?? ""}/tax/get';
-
   static String imageLoad = '${dotenv.env['BASE_URL'] ?? ""}/file/load/';
-
   static String shopInvoicePdf = '${dotenv.env['BASE_URL'] ?? ""}/report/customer/invoice/pdf';
   static String shopBillPdf = '${dotenv.env['BASE_URL'] ?? ""}/shopsalesdetails/get/bill/invoice';
-
   static String shopSalesSearch = '${dotenv.env['BASE_URL'] ?? ""}/shopsalesdetails/get/shopSales/search';
-
   static String shopSummary= '${dotenv.env['BASE_URL'] ?? ""}/report/customer/billing/';
-
   static String getLastBillNo = '${dotenv.env['BASE_URL'] ?? ""}/shopsalesdetails/get/last/bill';
-
   static String getDeleteRemarks = '${dotenv.env['BASE_URL'] ?? ""}/shopsalesdetails/bill/delete/remarks';
-
   static String deleteLastBill = '${dotenv.env['BASE_URL'] ?? ""}/shopsalesdetails/bill/delete';
-
   static String getProject = '${dotenv.env['BASE_URL'] ?? ""}/site-details/get';
   static String saveProject = '${dotenv.env['BASE_URL'] ?? ""}/site-details/save';
   static String getAllProcessStatus = '${dotenv.env['BASE_URL'] ?? ""}/process/status/list/all/active';
-
   static String requestOTP = '${dotenv.env['BASE_URL'] ?? ""}/otp/get';
   static String validateOTP = '${dotenv.env['BASE_URL'] ?? ""}/otp/validate';
-
   static String saveShopOrder  = '${dotenv.env['BASE_URL'] ?? ""}/shoporder/save';
   static String getShopOrderStatus  = '${dotenv.env['BASE_URL'] ?? ""}/shoporder/get/status';
   static String getShopOrderDetails  = '${dotenv.env['BASE_URL'] ?? ""}/shoporder/get/details';
   static String updateShopOrderStatus  = '${dotenv.env['BASE_URL'] ?? ""}/shoporder/get/update/status';
+  static String shopOrderBill  = '${dotenv.env['BASE_URL'] ?? ""}/shoporder/get/bill/invoice';
 
 
   static Future<void> getToken() async {
     SigninResponse? signInResponse = await getSignInResponse();
     if (signInResponse != null) {
       TOKEN = signInResponse.accessToken;
-      print('Token: $TOKEN');
     } else {
       print('No SigninResponse found in SharedPreferences');
     }

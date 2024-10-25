@@ -15,8 +15,8 @@ class ShopOrderClosedBill {
     return ShopOrderClosedBill(
       id: json['id'],
       shopId: json['shopId'],
-      orderNumber: json['orderNumber'],
-      tableNo: json['tableNo'],
+      orderNumber: json['orderNumber'] as String,
+      tableNo: json['tableNo'] as String,
     );
   }
 

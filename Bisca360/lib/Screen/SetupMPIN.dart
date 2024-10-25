@@ -1,8 +1,14 @@
+import 'dart:convert';
+
+import 'package:bisca360/Response/UsersAccountsResponse.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:pinput/pinput.dart';
 
+import '../ApiService/Apis.dart';
 import '../Request/SigninRequest.dart';
+import '../Response/SigninResponse.dart';
 import '../Service/LoginService.dart';
 
 class SetUpMPIN extends StatefulWidget {
@@ -17,6 +23,27 @@ class _SetUpMPINState extends State<SetUpMPIN> {
   late String _pin = '';
   late String _conformPin = '';
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  late SigninResponse signinResponse;
+
+  Future<void> setUpMPIN(var data, BuildContext context) async {
+    print('data: $data');
+    try {
+      final res = await Apis.getClient()
+          .post(Uri.parse(Apis.setUpMPIN),
+          body: data,
+          headers: Apis.getHeaders());
+      final response = jsonDecode(res.body);
+      if (response['status'] == "OK") {
+        LoginService.showBlurredSnackBar(context, response['message'] , type: SnackBarType.success);
+        Navigator.of(context).pop();
+      } else {
+        LoginService.showBlurredSnackBar(context, response['message'] , type: SnackBarType.error);
+        print('Failed to load data');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -175,25 +202,29 @@ class _SetUpMPINState extends State<SetUpMPIN> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                       ),
-                      onPressed: () {
-                        // Validate the PIN length
-                        // if (_pin.length == 4) {
-                        //   SigninRequest signInRequest = SigninRequest(
-                        //     widget.usersAccountsResponse.mobileNumber,
-                        //     widget.usersAccountsResponse.ownerId,
-                        //     _pin,
-                        //   );
-                        //
-                        //   var data = jsonEncode(signInRequest.toJson());
-                        //   print('sigInData: $data');
-                        //   LoginService.loginWithMPIN(data, context);
-                        //   print('Entered PIN: $_pin');
-                        // } else {
-                        //   // Show an error message
-                        //   ScaffoldMessenger.of(context).showSnackBar(
-                        //     SnackBar(content: const Text('Please enter a valid 4-digit MPIN')),
-                        //   );
-                        // }
+                      onPressed: () async {
+                        if (_pin.length == 4) {
+                          var res = LoginService.loadSignInResponse();
+                          var box = await Hive.openBox('login_box');
+                          String? hiveData = box.get('signIn');
+                          if (hiveData != null) {
+                            signinResponse = SigninResponse.fromJson(jsonDecode(hiveData));
+                            print('Hive SigninResponse: $signinResponse');
+                          }
+                          var dataMpin = {
+                            "mpin": _pin,
+                            "userId": signinResponse.id,
+                          };
+                          var data = jsonEncode(dataMpin);
+                          print('MPINData: $data');
+                          setUpMPIN(data, context);
+                          print('Entered PIN: $_pin');
+                        } else {
+                          // Show an error message
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: const Text('Please enter a valid 4-digit MPIN')),
+                          );
+                        }
                       },
                       child: const Text("Setup MPIN", style: TextStyle(color: Colors.white)),
                     ),
@@ -207,3 +238,4 @@ class _SetUpMPINState extends State<SetUpMPIN> {
     );
   }
 }
+

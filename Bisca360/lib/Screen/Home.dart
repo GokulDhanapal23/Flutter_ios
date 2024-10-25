@@ -190,7 +190,7 @@ class HomeState extends State<Home> {
             itemDashboard('Shops', CupertinoIcons.shopping_cart, Colors.deepOrange, Shop()),
             // itemDashboardImg('Shops', "https://cdn.pixabay.com/photo/2013/07/13/11/31/shop-158317_640.png", Colors.grey, Shop()),
             itemDashboard('Products', CupertinoIcons.graph_circle, Colors.green, ShopProduct()),
-            // itemDashboard('Order', CupertinoIcons.repeat, Colors.green, ShopOrder()),
+            itemDashboard('Order', CupertinoIcons.repeat, Colors.green, ShopOrder()),
             itemDashboard('Billing', CupertinoIcons.money_dollar, Colors.purple, ShopBilling()),
             itemDashboard('Project', Icons.home_work_outlined, Colors.orange, Projects()),
             // itemDashboard('Customers', CupertinoIcons.person, Colors.teal, Customers()),

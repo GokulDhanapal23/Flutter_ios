@@ -20,6 +20,7 @@ class ShopSalesDetailsRequest {
   late String chairNo;
   late String hairStylist;
   late String supplier;
+  late String orderId;
 
   ShopSalesDetailsRequest(
       this.id,
@@ -40,6 +41,7 @@ class ShopSalesDetailsRequest {
       this.chairNo,
       this.hairStylist,
       this.supplier,
+      this.orderId
       );
 
   factory ShopSalesDetailsRequest.fromJson(Map<String, dynamic> json) {
@@ -64,6 +66,7 @@ class ShopSalesDetailsRequest {
       json['chairNo'] as String,
       json['hairStylist'] as String,
       json['supplier'] as String,
+      json['orderId'] as String,
     );
   }
 
@@ -87,11 +90,12 @@ class ShopSalesDetailsRequest {
       'chairNo': chairNo,
       'hairStylist': hairStylist,
       'supplier': supplier,
+      'orderId': orderId,
     };
   }
 
   @override
   String toString() {
-    return '{id: $id, shopName: $shopName, paymentType: $paymentType, listSellingData: $listSellingData, totalPrice: $totalPrice, totalTax: $totalTax, netTotalPrice: $netTotalPrice, discountPrice: $discountPrice, grandTotalPrice: $grandTotalPrice, billDate: $billDate, dayTime: $dayTime, customerName: $customerName, mobileNumber: $mobileNumber, shopCustomerId: $shopCustomerId, tableNo: $tableNo, chairNo: $chairNo, hairStylist: $hairStylist, supplier: $supplier}';
+    return '{id: $id, shopName: $shopName, paymentType: $paymentType, listSellingData: $listSellingData, totalPrice: $totalPrice, totalTax: $totalTax, netTotalPrice: $netTotalPrice, discountPrice: $discountPrice, grandTotalPrice: $grandTotalPrice, billDate: $billDate, dayTime: $dayTime, customerName: $customerName, mobileNumber: $mobileNumber, shopCustomerId: $shopCustomerId, tableNo: $tableNo, chairNo: $chairNo, hairStylist: $hairStylist, supplier: $supplier, orderId: $orderId}';
   }
 }

@@ -16,10 +16,12 @@ import 'package:pdf/pdf.dart';
 
 
 import '../ApiService/Apis.dart';
+import '../Request/ShopOrderRequest.dart';
 import '../Request/ShopSalesDetailsRequest.dart';
 import '../Response/DefaultResponse.dart';
 import '../Response/OwnerTaxResponse.dart';
 import '../Response/ShopCustomerResponse.dart';
+import '../Response/ShopOrderClosedBill.dart';
 import '../Response/ShopProductResponse.dart';
 import '../Response/ShopResponse.dart';
 import '../Response/ShopSalesDetailsResponse.dart';
@@ -38,6 +40,7 @@ class _ShopBillingState extends State<ShopBilling> {
   final TextEditingController _shopNameController = TextEditingController();
   final TextEditingController _productController = TextEditingController();
   final TextEditingController _customerController = TextEditingController();
+  final TextEditingController _orderNoController = TextEditingController();
   final TextEditingController _customerMobileNumberController = TextEditingController();
   late TextEditingController _qtyController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
@@ -54,6 +57,10 @@ class _ShopBillingState extends State<ShopBilling> {
   EmployeeAndSeatingResponse? employeeAndSeatingResponse;
   late List<ShoppProductResponse> shopProducts = [];
   late List<ShopCustomerResponse> shopCustomer = [];
+
+  late ShopOrderRequest shopOrderResponse;
+
+  late List<ShopOrderClosedBill> shopOrderClosedBill = [];
   List<ShopBillProducts> billedProducts = [];
   List<OwnerTaxResponse> taxItems = [];
   List<String> deleteRemarks = [];
@@ -261,10 +268,15 @@ class _ShopBillingState extends State<ShopBilling> {
     _customerController.clear();
     _customerMobileNumberController.clear();
     _productController.clear();
+    _supplierOrHairStylistController.clear();
+    _tableOrChairController.clear();
     _qtyController.setText('0');
-    billedProducts.clear();
+    setState(() {
+      billedProducts = [];
+    });
     _discountController.clear();
     _grandTotalController.clear();
+    _orderNoController.clear();
   }
 
   Future<void> saveSalesBill(ShopSalesDetailsRequest shopSalesDetailsRequest) async {
@@ -330,6 +342,56 @@ class _ShopBillingState extends State<ShopBilling> {
       print('File Service : Error on Bill download failed $e');
     }
   }
+
+  Future<void> getShopOrderDetails(var shopId, String orderId) async{
+    try{
+      final encodedData = Uri.encodeComponent(orderId);
+      final url = Uri.parse('${Apis.getShopOrderDetails}?shopId=$shopId&orderId=$encodedData');
+      final res = await Apis.getClient().get(url, headers: Apis.getHeaders());
+
+      final response = jsonDecode(res.body);
+      if (response != null) {
+        setState(() {
+          shopOrderResponse = ShopOrderRequest.fromJson(response);
+          billedProducts = shopOrderResponse.orderItemData;
+          _setProps();
+          print('shopOrderResponse: $shopOrderResponse');
+        });
+      } else {
+        print('Failed to load shopOrderResponse');
+      }
+    } catch (e) {
+      print('Error fetching shop Order: $e');
+    }
+  }
+
+  Future<void> getShopOrderStatus(var shopId,String status ) async {
+    try {
+      final encodedData = Uri.encodeComponent(status);
+      final url = Uri.parse('${Apis.getShopOrderStatus}?shopId=$shopId&status=$encodedData');
+      final response = await Apis.getClient().get(url, headers: Apis.getHeaders());
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          shopOrderClosedBill = data.map((item) => ShopOrderClosedBill.fromJson(item)).toList();
+          print('shopOrderClosedBill: $shopOrderClosedBill');
+        });
+      } else {
+        print('shopOrderClosedBill: Failed to load shop Order ClosedBill');
+      }
+    } catch (e) {
+      print('shopOrderClosedBill:  Error fetching shop Order ClosedBill: $e');
+    }
+  }
+
+  void _setProps(){
+    setState(() {
+      _tableOrChairController.text = shopOrderResponse.tableNo;
+      _supplierOrHairStylistController.text = shopOrderResponse.supplier;
+      _recalculateGrandTotal();
+    });
+  }
   Future<void> printPdf(String filePath) async {
     final file = File(filePath);
     print(filePath);
@@ -347,12 +409,16 @@ class _ShopBillingState extends State<ShopBilling> {
   void _handleShopSelection(String selectedShop) {
     setState(() {
       selectedShopData = null;
+      selectedShopData = shopResponses.firstWhere(
+              (shop) => shop.shopName == selectedShop
+      );
     });
     _productController.clear();
     _customerController.clear();
     _tableOrChairController.clear();
     _supplierOrHairStylistController.clear();
     billedProducts.clear();
+    shopOrderClosedBill = [];
     _shopCustomer.clear();
     _shopCustomerNumber.clear();
     _productItems.clear();
@@ -363,6 +429,7 @@ class _ShopBillingState extends State<ShopBilling> {
     selectedShopData = shopResponses.firstWhere(
             (shop) => shop.shopName == selectedShop
     );
+    getShopOrderStatus(selectedShopData!.id, 'CLOSED');
     getSupplierAndChairNo(selectedShopData!.id).then((_) {
       updateProductItems();
     });
@@ -381,6 +448,9 @@ class _ShopBillingState extends State<ShopBilling> {
     }
   }
 
+  List<SearchFieldListItem<String>> get _OrderNo {
+    return shopOrderClosedBill.map((order) => SearchFieldListItem<String>(order.orderNumber)).toList();
+  }
 
 
   late  ShopCustomerResponse selectedCustomerData;
@@ -393,6 +463,14 @@ class _ShopBillingState extends State<ShopBilling> {
       _customerMobileNumberController.setText(
           selectedCustomerData.mobileNumber.toString());
     }
+  }
+
+  ShopOrderClosedBill? selectedShopOrder;
+  void _handleOrderNoSelection(String selectedOrder) {
+    billedProducts=[];
+    selectedShopOrder = shopOrderClosedBill.firstWhere(
+            (order) => order.orderNumber == selectedOrder);
+    getShopOrderDetails(selectedShopData!.id, selectedShopOrder!.orderNumber);
   }
   void _handleCustomerNumberSelection(String selectedCustomer) {
    int customerNo = int.parse(selectedCustomer);
@@ -515,6 +593,7 @@ class _ShopBillingState extends State<ShopBilling> {
         _handleShopSelection(_shopNameController.text);
         getShopProducts(_shopNameController.text); // Fetch products after setting the shop name
         getShopCustomer(_shopNameController.text);
+        getShopOrderStatus(shopResponses.first.id, 'CLOSED');
       }
       getLastBillNo();
     });
@@ -580,6 +659,13 @@ class _ShopBillingState extends State<ShopBilling> {
       hairStylist = _supplierOrHairStylistController.text;
     }
 
+    String orderId ='';
+    if(selectedShopOrder != null){
+      orderId = selectedShopOrder!.orderNumber;
+    }else{
+      orderId ='';
+    }
+
     shopSalesDetailsRequest = ShopSalesDetailsRequest(
       0,
       selectedShopData!.shopName,
@@ -594,7 +680,8 @@ class _ShopBillingState extends State<ShopBilling> {
       _mealTimeController.text,
       customerNameS,
       customerNumber, // Ensure this is an int
-      customerId,tableNo,chairNo,hairStylist,supplier
+      customerId,tableNo,chairNo,hairStylist,supplier,orderId
+
     );
 
     saveSalesBill(shopSalesDetailsRequest);
@@ -657,7 +744,7 @@ class _ShopBillingState extends State<ShopBilling> {
       print('Please fill in all fields correctly');
       return;
     }
-    final newProduct = ShopBillProducts(item, productData.unit.toString(), price, quantity, totalPrice);
+    final newProduct = ShopBillProducts(item, productData.unit.toString(), price, quantity, totalPrice,'');
     bool productExists = billedProducts.any((product) => product.item == newProduct.item);
     if (!productExists) {
       setState(() {
@@ -1013,6 +1100,15 @@ class _ShopBillingState extends State<ShopBilling> {
                       ),
                   ],
                 ),
+                const SizedBox(height: 10),
+                CustomSearchField.buildSearchField(
+                    _orderNoController,
+                    'Order Number',
+                    Icons.person,
+                    _OrderNo,
+                    _handleOrderNoSelection,false,
+                    false, true ,true
+                ),
                 if (selectedShopData?.shopType == 'Hotel' || selectedShopData?.shopType == 'Saloon') ...[
                   const SizedBox(height: 10),
                   Row(
@@ -1164,7 +1260,7 @@ class _ShopBillingState extends State<ShopBilling> {
                             _billProduct();
                             setState(() {
                               _isProductSelected = false;
-                            }); // Trigger a rebuild
+                            });
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('Please fill in all fields correctly')),

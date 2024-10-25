@@ -1,9 +1,14 @@
 import 'package:bisca360/Screen/SetupMPIN.dart';
 import 'package:flutter/material.dart';
 
+import '../Response/SigninResponse.dart';
 import '../Service/NavigationHelper.dart';
 
 class Settings extends StatefulWidget {
+
+
+  const Settings({super.key});
+
   @override
   _SettingsScreenState createState() => _SettingsScreenState();
 }
@@ -55,14 +60,14 @@ class _SettingsScreenState extends State<Settings> {
             ),
           ),
           ListTile(
-            title: Text('Setup MPIN'),
+            title: Text(' Setup MPIN'),
             leading: Icon(Icons.password),
-            // onTap: (){
-            //     NavigationHelper.navigateWithFadeSlide(
-            //       context,
-            //       SetUpMPIN(),
-            //         );
-            //      },
+            onTap: (){
+                NavigationHelper.navigateWithFadeSlide(
+                  context,
+                  SetUpMPIN(),
+                    );
+                 },
               ),
               Divider(),
               ListTile(

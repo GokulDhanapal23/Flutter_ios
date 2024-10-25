@@ -119,6 +119,25 @@ class LoginService{
     }
   }
 
+  static Future<void> setUpMPIN(var data, BuildContext context) async {
+    print('data: $data');
+    try {
+      final res = await Apis.getClient()
+          .post(Uri.parse(Apis.setUpMPIN),
+          body: data,
+          headers: Apis.getHeaders());
+      final response = jsonDecode(res.body);
+      if (response['status'] == "OK") {
+        showBlurredSnackBar(context, response['message'] , type: SnackBarType.success);
+        Navigator.pop(context);
+      } else {
+        showBlurredSnackBar(context, response['message'] , type: SnackBarType.error);
+        print('Failed to load data');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
 
 
   static Future<File?> imageLoad(var doctype,var id) async {
@@ -129,14 +148,13 @@ class LoginService{
     return null;
   }
 
-  Future<void> _loadSigninResponse() async {
+  static Future<void> loadSignInResponse() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? jsonString = prefs.getString('signinResponse');
-
     if (jsonString != null) {
         signinResponse = SigninResponse.fromJson(jsonDecode(jsonString));
+        print(' SigninResponse: $signinResponse');
     } else {
-      // Handle the case where there is no saved SigninResponse
       print('No SigninResponse found in Shared Preferences');
     }
   }
