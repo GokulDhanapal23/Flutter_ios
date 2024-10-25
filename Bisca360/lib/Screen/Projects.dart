@@ -74,7 +74,6 @@ class _ProjectsState extends State<Projects> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        centerTitle: true,
         backgroundColor: Colors.green,
         leading: IconButton(onPressed: () {
           Navigator.of(context).pop();

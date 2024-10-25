@@ -144,7 +144,6 @@ class _ShopProductState extends State<ShopProduct> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        centerTitle: true,
         backgroundColor: Colors.green,
         leading: IconButton(onPressed: () {
           Navigator.of(context).pop();

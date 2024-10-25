@@ -95,7 +95,6 @@ class _CustomersState extends State<Customers> {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        centerTitle: true,
         backgroundColor: Colors.green,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),

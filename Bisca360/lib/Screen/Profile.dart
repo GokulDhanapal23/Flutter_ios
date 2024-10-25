@@ -41,7 +41,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         backgroundColor: Colors.green,
         title: const Text('User Account', style: TextStyle(color: Colors.white)),
-        centerTitle: true,
         elevation: 1,
       ),
       body: Padding(

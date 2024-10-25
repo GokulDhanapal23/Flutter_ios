@@ -119,7 +119,6 @@ class _ShopBillingHistoryState extends State<ShopBillingHistory> {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        centerTitle: true,
         backgroundColor: Colors.green,
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),

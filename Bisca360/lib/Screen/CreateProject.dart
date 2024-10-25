@@ -162,7 +162,6 @@ class _CreateProjectState extends State<CreateProject> {
         ),
         backgroundColor: Colors.green,
         title:  Text(widget.projectResponse != null ? 'Update Project' : 'Create Project', style: TextStyle(color: Colors.white)),
-        centerTitle: true,
         elevation: 1,
       ),
       body: GestureDetector(

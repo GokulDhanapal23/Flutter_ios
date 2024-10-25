@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:pinput/pinput.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../ApiService/Apis.dart';
 import '../Request/SigninRequest.dart';
@@ -13,13 +14,17 @@ import '../Service/LoginService.dart';
 
 class SetUpMPIN extends StatefulWidget {
   const SetUpMPIN({super.key});
-
   @override
   State<SetUpMPIN> createState() => _SetUpMPINState();
 }
 
 class _SetUpMPINState extends State<SetUpMPIN> {
 
+  @override
+  void initState() {
+    getSigninResponse();
+    super.initState();
+  }
   late String _pin = '';
   late String _conformPin = '';
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -45,6 +50,14 @@ class _SetUpMPINState extends State<SetUpMPIN> {
     }
   }
 
+  Future<void> getSigninResponse() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? jsonString = prefs.getString('signin_response');
+    if (jsonString != null) {
+      signinResponse = SigninResponse.fromJson(jsonDecode(jsonString));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final defaultPinTheme = PinTheme(
@@ -64,7 +77,6 @@ class _SetUpMPINState extends State<SetUpMPIN> {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        centerTitle: true,
         backgroundColor: Colors.green,
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
@@ -203,14 +215,7 @@ class _SetUpMPINState extends State<SetUpMPIN> {
                         ),
                       ),
                       onPressed: () async {
-                        if (_pin.length == 4) {
-                          var res = LoginService.loadSignInResponse();
-                          var box = await Hive.openBox('login_box');
-                          String? hiveData = box.get('signIn');
-                          if (hiveData != null) {
-                            signinResponse = SigninResponse.fromJson(jsonDecode(hiveData));
-                            print('Hive SigninResponse: $signinResponse');
-                          }
+                        if (_pin.length == 4)  {
                           var dataMpin = {
                             "mpin": _pin,
                             "userId": signinResponse.id,

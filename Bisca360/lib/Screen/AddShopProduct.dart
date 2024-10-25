@@ -180,7 +180,7 @@ class _AddShopProductState extends State<AddShopProduct> {
     }
     getAllShops().then((_) {
       if (shopResponses.isNotEmpty) {
-        _shopNameController.text = (widget.shopProducts == null ? shopResponses.first.shopName : widget.shopProducts!.product);
+        _shopNameController.text = (widget.shopProducts == null ? shopResponses.first.shopName : widget.shopProducts!.shopName);
         getAllCategories(_shopNameController.text); // Fetch products after setting the shop name
         getAllSubCategories(_getCategoryId());
       }
@@ -365,7 +365,6 @@ class _AddShopProductState extends State<AddShopProduct> {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        centerTitle: true,
         actions: addedProducts.isNotEmpty
             ? [
           Padding(

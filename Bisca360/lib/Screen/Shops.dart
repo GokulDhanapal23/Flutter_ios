@@ -15,7 +15,6 @@ class Shop extends StatefulWidget {
 
   @override
   State<Shop> createState() => _ShopState();
-
 }
 
 class _ShopState extends State<Shop> {
@@ -54,15 +53,15 @@ class _ShopState extends State<Shop> {
     });
   }
 
-   void setUpdateProfile(int value) {
+  void setUpdateProfile(int value) {
     print("Updated Profile count: $value");
     setState(() {
       updateProfile = value;
     });
   }
 
-  void refresh(){
-    if(updateProfile == 1){
+  void refresh() {
+    if (updateProfile == 1) {
       getAllShops();
       updateProfile = 0;
     }
@@ -73,7 +72,6 @@ class _ShopState extends State<Shop> {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        centerTitle: true,
         backgroundColor: Colors.green,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
@@ -83,37 +81,40 @@ class _ShopState extends State<Shop> {
         ),
         title: _isSearching
             ? TextField(
-          controller: _searchController,
-          style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(
-            hintText: 'Search...',
-            border: InputBorder.none,
-            hintStyle: TextStyle(color: Colors.white),
-          ),
-          onChanged: (value) {
-            _filterShops(value);
-          },
-        )
-
+                controller: _searchController,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  hintText: 'Search...',
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(color: Colors.white),
+                ),
+                onChanged: (value) {
+                  _filterShops(value);
+                },
+              )
             : const Text('Shops', style: TextStyle(color: Colors.white)),
         actions: [
           _isSearching
               ? IconButton(
-            icon: const Icon(Icons.clear, color: Colors.white),
-            onPressed: _stopSearch,
-          )
+                  icon: const Icon(Icons.clear, color: Colors.white),
+                  onPressed: _stopSearch,
+                )
               : IconButton(
-            icon: const Icon(Icons.search, color: Colors.white),
-            onPressed: _startSearch,
-          ),
-          IconButton(onPressed: (){
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AddShop(shopResponse: null, ),
+                  icon: const Icon(Icons.search, color: Colors.white),
+                  onPressed: _startSearch,
                 ),
-              );
-          }, icon: Icon(CupertinoIcons.plus_app_fill,color: Colors.white)),
+          IconButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AddShop(
+                      shopResponse: null,
+                    ),
+                  ),
+                );
+              },
+              icon: Icon(CupertinoIcons.plus_app_fill, color: Colors.white)),
         ],
       ),
       // floatingActionButton: FloatingActionButton(
@@ -129,68 +130,77 @@ class _ShopState extends State<Shop> {
       //   child: const Icon(Icons.add, color: Colors.white),
       // ),
       body: filteredShops.isEmpty && shopResponses.isEmpty
-          ? const Center(child: Text('No Shops', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)))
+          ? const Center(
+              child: Text('No Shops',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)))
           : ListView.builder(
-        itemCount: filteredShops.isEmpty ? shopResponses.length : filteredShops.length,
-        shrinkWrap: true,
-        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-        itemBuilder: (context, index) {
-          final shop = filteredShops.isEmpty ? shopResponses[index] : filteredShops[index];
-          final id = shop.id!;
-          String uId = 'S$id';
-          const docType = 'profile';
-          return FutureBuilder<Uint8List?>(
-            future: ImageService.fetchImage(uId, docType),
-            builder: (context, snapshot) {
-              final imageData = snapshot.data;
-              return Card(
-                color: Colors.white,
-                shadowColor: Colors.green,
-                margin: const EdgeInsets.symmetric(vertical: 3, horizontal: 12),
-                elevation: 3,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(12),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AddShop(
-                          shopResponse: shop
+              itemCount: filteredShops.isEmpty
+                  ? shopResponses.length
+                  : filteredShops.length,
+              shrinkWrap: true,
+              physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics()),
+              itemBuilder: (context, index) {
+                final shop = filteredShops.isEmpty
+                    ? shopResponses[index]
+                    : filteredShops[index];
+                final id = shop.id!;
+                String uId = 'S$id';
+                const docType = 'profile';
+                return FutureBuilder<Uint8List?>(
+                  future: ImageService.fetchImage(uId, docType),
+                  builder: (context, snapshot) {
+                    final imageData = snapshot.data;
+                    return Card(
+                      color: Colors.white,
+                      shadowColor: Colors.green,
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 3, horizontal: 12),
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.all(12),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AddShop(shopResponse: shop),
+                            ),
+                          );
+                        },
+                        title: Text(
+                          shop.shopName,
+                          style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text(
+                          shop.shopType,
+                          style: const TextStyle(
+                              fontSize: 14, color: Colors.black54),
+                        ),
+                        leading: CircleAvatar(
+                          radius: 30,
+                          backgroundImage: imageData != null
+                              ? MemoryImage(imageData)
+                              : const AssetImage('assets/user_png.png'),
+                        ),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.phone, color: Colors.green),
+                          onPressed: () {
+                            // Handle call action
+                          },
                         ),
                       ),
                     );
-
                   },
-                  title: Text(
-                    shop.shopName,
-                    style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  subtitle: Text(
-                    shop.shopType,
-                    style: const TextStyle(fontSize: 14, color: Colors.black54),
-                  ),
-                  leading: CircleAvatar(
-                    radius: 30,
-                    backgroundImage: imageData != null
-                        ? MemoryImage(imageData)
-                        : const AssetImage('assets/user_png.png'),
-                  ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.phone, color: Colors.green),
-                    onPressed: () {
-                      // Handle call action
-                    },
-                  ),
-                ),
-              );
-            },
-          );
-        },
-      ),
+                );
+              },
+            ),
     );
   }
 
@@ -204,7 +214,8 @@ class _ShopState extends State<Shop> {
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
-          shopResponses = data.map((item) => Shopresponse.fromJson(item)).toList();
+          shopResponses =
+              data.map((item) => Shopresponse.fromJson(item)).toList();
           filteredShops = shopResponses; // Initially, show all shops
         });
       } else {
@@ -223,7 +234,8 @@ class _ShopState extends State<Shop> {
           title: const Text('Search Shops'),
           content: TextField(
             controller: _searchController,
-            decoration: const InputDecoration(hintText: 'Enter shop name or type'),
+            decoration:
+                const InputDecoration(hintText: 'Enter shop name or type'),
             onChanged: (value) {
               _filterShops(value);
             },

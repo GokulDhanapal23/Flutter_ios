@@ -63,6 +63,7 @@ class LoginService{
         showBlurredSnackBar(context, response['message'] , type: SnackBarType.success);
         final signinResponse = SigninResponse.fromJson(response);
         storeLoginSession(signinResponse);
+        storeSigninResponse(signinResponse);
         NavigationHelper.navigateWithFadeSlide(
           context,
           Home(signinResponse: signinResponse),
@@ -75,6 +76,20 @@ class LoginService{
       print('Error: $e');
       showBlurredSnackBar(context, e.toString() , type: SnackBarType.error);
     }
+  }
+
+ static Future<void> storeSigninResponse(SigninResponse response) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('signin_response', jsonEncode(response.toJson()));
+    print('login session UserLogin: ${prefs.get('signin_response')}');
+  }
+  static Future<SigninResponse?> getSigninResponse() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? jsonString = prefs.getString('signin_response');
+    if (jsonString != null) {
+      return SigninResponse.fromJson(jsonDecode(jsonString));
+    }
+    return null; // Or handle as needed
   }
  static storeLoginSession(SigninResponse signIn) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -106,6 +121,7 @@ class LoginService{
         showBlurredSnackBar(context, response['message'] , type: SnackBarType.success);
         final signinResponse = SigninResponse.fromJson(response);
         storeLoginSession(signinResponse);
+        storeSigninResponse(signinResponse);
         NavigationHelper.navigateWithFadeSlide(
           context,
           Home(signinResponse: signinResponse),

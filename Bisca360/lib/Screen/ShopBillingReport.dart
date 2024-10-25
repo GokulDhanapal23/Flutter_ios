@@ -327,8 +327,18 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
     String type;
     String date;
     shopName = selectedShopData.shopName;
-    if(_customerController.text.isNotEmpty){
+    if(_customerController.text.isNotEmpty && _customerController.text != 'ALL'){
       customerId = selectedCustomerData!.id;
+    }
+    if(_customerController.text.isEmpty){
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill customer correctly')),
+      );
+      print('Please fill customer correctly');
+      return;
+    }
+    if(_customerController.text.isNotEmpty && _customerController.text == 'ALL'){
+      customerId = 0;
     }
     final encodedShopName = Uri.encodeComponent(shopName);
     final url;
@@ -353,14 +363,6 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
       final encodedDate = Uri.encodeComponent(date);
       url = Uri.parse('${Apis.shopInvoicePdf}?customerId=$customerId&shopName=$encodedShopName&date=$encodedDate');
     }
-
-      if(_customerController.text.isEmpty){
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please fill customer correctly')),
-        );
-        print('Please fill customer correctly');
-        return;
-      }
       String frtTwoLet = shopName.substring(0,3);
       String fileName = '$frtTwoLet-${DateTime.now()}';
       downloadPdf(context,url,fileName);
@@ -448,7 +450,6 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        centerTitle: true,
         backgroundColor: Colors.green,
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
@@ -668,13 +669,7 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
                     icon: const Icon(Icons.picture_as_pdf, color: Colors.red),
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        if(_customerController.text.isNotEmpty && _customerController.text == 'ALL'){
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please fill in Customer fields correctly')),
-                          );
-                        }else{
                           _downloadPdfReport();
-                        }
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Please fill in all fields correctly')),

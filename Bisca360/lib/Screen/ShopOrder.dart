@@ -13,6 +13,7 @@ import 'package:pinput/pinput.dart';
 import 'package:searchfield/searchfield.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../ApiService/Apis.dart';
 import '../Request/ShopBillProducts.dart';
@@ -49,6 +50,7 @@ class _ShopOrderState extends State<ShopOrder> {
   final TextEditingController _priceController = TextEditingController();
   late TextEditingController _datePickerController = TextEditingController();
   final TextEditingController _mealTimeController = TextEditingController();
+  final TextEditingController _statusController = TextEditingController();
   final TextEditingController _paymentTypeController = TextEditingController();
   final TextEditingController _discountController = TextEditingController();
   final TextEditingController _grandTotalController = TextEditingController();
@@ -97,8 +99,11 @@ class _ShopOrderState extends State<ShopOrder> {
   List<SearchFieldListItem<String>> get _mealTime {
     return mealTime.map((meal) => SearchFieldListItem<String>(meal)).toList();
   }
+
   List<SearchFieldListItem<String>> get _orderStatus {
-    return orderStatus.map((status) => SearchFieldListItem<String>(status)).toList();
+    return orderStatus
+        .map((status) => SearchFieldListItem<String>(status))
+        .toList();
   }
 
   List<SearchFieldListItem<String>> get _shopItems {
@@ -286,6 +291,7 @@ class _ShopOrderState extends State<ShopOrder> {
         LoginService.showBlurredSnackBar(context, response['message'],
             type: SnackBarType.success);
         _clear();
+        getShopOrderStatus(selectedShopData!.id, 'PREPARED');
         setState(() {
           billedProducts = [];
           shopOrderResponse = null;
@@ -315,13 +321,16 @@ class _ShopOrderState extends State<ShopOrder> {
     _productController.clear();
     _qtyController.setText('0');
     _CustomerCountController.clear();
+
     _tableOrChairController.clear();
+    _tableChairController.clear();
     _supplierOrHairStylistController.clear();
+    _supplierHairStylistController.clear();
     _orderNoController.clear();
     _grandTotalController.clear();
     setState(() {
       selectedProductData = null;
-      selectedShopOrder= null;
+      selectedShopOrder = null;
     });
   }
 
@@ -337,6 +346,7 @@ class _ShopOrderState extends State<ShopOrder> {
         LoginService.showBlurredSnackBar(context, response['message'],
             type: SnackBarType.success);
         _clear();
+        getShopOrderStatus(selectedShopData!.id, 'PREPARED');
         setState(() {
           billedProducts.clear();
           selectedShopOrder = null;
@@ -777,7 +787,6 @@ class _ShopOrderState extends State<ShopOrder> {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        centerTitle: true,
         backgroundColor: Colors.green,
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
@@ -864,7 +873,7 @@ class _ShopOrderState extends State<ShopOrder> {
                             _chairNo,
                             (String value) {},
                             false,
-                            true,
+                            selectedShopOrder == null ? true : false,
                             true,
                             true,
                           ),
@@ -882,7 +891,7 @@ class _ShopOrderState extends State<ShopOrder> {
                             _supplierName,
                             (String value) {},
                             false,
-                            true,
+                            selectedShopOrder == null ? true : false,
                             true,
                             true,
                           ),
@@ -905,7 +914,7 @@ class _ShopOrderState extends State<ShopOrder> {
                             TextInputAction.next,
                             TextInputType.text,
                             false,
-                            true,
+                            selectedShopOrder != null ? true : false,
                             maxLines: null,
                             textAlignVertical: TextAlignVertical.center,
                           ),
@@ -923,7 +932,7 @@ class _ShopOrderState extends State<ShopOrder> {
                             TextInputAction.next,
                             TextInputType.text,
                             false,
-                            true,
+                              selectedShopOrder != null ? true : false,
                             maxLines: null,
                             textAlignVertical: TextAlignVertical.center,
                           ),
@@ -936,7 +945,7 @@ class _ShopOrderState extends State<ShopOrder> {
                 AppTextFieldForm(
                   _CustomerCountController,
                   'Customer Count',
-                  Icon(Icons.numbers,color: Colors.green),
+                  Icon(Icons.numbers, color: Colors.green),
                   TextInputAction.next,
                   TextInputType.number,
                   true,
@@ -1090,50 +1099,50 @@ class _ShopOrderState extends State<ShopOrder> {
                     children: billedProducts.map((product) {
                       final index = billedProducts.indexOf(product);
                       return GestureDetector(
-                          onTap: () => _showEditProductDialog(context, product, index),
-                      child: Card(
-                        elevation: 3,
-                        margin: const EdgeInsets.symmetric(vertical: 3),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text('${index + 1}',
-                                    style: TextStyle(fontSize: 15)),
+                        onTap: () =>
+                            _showEditProductDialog(context, product, index),
+                        child: Card(
+                          elevation: 3,
+                          margin: const EdgeInsets.symmetric(vertical: 3),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text('${index + 1}',
+                                      style: TextStyle(fontSize: 15)),
+                                ),
                               ),
-                            ),
-                            Expanded(
-                              flex: 3,
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(product.item,
-                                    style: TextStyle(fontSize: 15)),
+                              Expanded(
+                                flex: 3,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(product.item,
+                                      style: TextStyle(fontSize: 15)),
+                                ),
                               ),
-                            ),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text('${product.quantity}',
-                                    style: TextStyle(fontSize: 15)),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text('${product.quantity}',
+                                      style: TextStyle(fontSize: 15)),
+                                ),
                               ),
-                            ),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                    '${product.totalPriceList.toStringAsFixed(0)}',
-                                    style: TextStyle(fontSize: 15)),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                      '${product.totalPriceList.toStringAsFixed(0)}',
+                                      style: TextStyle(fontSize: 15)),
+                                ),
                               ),
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.delete,
-                                  color: Colors.red),
-                              onPressed: () => _deleteProduct(index),
-                            ),
-                          ],
+                              IconButton(
+                                icon: Icon(Icons.delete, color: Colors.red),
+                                onPressed: () => _deleteProduct(index),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
                       );
                     }).toList(),
                   ),
@@ -1217,29 +1226,40 @@ class _ShopOrderState extends State<ShopOrder> {
                                   color: Colors.white, fontSize: textSize)),
                         ),
                       ),
-                      if (selectedShopOrder != null) ...[
                         const SizedBox(width: 5),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.indigo.shade100,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: TextButton.icon(
-                            icon: const Icon(Icons.print, color: Colors.indigo),
-                            label: Text('Print Order',
-                                style: TextStyle(
-                                    color: Colors.black, fontSize: textSize)),
+                        SizedBox(
+                          width: buttonWidth,
+                          child: ElevatedButton(
                             onPressed: () {
-                              var id = selectedShopData!.id;
-                              String orderNumber =
-                                  selectedShopOrder!.orderNumber;
-                              _downloadOrder(context, id, orderNumber);
+                              if (_CustomerCountController.text.isNotEmpty && _supplierOrHairStylistController.text.isNotEmpty && _tableOrChairController.text.isNotEmpty) {
+                                _saveOrder();
+                                setState(() {
+                                  _isProductSelected = false;
+                                });
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Please fill in all fields correctly')),
+                                );
+                              }
                             },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(25),
+                              ),
+                            ),
+                            child: Text(
+                              shopOrderResponse == null
+                                  ? 'Save'
+                                  : 'Update',
+                              style: TextStyle(
+                                  color: Colors.white, fontSize: textSize),
+                            ),
                           ),
                         ),
-                      ],
                     ],
                   ),
+                  if (selectedShopOrder != null) ...[
                   const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -1258,29 +1278,9 @@ class _ShopOrderState extends State<ShopOrder> {
                               borderRadius: BorderRadius.circular(25),
                             ),
                           ),
-                          child: Text('Cancel Order',
+                          child: Text('Cancel',
                               style: TextStyle(
                                   color: Colors.white, fontSize: textSize)),
-                        ),
-                      ),
-                      const SizedBox(width: 5),
-                      SizedBox(
-                        width: buttonWidth,
-                        child: ElevatedButton(
-                          onPressed: _saveOrder,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25),
-                            ),
-                          ),
-                          child: Text(
-                            shopOrderResponse == null
-                                ? 'Save Order'
-                                : 'Update Order',
-                            style: TextStyle(
-                                color: Colors.white, fontSize: textSize),
-                          ),
                         ),
                       ),
                       const SizedBox(width: 5),
@@ -1297,13 +1297,33 @@ class _ShopOrderState extends State<ShopOrder> {
                               borderRadius: BorderRadius.circular(25),
                             ),
                           ),
-                          child: Text('Close Order',
+                          child: Text('Close',
                               style: TextStyle(
                                   color: Colors.white, fontSize: textSize)),
                         ),
                       ),
+                      const SizedBox(width: 5),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.indigo.shade100,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: TextButton.icon(
+                          icon: const Icon(Icons.print, color: Colors.indigo),
+                          label: Text('Print Order',
+                              style: TextStyle(
+                                  color: Colors.black, fontSize: textSize)),
+                          onPressed: () {
+                            var id = selectedShopData!.id;
+                            String orderNumber =
+                                selectedShopOrder!.orderNumber;
+                            _downloadOrder(context, id, orderNumber);
+                          },
+                        ),
+                      ),
                     ],
                   ),
+                  ],
                   // Row(
                   //   mainAxisAlignment: MainAxisAlignment.end,
                   //   children: [
@@ -1541,38 +1561,53 @@ class _ShopOrderState extends State<ShopOrder> {
       },
     );
   }
-  void _showEditProductDialog(BuildContext context,ShopBillProducts  product, int index) {
+
+  void _showEditProductDialog(
+      BuildContext context, ShopBillProducts product, int index) {
     // Create controllers for the input fields
-    TextEditingController itemController = TextEditingController(text: product.item);
-    TextEditingController quantityController = TextEditingController(text: product.quantity.toString());
-    TextEditingController priceController = TextEditingController(text: product.totalPriceList.toString());
+    TextEditingController itemController =
+        TextEditingController(text: product.item);
+    TextEditingController quantityController =
+        TextEditingController(text: product.quantity.toString());
+    TextEditingController priceController =
+        TextEditingController(text: product.totalPriceList.toString());
 
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (BuildContext context) {
         return AlertDialog(
-          title: Center(child: Text('Change Status')),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0),
+          ),
+          title: Center(
+            child: const Text(
+              'Change Status',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
+            ),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
-                style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold),
-                enabled:  false,
+                style:
+                TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                enabled: false,
                 controller: itemController,
                 decoration: InputDecoration(labelText: 'Item'),
               ),
-              Expanded(
-                child: CustomSearchField.buildSearchField(
-                    _mealTimeController,
+              CustomSearchField.buildSearchField(
+                    _statusController,
                     'Status',
                     Icons.access_alarms,
-                    _mealTime,
+                    _orderStatus,
                         (String value) {},
                     false,
                     true,
                     true,
                     false),
-              ),
               // TextField(
               //   controller: quantityController,
               //   decoration: InputDecoration(labelText: 'Quantity'),
@@ -1585,29 +1620,98 @@ class _ShopOrderState extends State<ShopOrder> {
               // ),
             ],
           ),
-          actions: [
+          actions: <Widget>[
             TextButton(
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.blueGrey,
+              ),
+              child: const Text('Cancel', style: TextStyle(color: Colors.white)),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.green,
+              ),
+              child: const Text('Update', style: TextStyle(color: Colors.white)),
               onPressed: () {
                 // Update the product with new values
                 setState(() {
                   product.item = itemController.text;
-                  product.quantity = int.parse(quantityController.text);
-                  product.totalPriceList = double.parse(priceController.text);
+                  // product.quantity = int.parse(quantityController.text);
+                  // product.totalPriceList = double.parse(priceController.text);
+                  product.status = _statusController.text;
                 });
                 Navigator.of(context).pop(); // Close the dialog
               },
-              child: Text('Save'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog without saving
-              },
-              child: Text('Cancel'),
             ),
           ],
         );
       },
     );
+    // showDialog(
+    //   context: context,
+    //   builder: (context) {
+    //     return AlertDialog(
+    //       title: Center(child: Text('Change Status')),
+    //       content: Column(
+    //         mainAxisSize: MainAxisSize.min,
+    //         children: [
+    //           TextField(
+    //             style:
+    //                 TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+    //             enabled: false,
+    //             controller: itemController,
+    //             decoration: InputDecoration(labelText: 'Item'),
+    //           ),
+    //           Expanded(
+    //             child: CustomSearchField.buildSearchField(
+    //                 _statusController,
+    //                 'Status',
+    //                 Icons.access_alarms,
+    //                 _orderStatus,
+    //                 (String value) {},
+    //                 false,
+    //                 true,
+    //                 true,
+    //                 false),
+    //           ),
+    //           // TextField(
+    //           //   controller: quantityController,
+    //           //   decoration: InputDecoration(labelText: 'Quantity'),
+    //           //   keyboardType: TextInputType.number,
+    //           // ),
+    //           // TextField(
+    //           //   controller: priceController,
+    //           //   decoration: InputDecoration(labelText: 'Total Price'),
+    //           //   keyboardType: TextInputType.number,
+    //           // ),
+    //         ],
+    //       ),
+    //       actions: [
+    //         TextButton(
+    //           onPressed: () {
+    //             // Update the product with new values
+    //             setState(() {
+    //               product.item = itemController.text;
+    //               // product.quantity = int.parse(quantityController.text);
+    //               // product.totalPriceList = double.parse(priceController.text);
+    //               product.status = _statusController.text;
+    //             });
+    //             Navigator.of(context).pop(); // Close the dialog
+    //           },
+    //           child: Text('Update'),
+    //         ),
+    //         TextButton(
+    //           onPressed: () {
+    //             Navigator.of(context).pop(); // Close the dialog without saving
+    //           },
+    //           child: Text('Cancel'),
+    //         ),
+    //       ],
+    //     );
+    //   },
+    // );
   }
-
 }

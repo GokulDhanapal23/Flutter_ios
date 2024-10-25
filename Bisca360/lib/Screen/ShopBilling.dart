@@ -288,6 +288,7 @@ class _ShopBillingState extends State<ShopBilling> {
       final response = jsonDecode(res.body);
       if (response['status']== "OK") {
         String billNumber = response['shopBillNo'];
+        getShopOrderStatus(selectedShopData!.id, 'CLOSED');
         _downloadBill(context, shopSalesDetailsRequest.shopName,billNumber);
         // LoginService.showBlurredSnackBar(context, response['message'], type: SnackBarType.success);
         _clear();
@@ -1044,7 +1045,6 @@ class _ShopBillingState extends State<ShopBilling> {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        centerTitle: true,
         backgroundColor: Colors.green,
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),

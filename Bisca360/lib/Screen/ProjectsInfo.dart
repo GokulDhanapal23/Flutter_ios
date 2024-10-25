@@ -45,7 +45,7 @@ class _ProjectsInfoState extends State<ProjectsInfo> {
                           '${widget.projectResponse!.siteName}',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 32,
+                            fontSize: 25,
                             fontWeight: FontWeight.bold,
                           ),
                           textAlign: TextAlign.center,

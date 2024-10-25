@@ -205,7 +205,10 @@ class _AddShopState extends State<AddShop> {
     setState(() {
       _isLoading = true;
     });
-    String shopName = _shopNameController.text.isNotEmpty ? _shopNameController.text : '';
+    String shopName = _shopNameController.text;
+    if (shopName.endsWith(' ')) {
+      shopName = shopName.trimRight(); // Removes trailing spaces
+    }
     String address = _addressController.text.isNotEmpty ? _addressController.text : '';
     String shopType = _shopTypeController.text.isNotEmpty ? _shopTypeController.text : '';
     String description = _descriptionController.text.isNotEmpty ? _descriptionController.text : '';
@@ -221,7 +224,7 @@ class _AddShopState extends State<AddShop> {
     }
     ShopRequest shopRequest = ShopRequest(
         widget.shopResponse?.id ?? 0,
-        _shopNameController.text,
+        shopName,
         true,
         _addressController.text,
         int.tryParse(_mobileNumberController.text) ?? 0,
@@ -266,7 +269,7 @@ class _AddShopState extends State<AddShop> {
         ),
         backgroundColor: Colors.green,
         title:  Text(widget.shopResponse != null ? 'Update Shop' : 'Add Shop', style: TextStyle(color: Colors.white)),
-        centerTitle: true,
+        // centerTitle: true,
         elevation: 1,
         actions: [
           !_isEditMode
