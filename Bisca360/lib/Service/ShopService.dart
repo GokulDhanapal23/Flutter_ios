@@ -34,6 +34,7 @@ class ShopService{
       final response = jsonDecode(res.body);
       if (response['status']== "OK") {
         LoginService.showBlurredSnackBar(context, response['message'] , type: SnackBarType.success);
+        // Shop.setUpdateProfile(1);
         Navigator.of(context).pop();
         print("Success");
       } else {

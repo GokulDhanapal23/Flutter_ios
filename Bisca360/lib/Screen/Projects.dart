@@ -16,21 +16,22 @@ class Projects extends StatefulWidget {
 }
 
 class _ProjectsState extends State<Projects> {
-
   final TextEditingController _searchController = TextEditingController();
 
   late List<ProjectResponse> projectResponse = [];
   bool _isSearching = false;
   late List<ProjectResponse> filteredProjects = [];
 
-  Future<void> getProjects( ) async {
+  Future<void> getProjects() async {
     try {
       final url = Uri.parse(Apis.getProject);
-      final response = await Apis.getClient().get(url, headers: Apis.getHeaders());
+      final response =
+          await Apis.getClient().get(url, headers: Apis.getHeaders());
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
-          projectResponse = data.map((item) => ProjectResponse.fromJson(item)).toList();
+          projectResponse =
+              data.map((item) => ProjectResponse.fromJson(item)).toList();
           print('projectResponse: $projectResponse');
         });
       } else {
@@ -54,9 +55,11 @@ class _ProjectsState extends State<Projects> {
       filteredProjects = projectResponse; // Reset to all shops
     });
   }
+
   void _filterProjects(String query) {
     final filtered = projectResponse.where((project) {
-      return project.siteName.toLowerCase().contains(query.toLowerCase()) || project.siteStatusName.toLowerCase().contains(query.toLowerCase());
+      return project.siteName.toLowerCase().contains(query.toLowerCase()) ||
+          project.siteStatusName.toLowerCase().contains(query.toLowerCase());
     }).toList();
     setState(() {
       filteredProjects = filtered;
@@ -75,37 +78,51 @@ class _ProjectsState extends State<Projects> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.green,
-        leading: IconButton(onPressed: () {
-          Navigator.of(context).pop();
-        }, icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white,)),
+        leading: IconButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            icon: const Icon(
+              Icons.arrow_back_ios_new,
+              color: Colors.white,
+            )),
         title: _isSearching
             ? TextField(
-          controller: _searchController,
-          style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(
-            hintText: 'Search...',
-            border: InputBorder.none,
-            hintStyle: TextStyle(color: Colors.white),
-          ),
-          onChanged: (value) {
-            _filterProjects(value);
-          },
-        )
-
-            :const Text('Project', style: TextStyle(color: Colors.white),),
+                controller: _searchController,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  hintText: 'Search...',
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(color: Colors.white),
+                ),
+                onChanged: (value) {
+                  _filterProjects(value);
+                },
+              )
+            : const Text(
+                'Project',
+                style: TextStyle(color: Colors.white),
+              ),
         actions: [
           _isSearching
               ? IconButton(
-            icon: const Icon(Icons.clear, color: Colors.white),
-            onPressed: _stopSearch,
-          )
+                  icon: const Icon(Icons.clear, color: Colors.white),
+                  onPressed: _stopSearch,
+                )
               : IconButton(
-            icon: const Icon(Icons.search, color: Colors.white),
-            onPressed: _startSearch,
-          ),
-          IconButton(onPressed: (){
-            Navigator.push(context, MaterialPageRoute(builder: (context)=>CreateProject( projectResponse: null,)));
-          }, icon: Icon(CupertinoIcons.plus_app_fill,color: Colors.white)),
+                  icon: const Icon(Icons.search, color: Colors.white),
+                  onPressed: _startSearch,
+                ),
+          IconButton(
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => CreateProject(
+                              projectResponse: null,
+                            )));
+              },
+              icon: Icon(CupertinoIcons.plus_app_fill, color: Colors.white)),
         ],
       ),
       // floatingActionButton: FloatingActionButton(
@@ -117,11 +134,11 @@ class _ProjectsState extends State<Projects> {
       //     Icons.add,color: Colors.white,
       //   ),
       // ),
-      body:GestureDetector(
+      body: GestureDetector(
         onTap: () {
           FocusScope.of(context).unfocus();
         },
-        child : Padding(
+        child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
@@ -129,63 +146,83 @@ class _ProjectsState extends State<Projects> {
                 child: (projectResponse.isEmpty)
                     ? Center(child: Text('No Projects'))
                     : ListView.builder(
-                  itemCount: filteredProjects.isEmpty ? projectResponse.length : filteredProjects.length,
-                  itemBuilder: (context, index) {
-                    final project = filteredProjects.isEmpty ? projectResponse[index] : filteredProjects[index];
-                    return Card(
-                      color: Colors.white,
-                      shadowColor: Colors.green,
-                      elevation: 3,
-                      margin: const EdgeInsets.symmetric(vertical: 3),
-                      child: ListTile(
-                        onTap: () => Navigator.push(context, MaterialPageRoute(builder:  (context) =>ProjectsInfo(projectResponse :project))),
-                        contentPadding: const EdgeInsets.all(5),
-                        title: Text(
-                          '${index + 1}. ${project.siteName}',
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Project Area: ${project.siteArea}', style: const TextStyle(fontSize: 14)),
-                            Text('Status: ${project.siteStatusName}', style: const TextStyle(fontSize: 14)),
-                          ],
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: project.contract ? Colors.indigoAccent[100] : Colors.grey,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                project.contract ? 'Contract':'Not Contract',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 5,),
-                            IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.indigoAccent),
-                              onPressed: () {
-                                Navigator.push(
+                        itemCount: filteredProjects.isEmpty
+                            ? projectResponse.length
+                            : filteredProjects.length,
+                        itemBuilder: (context, index) {
+                          final project = filteredProjects.isEmpty
+                              ? projectResponse[index]
+                              : filteredProjects[index];
+                          return Card(
+                            color: Colors.white,
+                            shadowColor: Colors.green,
+                            elevation: 3,
+                            margin: const EdgeInsets.symmetric(vertical: 3),
+                            child: ListTile(
+                              onTap: () => Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => CreateProject(projectResponse: project),
+                                      builder: (context) => ProjectsInfo(
+                                          projectResponse: project))),
+                              contentPadding: const EdgeInsets.all(5),
+                              title: Text(
+                                '${index + 1}. ${project.siteName}',
+                                style: const TextStyle(
+                                    fontSize: 15, fontWeight: FontWeight.bold),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Project Area: ${project.siteArea}',
+                                      style: const TextStyle(fontSize: 14)),
+                                  Text('Status: ${project.siteStatusName}',
+                                      style: const TextStyle(fontSize: 14)),
+                                ],
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: project.contract
+                                          ? Colors.indigoAccent[100]
+                                          : Colors.grey,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      project.contract
+                                          ? 'Contract'
+                                          : 'Not Contract',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                                   ),
-                                );
-                              },
+                                  const SizedBox(
+                                    width: 5,
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.edit,
+                                        color: Colors.indigoAccent),
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => CreateProject(
+                                              projectResponse: project),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
               )
             ],
           ),

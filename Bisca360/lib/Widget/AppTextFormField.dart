@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../Util/Validator.dart';
+
 class AppTextFieldForm extends StatelessWidget {
   final TextEditingController textEditingController;
   final String labelName;
@@ -25,7 +27,7 @@ class AppTextFieldForm extends StatelessWidget {
           if (value == null || value.isEmpty) {
             return 'Please enter $labelName';
           } else {
-            // return Validator.validate(labelName, value,textInputType);
+            return Validator.validate(labelName, value,textInputType);
           }
         } else {
           return null;

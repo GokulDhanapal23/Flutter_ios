@@ -11,7 +11,6 @@ class ProjectsInfo extends StatefulWidget {
 }
 
 class _ProjectsInfoState extends State<ProjectsInfo> {
-
   late bool _paymentView = true;
   @override
   Widget build(BuildContext context) {
@@ -19,16 +18,25 @@ class _ProjectsInfoState extends State<ProjectsInfo> {
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
         backgroundColor: Colors.green,
-        leading: IconButton(onPressed: () {
-          Navigator.of(context).pop();
-        }, icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white,)),
-        title: const Text('Project Details', style: TextStyle(color: Colors.white),),
+        leading: IconButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            icon: const Icon(
+              Icons.arrow_back_ios_new,
+              color: Colors.white,
+            )),
+        title: const Text(
+          'Project Details',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
             Container(
-              height: MediaQuery.of(context).size.height * 0.2, // Adjust height as a percentage of screen height
+              height: MediaQuery.of(context).size.height *
+                  0.2, // Adjust height as a percentage of screen height
               decoration: BoxDecoration(
                 color: Colors.green,
                 // gradient: LinearGradient(
@@ -71,11 +79,13 @@ class _ProjectsInfoState extends State<ProjectsInfo> {
                           children: [
                             Text(
                               'Project Status: ${widget.projectResponse!.siteStatusName}',
-                              style: TextStyle(color: Colors.white, fontSize: 14),
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 14),
                             ),
                             Text(
                               'Contract: ${widget.projectResponse!.contract ? 'Yes' : 'No'}',
-                              style: TextStyle(color: Colors.white, fontSize: 14),
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 14),
                             ),
                           ],
                         ),
@@ -106,71 +116,110 @@ class _ProjectsInfoState extends State<ProjectsInfo> {
             Card(
               color: Colors.white,
               child: ListTile(
-                leading: Icon(Icons.payment, color: Colors.green,),
+                leading: Icon(
+                  Icons.payment,
+                  color: Colors.green,
+                ),
                 title: Text('Project Payments'),
-                trailing: _paymentView ? Icon(Icons.arrow_drop_down_sharp,color: Colors.green,) : Icon(Icons.arrow_drop_up_outlined ,color: Colors.green),
+                trailing: _paymentView
+                    ? Icon(
+                        Icons.arrow_drop_down_sharp,
+                        color: Colors.green,
+                      )
+                    : Icon(Icons.arrow_drop_up_outlined, color: Colors.green),
                 onTap: () {
                   setState(() {
-                    if(_paymentView){
+                    if (_paymentView) {
                       _paymentView = false;
-                    }else{
+                    } else {
                       _paymentView = true;
                     }
                   });
                 },
               ),
             ),
-            if (_paymentView) Card(
-              color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Column(
-                  children: [
+            if (_paymentView)
+              Card(
+                color: Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildAmountRow(context, "Contract Amount", "${widget.projectResponse!.contractAmount}", 16.0, Colors.green,),
+                          _buildAmountRow(
+                            context,
+                            "Contract Amount",
+                            "${widget.projectResponse!.contractAmount}",
+                            16.0,
+                            Colors.green,
+                          ),
                           Divider(color: Colors.grey[300], thickness: 2),
-                          _buildAmountRow(context, "Advance Amount", "${widget.projectResponse!.advanceAmount}", 16.0, Colors.blue,),
+                          _buildAmountRow(
+                            context,
+                            "Advance Amount",
+                            "${widget.projectResponse!.advanceAmount}",
+                            16.0,
+                            Colors.blue,
+                          ),
                           Divider(color: Colors.grey[300], thickness: 2),
-                          _buildAmountRow(context, "Remaining Balance", "${widget.projectResponse!.contractBalance}", 16.0,Colors.blue,),
+                          _buildAmountRow(
+                            context,
+                            "Remaining Balance",
+                            "${widget.projectResponse!.contractBalance}",
+                            16.0,
+                            Colors.blue,
+                          ),
                           Divider(color: Colors.grey[300], thickness: 2),
                         ],
                       ),
-                    _buildExpenseRow(context, "Overall Expenses", "${widget.projectResponse!.siteExpenses}", Colors.redAccent),
-                    _buildExpenseRow(context, "Available Balance", "${widget.projectResponse!.availableBalance}", Colors.redAccent),
-                    SizedBox(height: 5),
-                  ],
+                      _buildExpenseRow(
+                          context,
+                          "Overall Expenses",
+                          "${widget.projectResponse!.siteExpenses}",
+                          Colors.redAccent),
+                      _buildExpenseRow(
+                          context,
+                          "Available Balance",
+                          "${widget.projectResponse!.availableBalance}",
+                          Colors.redAccent),
+                      SizedBox(height: 5),
+                    ],
+                  ),
                 ),
-              ),
-            ) else Card(),
+              )
+            else
+              Card(),
             Card(
               color: Colors.white,
               child: Padding(
                   padding: const EdgeInsets.all(10.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Description',
-                    style: TextStyle(fontSize: 10, color: Colors.black),
-                  ),
-                  Divider(color: Colors.white,),
-                  Text(
-                    '${widget.projectResponse!.description}',
-                    style: TextStyle(fontSize: 14, color: Colors.black),
-                  ),
-                ],
-                )
-              ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Description',
+                        style: TextStyle(fontSize: 10, color: Colors.black),
+                      ),
+                      Divider(
+                        color: Colors.white,
+                      ),
+                      Text(
+                        '${widget.projectResponse!.description}',
+                        style: TextStyle(fontSize: 14, color: Colors.black),
+                      ),
+                    ],
+                  )),
             ),
           ],
         ),
-
       ),
     );
   }
-  Widget _buildAmountRow(BuildContext context, String hint, String id, double textSize, Color textColor) {
+
+  Widget _buildAmountRow(BuildContext context, String hint, String id,
+      double textSize, Color textColor) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 2, 0, 0),
       child: Column(
@@ -188,7 +237,9 @@ class _ProjectsInfoState extends State<ProjectsInfo> {
       ),
     );
   }
-  Widget _buildExpenseRow(BuildContext context, String hint, String id, Color textColor) {
+
+  Widget _buildExpenseRow(
+      BuildContext context, String hint, String id, Color textColor) {
     return Padding(
       padding: const EdgeInsets.all(4.0),
       child: Row(

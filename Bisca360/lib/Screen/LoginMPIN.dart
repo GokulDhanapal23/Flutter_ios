@@ -135,7 +135,7 @@ class _LoginWithMPINState extends State<LoginWithMPIN> {
                   ),
                   const SizedBox(height: 80),
                   SizedBox(
-                    width: double.infinity,
+                    width: 370,
                     height: 45,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
@@ -152,10 +152,9 @@ class _LoginWithMPINState extends State<LoginWithMPIN> {
                             widget.usersAccountsResponse.ownerId,
                             _pin,
                           );
-
                           var data = jsonEncode(signInRequest.toJson());
                           print('sigInData: $data');
-                          LoginService.loginWithMPIN(data, context);
+                          LoginService.loginWithMPIN(signInRequest, context);
                           print('Entered PIN: $_pin');
                         } else {
                           // Show an error message

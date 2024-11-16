@@ -10,7 +10,7 @@ class ImageService{
       final uidData = Uri.encodeComponent(uid);
       final docTypeData = Uri.encodeComponent(docType);
       final url = Uri.parse('${Apis.imageLoad}$docTypeData/$uidData');
-      final response = await http.get(url, headers: Apis.getHeaders());
+      final response = await http.get(url, headers:{"Content-Type": "application/json"});
 
       if (response.statusCode == 200) {
         return response.bodyBytes; // Image data as bytes

@@ -22,8 +22,6 @@ import '../ApiService/Apis.dart';
 
 import 'package:flutter/foundation.dart';
 
-
-
 class AddShop extends StatefulWidget {
   final Shopresponse? shopResponse;
   const AddShop({super.key, required this.shopResponse});
@@ -39,7 +37,8 @@ class _AddShopState extends State<AddShop> {
   final TextEditingController _mobileNumberController = TextEditingController();
   final TextEditingController _gstController = TextEditingController();
   final TextEditingController _taxController = TextEditingController();
-  final TextEditingController _priceRoundingController = TextEditingController();
+  final TextEditingController _priceRoundingController =
+      TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
@@ -51,7 +50,13 @@ class _AddShopState extends State<AddShop> {
   File? imageFile;
   String? selectedValue;
 
-  final List<String> _shopTypes = ['Hotel',  'Saloon','Hardware and Tools', 'Packing', 'Stationary'];
+  final List<String> _shopTypes = [
+    'Hotel',
+    'Saloon',
+    'Hardware and Tools',
+    'Packing',
+    'Stationary'
+  ];
   final List<String> _PrRound = ['Round Up', 'Round Off'];
   String? _selectedValue;
   bool? _selectedBooleanValue = false;
@@ -69,7 +74,8 @@ class _AddShopState extends State<AddShop> {
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
-          shopResponses = data.map((item) => Shopresponse.fromJson(item)).toList();
+          shopResponses =
+              data.map((item) => Shopresponse.fromJson(item)).toList();
         });
       } else {
         print('Failed to load shops');
@@ -78,29 +84,33 @@ class _AddShopState extends State<AddShop> {
       print('Error fetching shops: $e');
     }
   }
+
   @override
   void initState() {
     super.initState();
     if (widget.shopResponse != null) {
       _loadImage(widget.shopResponse!.id!);
-      _isEditMode =false;
+      _isEditMode = false;
       _shopNameController.text = widget.shopResponse!.shopName;
       _shopTypeController.text = widget.shopResponse!.shopType;
-      _mobileNumberController.text = widget.shopResponse!.contactNumber.toString();
+      _mobileNumberController.text =
+          widget.shopResponse!.contactNumber.toString();
       _gstController.text = widget.shopResponse!.gstNumber;
       _priceRoundingController.text = widget.shopResponse!.rounding.toString();
       _addressController.text = widget.shopResponse!.address;
       _descriptionController.text = widget.shopResponse!.description;
       _selectedBooleanValue = widget.shopResponse!.taxEnable;
-      _isIncludedBooleanValue= widget.shopResponse!.includedTax;
+      _isIncludedBooleanValue = widget.shopResponse!.includedTax;
       _projectController.text = widget.shopResponse!.projectName!;
       if (widget.shopResponse != null) {
-        _taxController.text = formatTaxRequest(widget.shopResponse!.listOwnerTaxResponse);
+        _taxController.text =
+            formatTaxRequest(widget.shopResponse!.listOwnerTaxResponse);
       }
     }
     getTax();
     getProjects();
   }
+
   String formatTaxResponses(List<OwnerTaxResponse>? taxResponses) {
     if (taxResponses == null || taxResponses.isEmpty) {
       return '';
@@ -110,6 +120,7 @@ class _AddShopState extends State<AddShop> {
         .join(', ');
     return jsonEncode(taxList);
   }
+
   String formatTaxRequest(List<OwnerTaxResponse>? taxResponses) {
     if (taxResponses == null || taxResponses.isEmpty) {
       return '';
@@ -122,7 +133,7 @@ class _AddShopState extends State<AddShop> {
   }
 
   Future<void> _loadImage(int uid) async {
-    String UID ='S$uid';
+    String UID = 'S$uid';
     final imageData = await ImageService.fetchImage(UID, 'profile');
     setState(() {
       _imageData = imageData;
@@ -130,18 +141,19 @@ class _AddShopState extends State<AddShop> {
   }
 
   List<SearchFieldListItem<String>> get _shopTypeItems {
-    return _shopTypes
-        .map((shop) => SearchFieldListItem<String>(shop))
-        .toList();
+    return _shopTypes.map((shop) => SearchFieldListItem<String>(shop)).toList();
   }
+
   List<SearchFieldListItem<String>> get _rounding {
-    return _PrRound
-        .map((round) => SearchFieldListItem<String>(round))
+    return _PrRound.map((round) => SearchFieldListItem<String>(round)).toList();
+  }
+
+  List<SearchFieldListItem<String>> get _projectNames {
+    return projectResponse
+        .map((project) => SearchFieldListItem<String>(project.siteName))
         .toList();
   }
-  List<SearchFieldListItem<String>> get _projectNames {
-    return projectResponse.map((project) => SearchFieldListItem<String>(project.siteName)).toList();
-  }
+
   int _getProjectId() {
     // getAllCategories(_shopNameController.text);
     int projectId = 0;
@@ -166,7 +178,8 @@ class _AddShopState extends State<AddShop> {
       if (response.statusCode == 200) {
         final responseBody = response.body;
         if (responseBody.isNotEmpty) {
-          final List<dynamic> jsonList = json.decode(responseBody) as List<dynamic>;
+          final List<dynamic> jsonList =
+              json.decode(responseBody) as List<dynamic>;
           taxResponse = jsonList
               .map((json) => TaxResponse.fromJson(json as Map<String, dynamic>))
               .toList();
@@ -182,14 +195,17 @@ class _AddShopState extends State<AddShop> {
       print('Error fetching tax: $e');
     }
   }
-  Future<void> getProjects( ) async {
+
+  Future<void> getProjects() async {
     try {
       final url = Uri.parse(Apis.getProject);
-      final response = await Apis.getClient().get(url, headers: Apis.getHeaders());
+      final response =
+          await Apis.getClient().get(url, headers: Apis.getHeaders());
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
-          projectResponse = data.map((item) => ProjectResponse.fromJson(item)).toList();
+          projectResponse =
+              data.map((item) => ProjectResponse.fromJson(item)).toList();
           print('projectResponse: $projectResponse');
         });
       } else {
@@ -200,7 +216,6 @@ class _AddShopState extends State<AddShop> {
     }
   }
 
-
   void _saveForm() {
     setState(() {
       _isLoading = true;
@@ -209,18 +224,24 @@ class _AddShopState extends State<AddShop> {
     if (shopName.endsWith(' ')) {
       shopName = shopName.trimRight(); // Removes trailing spaces
     }
-    String address = _addressController.text.isNotEmpty ? _addressController.text : '';
-    String shopType = _shopTypeController.text.isNotEmpty ? _shopTypeController.text : '';
-    String description = _descriptionController.text.isNotEmpty ? _descriptionController.text : '';
+    String address =
+        _addressController.text.isNotEmpty ? _addressController.text : '';
+    String shopType =
+        _shopTypeController.text.isNotEmpty ? _shopTypeController.text : '';
+    String description = _descriptionController.text.isNotEmpty
+        ? _descriptionController.text
+        : '';
     String gst = _gstController.text.isNotEmpty ? _gstController.text : '';
-    String rounding = _priceRoundingController.text.isNotEmpty ? _priceRoundingController.text : '';
+    String rounding = _priceRoundingController.text.isNotEmpty
+        ? _priceRoundingController.text
+        : '';
     String taxes = '';
     var projectId = 0;
-    if(_selectedBooleanValue==true){
+    if (_selectedBooleanValue == true) {
       taxes = _taxController.text;
     }
-    if(_projectController.text.isNotEmpty){
-      projectId=_getProjectId();
+    if (_projectController.text.isNotEmpty) {
+      projectId = _getProjectId();
     }
     ShopRequest shopRequest = ShopRequest(
         widget.shopResponse?.id ?? 0,
@@ -238,15 +259,14 @@ class _AddShopState extends State<AddShop> {
         projectId,
         '',
         _selectedBooleanValue! ? _isIncludedBooleanValue! : false,
-        '[]'
-    );
+        '[]');
     ShopService.saveShop(shopRequest, context);
 
     setState(() {
       _isLoading = false;
     });
-
   }
+
   void handleSelect(String? value) {
     setState(() {
       selectedValue = value;
@@ -258,6 +278,12 @@ class _AddShopState extends State<AddShop> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final textSize = screenWidth * 0.03;
+    // Define min and max sizes
+    final double minTextSize = 12.0; // Minimum text size
+    final double maxTextSize = 12.0; // Maximum text size
+
+    // Calculate the final text size with constraints
+    final double finalTextSize = textSize.clamp(minTextSize, maxTextSize);
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
@@ -268,329 +294,379 @@ class _AddShopState extends State<AddShop> {
           },
         ),
         backgroundColor: Colors.green,
-        title:  Text(widget.shopResponse != null ? 'Update Shop' : 'Add Shop', style: TextStyle(color: Colors.white)),
+        title: Text(widget.shopResponse != null ? 'Update Shop' : 'Add Shop',
+            style: TextStyle(color: Colors.white)),
         // centerTitle: true,
         elevation: 1,
         actions: [
           !_isEditMode
-              ?  Container(
-            margin: EdgeInsets.fromLTRB(0, 4, 10, 4),
-                child: ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _isEditMode =true;
-                        });
-                          },
-                        style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        ),
-                        child: _isLoading
-                          ? CircularProgressIndicator(color: Colors.green)
-                          : Text(
-                        _isEditMode ? '' : 'Edit',
-                        style: const TextStyle(color: Colors.green),
-                      ),
+              ? Container(
+                  margin: EdgeInsets.fromLTRB(0, 4, 10, 4),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _isEditMode = true;
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
                     ),
-              )
+                    child: _isLoading
+                        ? CircularProgressIndicator(color: Colors.green)
+                        : Text(
+                            _isEditMode ? '' : 'Edit',
+                            style: const TextStyle(color: Colors.green),
+                          ),
+                  ),
+                )
               : Container(),
         ],
       ),
       body: GestureDetector(
-      onTap: () {
-    FocusScope.of(context).unfocus();
-    },
-    child:  Padding(
-        padding: const EdgeInsets.all(16.0),
-    child: Form(
-    key: _formKey,
-        child: ListView(
-          children: [
-            Center(
-              child: Stack(
-                children: [
-                  Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: DecorationImage(
-                        fit: BoxFit.cover,
-                        image: _imageData != null
-                            ? MemoryImage(_imageData!)
-                            :const AssetImage('assets/user_png.png'),
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              children: [
+                Center(
+                  child: Stack(
+                    children: [
+                      Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          image: DecorationImage(
+                            fit: BoxFit.cover,
+                            image: _imageData != null
+                                ? MemoryImage(_imageData!)
+                                : const AssetImage('assets/user_png.png'),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.green,
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.camera_alt_outlined,
+                                color: Colors.white),
+                            iconSize: 24,
+                            onPressed: () async {
+                              Map<Permission, PermissionStatus> statuses =
+                                  await [
+                                Permission.storage,
+                                Permission.camera,
+                              ].request();
+                              if (statuses[Permission.camera]!.isGranted) {
+                                // _pickImage(context);
+                              } else {
+                                print('no permission provided');
+                              }
+                            },
+                            padding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                AppTextFieldForm(
+                  _shopNameController,
+                  "Shop Name",
+                  const Icon(Icons.shop, color: Colors.green),
+                  TextInputAction.next,
+                  TextInputType.text,
+                  _isEditMode,
+                  true,
+                  maxLines: null,
+                  textAlignVertical: TextAlignVertical.center,
+                ),
+                const SizedBox(height: 10),
+                AppTextFieldForm(
+                  _mobileNumberController,
+                  "Mobile Number",
+                  const Icon(Icons.phone_android, color: Colors.green),
+                  TextInputAction.next,
+                  TextInputType.phone,
+                  _isEditMode,
+                  true,
+                  maxLines: null,
+                  textAlignVertical: TextAlignVertical.center,
+                ),
+                const SizedBox(height: 10),
+                AppTextFieldForm(
+                  _gstController,
+                  "GST Number",
+                  const Icon(Icons.numbers, color: Colors.green),
+                  TextInputAction.next,
+                  TextInputType.text,
+                  _isEditMode,
+                  false,
+                  maxLines: null,
+                  textAlignVertical: TextAlignVertical.center,
+                ),
+                const SizedBox(height: 10),
+                // CustomDropdownButton(
+                //   textEditingController: _shopTypeController,
+                //   hintText: 'Shop Type',
+                //   prefixIcon: Icon(Icons.shop, color: Colors.green),
+                //   items: _shopTypes,
+                //   selectedValue: selectedValue,
+                //   onSelect: handleSelect,
+                //   validate: true, // Set true if you want validation
+                // ),
+
+                CustomSearchField.buildSearchField(
+                    _shopTypeController,
+                    'Shop Type',
+                    Icons.shop,
+                    _shopTypeItems,
+                    (String value) {},
+                    _isEditMode,
+                    true,
+                    widget.shopResponse == null ? true : false,
+                    true),
+                const SizedBox(height: 10),
+                CustomSearchField.buildSearchField(
+                    _projectController,
+                    'Project',
+                    Icons.plagiarism_rounded,
+                    _projectNames,
+                    (String value) {},
+                    _isEditMode,
+                    true,
+                    widget.shopResponse == null ? true : false,
+                    true),
+                const SizedBox(height: 10),
+                CustomSearchField.buildSearchField(
+                    _priceRoundingController,
+                    'Price Rounding',
+                    Icons.attach_money_outlined,
+                    _rounding,
+                    (String value) {},
+                    _isEditMode,
+                    true,
+                    widget.shopResponse == null ? true : false,
+                    true),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text('GST Enabled:',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: finalTextSize)),
+                    Expanded(
+                      child: RadioListTile<bool?>(
+                        title: Text(
+                          'Yes',
+                          style: TextStyle(fontSize: finalTextSize),
+                        ),
+                        value: true,
+                        groupValue: _selectedBooleanValue,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            _selectedBooleanValue = value;
+                          });
+                        },
                       ),
                     ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.green,
+                    Expanded(
+                      child: RadioListTile<bool?>(
+                        title: Text(
+                          'No',
+                          style: TextStyle(fontSize: finalTextSize),
+                        ),
+                        value: false,
+                        groupValue: _selectedBooleanValue,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            _selectedBooleanValue = value;
+                          });
+                        },
                       ),
-                      child: IconButton(
-                        icon: const Icon(Icons.camera_alt_outlined, color: Colors.white),
-                        iconSize: 24,
-                          onPressed: () async {
-                            Map<Permission, PermissionStatus> statuses = await [
-                            Permission.storage, Permission.camera,
-                          ].request();
-                          if(statuses[Permission.camera]!.isGranted){
-                            // _pickImage(context);
+                    ),
+                  ],
+                ),
+                // Conditionally render the GST TextField
+                if (_selectedBooleanValue == true) ...[
+                  const SizedBox(height: 5),
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(color: Colors.grey, width: 1.0),
+                            borderRadius: BorderRadius.circular(25.0),
+                          ),
+                          child: Row(
+                            children: <Widget>[
+                              SizedBox(width: 10.0),
+                              Icon(Icons.percent, color: Colors.green),
+                              SizedBox(width: 8.0),
+                              Expanded(
+                                child: TextField(
+                                  controller: _taxController,
+                                  enabled: false,
+                                  decoration: const InputDecoration(
+                                    hintText: 'Select Shop Tax',
+                                    border: InputBorder.none,
+                                  ),
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 14.0,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.add, color: Colors.green),
+                        onPressed: () {
+                          if (taxResponse.isEmpty) {
+                            getTax().then((_) {
+                              _showTaxDialog(context);
+                            });
                           } else {
-                          print('no permission provided');
+                            _showTaxDialog(context);
                           }
                         },
+                        iconSize: 24.0,
                         padding: EdgeInsets.zero,
+                        constraints:
+                            BoxConstraints.tightFor(width: 40.0, height: 60.0),
                       ),
-                    ),
+                    ],
+                  ),
+                  const SizedBox(height: 5),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text('Included Tax Price',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: finalTextSize)),
+                      Expanded(
+                        child: RadioListTile<bool?>(
+                          title: Text(
+                            'Yes',
+                            style: TextStyle(fontSize: finalTextSize),
+                          ),
+                          value: true,
+                          groupValue: _isIncludedBooleanValue,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              _isIncludedBooleanValue = value;
+                            });
+                          },
+                        ),
+                      ),
+                      Expanded(
+                        child: RadioListTile<bool?>(
+                          title: Text(
+                            'No',
+                            style: TextStyle(fontSize: finalTextSize),
+                          ),
+                          value: false,
+                          groupValue: _isIncludedBooleanValue,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              _isIncludedBooleanValue = value;
+                            });
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            AppTextFieldForm(
-              _shopNameController,
-              "Shop Name",
-              const Icon(Icons.shop, color: Colors.green),
-              TextInputAction.next,
-              TextInputType.text,
-              _isEditMode,
-              true,
-              maxLines: null,
-              textAlignVertical: TextAlignVertical.center,
-            ),
-            const SizedBox(height: 10),
-            AppTextFieldForm(
-              _mobileNumberController,
-              "Mobile Number",
-              const Icon(Icons.phone_android, color: Colors.green),
-              TextInputAction.next,
-              TextInputType.phone,
-              _isEditMode,
-              true,
-              maxLines: null,
-              textAlignVertical: TextAlignVertical.center,
-            ),
-            const SizedBox(height: 10),
-            AppTextFieldForm(
-              _gstController,
-              "GST Number",
-              const Icon(Icons.numbers, color: Colors.green),
-              TextInputAction.next,
-              TextInputType.text,
-              _isEditMode,
-              false,
-              maxLines: null,
-              textAlignVertical: TextAlignVertical.center,
-            ),
-            const SizedBox(height: 10),
-            // CustomDropdownButton(
-            //   textEditingController: _shopTypeController,
-            //   hintText: 'Shop Type',
-            //   prefixIcon: Icon(Icons.shop, color: Colors.green),
-            //   items: _shopTypes,
-            //   selectedValue: selectedValue,
-            //   onSelect: handleSelect,
-            //   validate: true, // Set true if you want validation
-            // ),
-
-            CustomSearchField.buildSearchField(_shopTypeController, 'Shop Type', Icons.shop, _shopTypeItems, (String value) {},_isEditMode,true,widget.shopResponse == null? true:false,true),
-            const SizedBox(height: 10),
-            CustomSearchField.buildSearchField(_projectController, 'Project', Icons.plagiarism_rounded, _projectNames, (String value) {},_isEditMode,false,widget.shopResponse == null? true:false,true),
-            const SizedBox(height: 10),
-            CustomSearchField.buildSearchField(_priceRoundingController, 'Price Rounding', Icons.attach_money_outlined, _rounding, (String value) {},_isEditMode,true,widget.shopResponse == null? true:false,true),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text('GST Enabled:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: textSize)),
-                Expanded(
-                  child: RadioListTile<bool?>(
-                    title:  Text('Yes',style: TextStyle(fontSize: textSize),),
-                    value: true,
-
-                    groupValue: _selectedBooleanValue,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        _selectedBooleanValue = value;
-                      });
-                    },
-                  ),
+                const SizedBox(height: 10),
+                AppTextFieldForm(
+                  _addressController,
+                  "Address",
+                  const Icon(Icons.location_on, color: Colors.green),
+                  TextInputAction.next,
+                  TextInputType.text,
+                  _isEditMode,
+                  true,
+                  maxLines: null,
+                  textAlignVertical: TextAlignVertical.center,
                 ),
-                Expanded(
-                  child: RadioListTile<bool?>(
-                    title:  Text('No',style: TextStyle(fontSize: textSize),),
-                    value: false,
-                    groupValue: _selectedBooleanValue,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        _selectedBooleanValue = value;
-                      });
-                    },
-                  ),
+                const SizedBox(height: 10),
+                AppTextFieldForm(
+                  _descriptionController,
+                  "Description",
+                  const Icon(Icons.description, color: Colors.green),
+                  TextInputAction.done,
+                  TextInputType.text,
+                  _isEditMode,
+                  false,
+                  maxLines: null,
+                  textAlignVertical: TextAlignVertical.center,
                 ),
-              ],
-            ),
-            // Conditionally render the GST TextField
-        if (_selectedBooleanValue == true) ...[
-              const SizedBox(height: 5),
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: Colors.grey, width: 1.0),
-                        borderRadius: BorderRadius.circular(25.0),
-                      ),
-                      child: Row(
-                        children: <Widget>[
-                          SizedBox(width: 10.0),
-                          Icon(Icons.percent, color: Colors.green),
-                          SizedBox(width: 8.0),
-                          Expanded(
-                            child: TextField(
-                              controller: _taxController,
-                              enabled: false,
-                              decoration: const InputDecoration(
-                                hintText: 'Select Shop Tax',
-                                border: InputBorder.none,
-                              ),
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontSize: 14.0,
-                              ),
+                const SizedBox(height: 10),
+                _isEditMode
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
                             ),
+                            child: const Text('Cancel',
+                                style: TextStyle(color: Colors.white)),
+                          ),
+                          const SizedBox(width: 16),
+                          ElevatedButton(
+                            onPressed: _isLoading
+                                ? null
+                                : () {
+                                    if (_formKey.currentState!.validate()) {
+                                      _saveForm();
+                                    }
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                            ),
+                            child: _isLoading
+                                ? CircularProgressIndicator(color: Colors.white)
+                                : Text(
+                                    widget.shopResponse == null
+                                        ? 'Save'
+                                        : 'Update',
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
                           ),
                         ],
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.add, color: Colors.green),
-                    onPressed: () {
-                      if (taxResponse.isEmpty) {
-                        getTax().then((_) {
-                          _showTaxDialog(context);
-                        });
-                      } else {
-                        _showTaxDialog(context);
-                      }
-                    },
-                    iconSize: 24.0,
-                    padding: EdgeInsets.zero,
-                    constraints: BoxConstraints.tightFor(width: 40.0, height: 60.0),
-                  ),
-                ],
-              ),
-          const SizedBox(height: 5),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Text('Included Tax Price', style: TextStyle(fontWeight: FontWeight.bold, fontSize: textSize)),
-              Expanded(
-                child: RadioListTile<bool?>(
-                  title:  Text('Yes',style: TextStyle(fontSize: textSize),),
-                  value: true,
-                  groupValue: _isIncludedBooleanValue,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      _isIncludedBooleanValue = value;
-                    });
-                  },
-                ),
-              ),
-              Expanded(
-                child: RadioListTile<bool?>(
-                  title:  Text('No',style: TextStyle(fontSize: textSize),),
-                  value: false,
-                  groupValue: _isIncludedBooleanValue,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      _isIncludedBooleanValue = value;
-                    });
-                  },
-                ),
-              ),
-            ],
-          ),
-            ],
-            const SizedBox(height: 10),
-            AppTextFieldForm(
-              _addressController,
-              "Address",
-              const Icon(Icons.location_on, color: Colors.green),
-              TextInputAction.next,
-              TextInputType.text,
-              _isEditMode,
-              true,
-              maxLines: null,
-              textAlignVertical: TextAlignVertical.center,
-            ),
-            const SizedBox(height: 10),
-            AppTextFieldForm(
-              _descriptionController,
-              "Description",
-              const Icon(Icons.description, color: Colors.green),
-              TextInputAction.done,
-              TextInputType.text,
-              _isEditMode,
-              false,
-              maxLines: null,
-              textAlignVertical: TextAlignVertical.center,
-            ),
-            const SizedBox(height: 10),
-            _isEditMode?
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                  ),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.white)),
-                ),
-                const SizedBox(width: 16),
-                ElevatedButton(
-                  onPressed: _isLoading ? null : () {
-                    if (_formKey.currentState!.validate()) {
-                      _saveForm();
-                    }else{
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Please fill in all fields correctly')),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                  ),
-                  child: _isLoading
-                      ? CircularProgressIndicator(color: Colors.white)
-                      : Text(
-                    widget.shopResponse == null ? 'Save' : 'Update',
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ),
+                      )
+                    : Row(),
               ],
-            ): Row(),
-          ],
+            ),
+          ),
         ),
-    ),
       ),
-    ),
     );
   }
 
   void _showTaxDialog(BuildContext context) {
     // Check if there's existing tax data in the shopResponse
-    bool hasExistingData = widget.shopResponse != null && widget.shopResponse!.listOwnerTaxResponse.isNotEmpty;
+    bool hasExistingData = widget.shopResponse != null &&
+        widget.shopResponse!.listOwnerTaxResponse.isNotEmpty;
 
     // Create a map of existing tax types and their values if available
     Map<String, String> existingTaxMap = {};
@@ -608,7 +684,8 @@ class _AddShopState extends State<AddShop> {
 
     // Initialize controllers and checked items
     Map<String, TextEditingController> controllers = {};
-    List<bool> checkedItems = List<bool>.filled(taxTypeResponseList.length, false);
+    List<bool> checkedItems =
+        List<bool>.filled(taxTypeResponseList.length, false);
 
     // Populate controllers and checked items based on existing data
     for (int i = 0; i < taxTypeResponseList.length; i++) {
@@ -770,7 +847,6 @@ class _AddShopState extends State<AddShop> {
   //   });
   // }
 
-
   // _cropImage(File imgFile) async {
   //   try {
   //     final croppedFile = await ImageCropper().cropImage(
@@ -809,13 +885,15 @@ class _AddShopState extends State<AddShop> {
           children: [
             SimpleDialogOption(
               onPressed: () async {
-                Navigator.pop(context, await _picker.pickImage(source: ImageSource.gallery));
+                Navigator.pop(context,
+                    await _picker.pickImage(source: ImageSource.gallery));
               },
               child: const Text('Gallery'),
             ),
             SimpleDialogOption(
               onPressed: () async {
-                Navigator.pop(context, await _picker.pickImage(source: ImageSource.camera));
+                Navigator.pop(context,
+                    await _picker.pickImage(source: ImageSource.camera));
               },
               child: const Text('Camera'),
             ),

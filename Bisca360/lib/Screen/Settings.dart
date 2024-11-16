@@ -1,3 +1,4 @@
+import 'package:bisca360/Screen/About.dart';
 import 'package:bisca360/Screen/SetupMPIN.dart';
 import 'package:flutter/material.dart';
 
@@ -57,30 +58,30 @@ class _SettingsScreenState extends State<Settings> {
           ListTile(
             title: Text('Setup MPIN'),
             leading: Icon(Icons.password),
-            onTap: (){
+            onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (context) => const SetUpMPIN()),
               );
-                 },
-              ),
-              Divider(),
-              ListTile(
-              title: Text('App version Code'),
-                leading: Icon(Icons.code),
-              subtitle: Text('2024102520'),
-              onTap: () {
-              // Navigate to account settings
-              },
-              ),
+            },
+          ),
           Divider(),
           ListTile(
-              title: Text('App Version'),
-            leading: Icon(Icons.app_settings_alt),
-              subtitle: Text('1.0.0+1'),
-              onTap: () {
+            title: Text('App version Code'),
+            leading: Icon(Icons.code),
+            subtitle: Text('2024102520'),
+            onTap: () {
               // Navigate to account settings
-              },
-              ),
+            },
+          ),
+          Divider(),
+          ListTile(
+            title: Text('App Version'),
+            leading: Icon(Icons.app_settings_alt),
+            subtitle: Text('1.0.0+1'),
+            onTap: () {
+              // Navigate to account settings
+            },
+          ),
           // Divider(),
           // ListTile(
           //     title: Text('Account'),
@@ -104,7 +105,9 @@ class _SettingsScreenState extends State<Settings> {
             leading: Icon(Icons.info_outline),
             subtitle: Text('Learn more about the app'),
             onTap: () {
-              // Navigate to about page
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) =>  About()),
+              );
             },
           ),
         ],

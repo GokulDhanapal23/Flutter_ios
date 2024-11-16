@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:dropdown_textfield/dropdown_textfield.dart';
 import 'package:searchfield/searchfield.dart';
 
-
 import '../ApiService/Apis.dart';
 import '../Response/ShopResponse.dart';
 import '../Service/LoginService.dart';
@@ -21,12 +20,11 @@ class ShopProduct extends StatefulWidget {
   State<ShopProduct> createState() => _ShopProductState();
 }
 
-
 class _ShopProductState extends State<ShopProduct> {
-
   late List<Shopresponse> shopResponses = [];
   late List<ShoppProductResponse> shopProducts = [];
-  final SingleValueDropDownController _dropDownController = SingleValueDropDownController();
+  final SingleValueDropDownController _dropDownController =
+      SingleValueDropDownController();
   final TextEditingController _shopController = TextEditingController();
   final TextEditingController _shopNameController = TextEditingController();
   final TextEditingController _searchController = TextEditingController();
@@ -34,38 +32,42 @@ class _ShopProductState extends State<ShopProduct> {
   late List<ShoppProductResponse> filteredProducts = [];
   bool _isSearching = false;
 
-  getAllShops() async {
-    try {
-      final response = await Apis.getClient().get(
+  Future<void> getAllShops() {
+    return Apis.getToken().then((_) async {
+      return Apis.getClient().get(
         Uri.parse(Apis.getAllShop),
-        headers: Apis.getHeaders(),
+        headers: await Apis.getHeaders(),
       );
-
+    }).then((response) {
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
           shopResponses = data.map((item) => Shopresponse.fromJson(item)).toList();
-          print('shops: $shopResponses.toString');
+          print('shops: $shopResponses');
         });
       } else {
-        print('Failed to load shops');
+        print('Failed to load shops: ${response.statusCode}');
       }
-    } catch (e) {
+    }).catchError((e) {
       print('Error fetching shops: $e');
-    }
+    });
   }
-  Future<bool> getChangeProductStatus(var id , bool status) async {
+
+  Future<bool> getChangeProductStatus(var id, bool status) async {
     try {
       final response = await Apis.getClient().get(
         Uri.parse('${Apis.getChangeProductStatus}?id=$id&status=$status'),
         headers: Apis.getHeaders(),
       );
       if (response.statusCode == 200) {
-         LoginService.showBlurredSnackBar(context, 'Product Status Changed Successfully', type: SnackBarType.success);
-          print('Success Change Product Status');
-          return true;
+        LoginService.showBlurredSnackBar(
+            context, 'Product Status Changed Successfully',
+            type: SnackBarType.success);
+        print('Success Change Product Status');
+        return true;
       } else {
-          LoginService.showBlurredSnackBar(context, 'Failed to change Status', type: SnackBarType.error);
+        LoginService.showBlurredSnackBar(context, 'Failed to change Status',
+            type: SnackBarType.error);
         print('Failed to Change Product Status ');
         return false;
       }
@@ -74,23 +76,26 @@ class _ShopProductState extends State<ShopProduct> {
       return false;
     }
   }
+
   List<SearchFieldListItem<String>> get _shopItems {
     return shopResponses
         .map((shop) => SearchFieldListItem<String>(shop.shopName))
         .toList();
   }
-  getShopProducts(var data) async{
-    try{
+
+  getShopProducts(var data) async {
+    try {
       final encodedData = Uri.encodeComponent(data);
 
       // Construct the URL with the path variable
       final url = Uri.parse('${Apis.getShopProduct}$encodedData');
-      final response = await Apis.getClient()
-          .get(url, headers: Apis.getHeaders());
+      final response =
+          await Apis.getClient().get(url, headers: Apis.getHeaders());
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
-          shopProducts = data.map((item) => ShoppProductResponse.fromJson(item)).toList();
+          shopProducts =
+              data.map((item) => ShoppProductResponse.fromJson(item)).toList();
           print('shopProducts: $shopProducts.toString');
         });
       } else {
@@ -118,6 +123,7 @@ class _ShopProductState extends State<ShopProduct> {
       filteredProducts = shopProducts; // Reset to all shops
     });
   }
+
   void _filterShops(String query) {
     final filtered = shopProducts.where((product) {
       return product.product.toLowerCase().contains(query.toLowerCase());
@@ -126,7 +132,6 @@ class _ShopProductState extends State<ShopProduct> {
       filteredProducts = filtered;
     });
   }
-
 
   @override
   void initState() {
@@ -139,43 +144,57 @@ class _ShopProductState extends State<ShopProduct> {
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[200],
       appBar: AppBar(
         backgroundColor: Colors.green,
-        leading: IconButton(onPressed: () {
-          Navigator.of(context).pop();
-        }, icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white,)),
+        leading: IconButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            icon: const Icon(
+              Icons.arrow_back_ios_new,
+              color: Colors.white,
+            )),
         title: _isSearching
             ? TextField(
-          controller: _searchController,
-          style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(
-            hintText: 'Search...',
-            border: InputBorder.none,
-            hintStyle: TextStyle(color: Colors.white),
-          ),
-          onChanged: (value) {
-            _filterShops(value);
-          },
-        )
-
-            :const Text('Shop Product', style: TextStyle(color: Colors.white),),
+                controller: _searchController,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  hintText: 'Search...',
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(color: Colors.white),
+                ),
+                onChanged: (value) {
+                  _filterShops(value);
+                },
+              )
+            : const Text(
+                'Shop Product',
+                style: TextStyle(color: Colors.white),
+              ),
         actions: [
           _isSearching
               ? IconButton(
-            icon: const Icon(Icons.clear, color: Colors.white),
-            onPressed: _stopSearch,
-          )
+                  icon: const Icon(Icons.clear, color: Colors.white),
+                  onPressed: _stopSearch,
+                )
               : IconButton(
-            icon: const Icon(Icons.search, color: Colors.white),
-            onPressed: _startSearch,
-          ),
-          IconButton(onPressed: (){
-            Navigator.push(context, MaterialPageRoute(builder: (context)=>AddShopProduct( shopProducts: null,)));
-          }, icon: Icon(CupertinoIcons.plus_app_fill,color: Colors.white)),
+                  icon: const Icon(Icons.search, color: Colors.white),
+                  onPressed: _startSearch,
+                ),
+          IconButton(
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => AddShopProduct(
+                              shopProducts: null,
+                            )));
+              },
+              icon: Icon(CupertinoIcons.plus_app_fill, color: Colors.white)),
         ],
       ),
       // floatingActionButton: FloatingActionButton(
@@ -187,146 +206,168 @@ class _ShopProductState extends State<ShopProduct> {
       //     Icons.add,color: Colors.white,
       //   ),
       // ),
-      body:GestureDetector(
-    onTap: () {
-    FocusScope.of(context).unfocus();
-    },
-    child : Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            CustomSearchField.buildSearchField(_shopNameController, 'Shop name', Icons.shop, _shopItems, _handleShopSelection,false,false, true, true),
-            const SizedBox(height: 10),
-            // Expanded(
-            //   child: shopProducts.isEmpty
-            //       ? Center(child: Text('No products'))
-            //       : ListView.builder(
-            //     itemCount: shopProducts.length,
-            //     itemBuilder: (context, index) {
-            //       final product = shopProducts[index];
-            //       return Card(
-            //         color: Colors.white,
-            //         shadowColor: Colors.green,
-            //         elevation: 3,
-            //         margin: const EdgeInsets.symmetric(vertical: 3),
-            //         child: ListTile(
-            //           contentPadding: const EdgeInsets.all(5),
-            //           title: Text(
-            //             '${index + 1}. Product: ${product.product}',
-            //             style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-            //           ),
-            //           subtitle: Column(
-            //             crossAxisAlignment: CrossAxisAlignment.start,
-            //             children: [
-            //               Text('Category: ${product.categoryName}', style: const TextStyle(fontSize: 14)),
-            //               Text('Subcategory: ${product.subcategoryName}', style: const TextStyle(fontSize: 14)),
-            //               Text('Price: ${product.price}', style: const TextStyle(fontSize: 14)),
-            //               // Text('Unit: ${product.unit}', style: const TextStyle(fontSize: 14)),
-            //               // Text('Quantity: ${product.quantity}', style: const TextStyle(fontSize: 14)),
-            //             ],
-            //           ),
-            //           trailing: IconButton(
-            //             icon: const Icon(Icons.edit, color: Colors.green),
-            //             onPressed: (){
-            //               Navigator.push(
-            //                 context,
-            //                 MaterialPageRoute(
-            //                   builder: (context) => AddShopProduct(shopProducts:shopProducts[index]),
-            //                 ),
-            //               );
-            //               //
-            //             },
-            //           ),
-            //           // onTap: () {
-            //           //   Navigator.push(
-            //           //     context,
-            //           //     MaterialPageRoute(
-            //           //       builder: (context) => AddShopProduct(),
-            //           //     ),
-            //           //   );
-            //           // },
-            //         ),
-            //       );
-            //
-            //
-            //     },
-            //   ),
-            // ),
-            Expanded(
-              child: (shopProducts.isEmpty)
-                  ? Center(child: Text('No products'))
-                  : ListView.builder(
-                itemCount: filteredProducts.isEmpty ? shopProducts.length : filteredProducts.length,
-                itemBuilder: (context, index) {
-                  final product = filteredProducts.isEmpty ? shopProducts[index] : filteredProducts[index];
-                  bool isActive = product.status; // Assuming isActive is a property of your product
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              CustomSearchField.buildSearchField(
+                  _shopNameController,
+                  'Shop name',
+                  Icons.shop,
+                  _shopItems,
+                  _handleShopSelection,
+                  true,
+                  false,
+                  true,
+                  true),
+              const SizedBox(height: 10),
+              // Expanded(
+              //   child: shopProducts.isEmpty
+              //       ? Center(child: Text('No products'))
+              //       : ListView.builder(
+              //     itemCount: shopProducts.length,
+              //     itemBuilder: (context, index) {
+              //       final product = shopProducts[index];
+              //       return Card(
+              //         color: Colors.white,
+              //         shadowColor: Colors.green,
+              //         elevation: 3,
+              //         margin: const EdgeInsets.symmetric(vertical: 3),
+              //         child: ListTile(
+              //           contentPadding: const EdgeInsets.all(5),
+              //           title: Text(
+              //             '${index + 1}. Product: ${product.product}',
+              //             style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              //           ),
+              //           subtitle: Column(
+              //             crossAxisAlignment: CrossAxisAlignment.start,
+              //             children: [
+              //               Text('Category: ${product.categoryName}', style: const TextStyle(fontSize: 14)),
+              //               Text('Subcategory: ${product.subcategoryName}', style: const TextStyle(fontSize: 14)),
+              //               Text('Price: ${product.price}', style: const TextStyle(fontSize: 14)),
+              //               // Text('Unit: ${product.unit}', style: const TextStyle(fontSize: 14)),
+              //               // Text('Quantity: ${product.quantity}', style: const TextStyle(fontSize: 14)),
+              //             ],
+              //           ),
+              //           trailing: IconButton(
+              //             icon: const Icon(Icons.edit, color: Colors.green),
+              //             onPressed: (){
+              //               Navigator.push(
+              //                 context,
+              //                 MaterialPageRoute(
+              //                   builder: (context) => AddShopProduct(shopProducts:shopProducts[index]),
+              //                 ),
+              //               );
+              //               //
+              //             },
+              //           ),
+              //           // onTap: () {
+              //           //   Navigator.push(
+              //           //     context,
+              //           //     MaterialPageRoute(
+              //           //       builder: (context) => AddShopProduct(),
+              //           //     ),
+              //           //   );
+              //           // },
+              //         ),
+              //       );
+              //
+              //
+              //     },
+              //   ),
+              // ),
+              Expanded(
+                child: (shopProducts.isEmpty)
+                    ? Center(child: Text('No products'))
+                    : ListView.builder(
+                        itemCount: filteredProducts.isEmpty
+                            ? shopProducts.length
+                            : filteredProducts.length,
+                        itemBuilder: (context, index) {
+                          final product = filteredProducts.isEmpty
+                              ? shopProducts[index]
+                              : filteredProducts[index];
+                          bool isActive = product
+                              .status; // Assuming isActive is a property of your product
 
-                  return Card(
-                    color: Colors.white,
-                    shadowColor: Colors.green,
-                    elevation: 3,
-                    margin: const EdgeInsets.symmetric(vertical: 3),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.all(5),
-                      title: Text(
-                        '${index + 1}. Product: ${product.product}',
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Category: ${product.categoryName}', style: const TextStyle(fontSize: 14)),
-                          Text('Subcategory: ${product.subcategoryName}', style: const TextStyle(fontSize: 14)),
-                          Row(
-                            children: [
-                              Text('Price: ${product.price}', style: const TextStyle(fontSize: 14)),
-                              SizedBox(width: 30),
-                              Text('Unit: ${product.unit}', style: const TextStyle(fontSize: 14)),
-                            ],
-                          ),
-                        ],
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.indigoAccent),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => AddShopProduct(shopProducts: shopProducts[index]),
-                                ),
-                              );
-                            },
-                          ),
-                          Transform.scale(
-                            scale: 0.8,
-                            child: Switch(
-                              activeColor: Colors.indigoAccent,
-                              value: isActive,
-                              onChanged: (value) async {
-                                if(await getChangeProductStatus(product.id,value)){
-                                  setState(() {
-                                    product.status = value;
-                                  });
-                                }
-                              },
+                          return Card(
+                            color: Colors.white,
+                            shadowColor: Colors.green,
+                            elevation: 3,
+                            margin: const EdgeInsets.symmetric(vertical: 3),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.all(5),
+                              title: Text(
+                                '${index + 1}. Product: ${product.product}',
+                                style: const TextStyle(
+                                    fontSize: 15, fontWeight: FontWeight.bold),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Category: ${product.categoryName}',
+                                      style: const TextStyle(fontSize: 14)),
+                                  Text(
+                                      'Subcategory: ${product.subcategoryName}',
+                                      style: const TextStyle(fontSize: 14)),
+                                  Row(
+                                    children: [
+                                      Text('Price: ${product.price}',
+                                          style: const TextStyle(fontSize: 14)),
+                                      SizedBox(width: 30),
+                                      Text('Unit: ${product.unit}',
+                                          style: const TextStyle(fontSize: 14)),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.edit,
+                                        color: Colors.indigoAccent),
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => AddShopProduct(
+                                              shopProducts:
+                                                  shopProducts[index]),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  Transform.scale(
+                                    scale: 0.8,
+                                    child: Switch(
+                                      activeColor: Colors.indigoAccent,
+                                      value: isActive,
+                                      onChanged: (value) async {
+                                        if (await getChangeProductStatus(
+                                            product.id, value)) {
+                                          setState(() {
+                                            product.status = value;
+                                          });
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          );
+                        },
                       ),
-                    ),
-                  );
-                },
-              ),
-            )
-
-          ],
+              )
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 }
-

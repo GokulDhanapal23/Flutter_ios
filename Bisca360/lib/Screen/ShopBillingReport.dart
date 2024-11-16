@@ -33,10 +33,10 @@ class ShopBillingReport extends StatefulWidget {
 }
 
 class _ShopBillingReportState extends State<ShopBillingReport> {
-
   final TextEditingController _shopNameController = TextEditingController();
   final TextEditingController _customerController = TextEditingController();
-  late TextEditingController _fromDatePickerController = TextEditingController();
+  late TextEditingController _fromDatePickerController =
+      TextEditingController();
   late TextEditingController _DatePickerController = TextEditingController();
   late TextEditingController _toDatePickerController = TextEditingController();
   final TextEditingController _reportTypeController = TextEditingController();
@@ -51,8 +51,21 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
   late List<Shopresponse> shopResponses = [];
   late List<ShopCustomerResponse> shopCustomer = [];
   BillingResponse? billingResponse;
-  late List<String> reportType = ['Summarized Report','Detailed Report'];
-  late List<String> month = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  late List<String> reportType = ['Summarized Report', 'Detailed Report'];
+  late List<String> month = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'
+  ];
   List<String> year = [];
 
   void _currentYear() {
@@ -63,9 +76,10 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
   }
 
   List<SearchFieldListItem<String>> get _shopItems {
-    return shopResponses.map((shop) => SearchFieldListItem<String>(shop.shopName)).toList();
+    return shopResponses
+        .map((shop) => SearchFieldListItem<String>(shop.shopName))
+        .toList();
   }
-
 
   // List<SearchFieldListItem<String>> get _shopCustomer {
   //   return shopCustomer.map((shop) => SearchFieldListItem<String>(shop.customerName)).toList();
@@ -74,52 +88,62 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
     List<SearchFieldListItem<String>> customers = [
       SearchFieldListItem<String>("ALL"),
     ];
-    customers.addAll(shopCustomer.map((shop) => SearchFieldListItem<String>(shop.customerName)).toList());
+    customers.addAll(shopCustomer
+        .map((shop) => SearchFieldListItem<String>(shop.customerName))
+        .toList());
     return customers;
   }
 
   List<SearchFieldListItem<String>> get _reportType {
-    return reportType.map((report) => SearchFieldListItem<String>(report)).toList();
+    return reportType
+        .map((report) => SearchFieldListItem<String>(report))
+        .toList();
   }
+
   List<SearchFieldListItem<String>> get _month {
     return month.map((month) => SearchFieldListItem<String>(month)).toList();
   }
+
   List<SearchFieldListItem<String>> get _year {
     return year.map((year) => SearchFieldListItem<String>(year)).toList();
   }
 
-  Future<void> getAllShops() async {
-    try {
-      final response = await Apis.getClient().get(
+  Future<void> getAllShops() {
+    return Apis.getToken().then((_) async {
+      return Apis.getClient().get(
         Uri.parse(Apis.getAllShop),
-        headers: Apis.getHeaders(),
+        headers: await Apis.getHeaders(),
       );
-
+    }).then((response) {
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
           shopResponses = data.map((item) => Shopresponse.fromJson(item)).toList();
+          print('shops: $shopResponses');
         });
       } else {
-        print('Failed to load shops');
+        print('Failed to load shops: ${response.statusCode}');
       }
-    } catch (e) {
+    }).catchError((e) {
       print('Error fetching shops: $e');
-    }
+    });
   }
 
-  static String geShopCustomer = '${dotenv.env['BASE_URL'] ?? ""}/shopcustomer/getby/shopname';
+  static String geShopCustomer =
+      '${dotenv.env['BASE_URL'] ?? ""}/shopcustomer/getby/shopname';
   Future<void> getShopCustomer(String shopName) async {
     try {
       final encodedShopName = Uri.encodeComponent(shopName);
 
       final url = Uri.parse('$geShopCustomer?shopName=$encodedShopName');
-      final response = await Apis.getClient().get(url, headers: Apis.getHeaders());
+      final response =
+          await Apis.getClient().get(url, headers: Apis.getHeaders());
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
-          shopCustomer = data.map((item) => ShopCustomerResponse.fromJson(item)).toList();
+          shopCustomer =
+              data.map((item) => ShopCustomerResponse.fromJson(item)).toList();
           print('shopCustomer: $shopCustomer');
         });
       } else {
@@ -135,26 +159,28 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
     billingResponse == null;
     _customerController.clear();
     getShopCustomer(selectedShop);
-    selectedShopData = shopResponses.firstWhere(
-            (shop) => shop.shopName == selectedShop
-    );
+    selectedShopData =
+        shopResponses.firstWhere((shop) => shop.shopName == selectedShop);
   }
-  late  ShopCustomerResponse? selectedCustomerData;
+
+  late ShopCustomerResponse? selectedCustomerData;
   void _handleCustomerSelection(String selectedCustomer) {
     selectedCustomerData = null;
     billingResponse == null;
-    selectedCustomerData = shopCustomer.firstWhere(
-            (customer) => customer.customerName == selectedCustomer
-    );
+    selectedCustomerData = shopCustomer
+        .firstWhere((customer) => customer.customerName == selectedCustomer);
   }
-  void _clear(){
+
+  void _clear() {
     _customerController.clear();
     _fromDatePickerController.clear();
     _monthController.clear();
     _yearController.clear();
-    _toDatePickerController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    _DatePickerController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    _selectedValue=4;
+    _toDatePickerController.text =
+        DateFormat('yyyy-MM-dd').format(DateTime.now());
+    _DatePickerController.text =
+        DateFormat('yyyy-MM-dd').format(DateTime.now());
+    _selectedValue = 4;
     setState(() {
       billingResponse = null;
     });
@@ -184,16 +210,19 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
   }
 
   String? _downloadPath;
-  Future<void> downloadPdf(BuildContext context, final url, String fileName) async {
-    try{
+  Future<void> downloadPdf(
+      BuildContext context, final url, String fileName) async {
+    try {
       print('URL ; $url');
-      final response = await Apis.getClient().get(url, headers: Apis.getHeaders());
+      final response =
+          await Apis.getClient().get(url, headers: Apis.getHeaders());
       final bytes = response.bodyBytes;
       Directory? directory;
       if (Platform.isAndroid) {
         // directory = Directory('/storage/emulated/0/Download');
-         directory = (await getExternalStorageDirectories(type: StorageDirectory.downloads))?.first;
-
+        directory = (await getExternalStorageDirectories(
+                type: StorageDirectory.downloads))
+            ?.first;
       } else if (Platform.isIOS) {
         directory = await getApplicationDocumentsDirectory();
       }
@@ -208,10 +237,11 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
       }
       // LoginService.showBlurredSnackBarFile(context, 'File Downloaded Successfully ', filePath, type: SnackBarType.success);
       print('File Service : pdf download Success $filePath');
-    } catch(e){
+    } catch (e) {
       print('File Service : Error on pdf download failed $e');
     }
   }
+
   Future<void> printPdf(String filePath) async {
     final file = File(filePath);
     print(filePath);
@@ -224,32 +254,38 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
     }
   }
 
-  Future<void> downloadExcel(BuildContext context, final url, String fileName) async{
-    try{
-    final response = await Apis.getClient().get(url, headers: Apis.getHeaders());
-    final bytes = response.bodyBytes;
-    Directory? directory;
-    if (Platform.isAndroid) {
-      // directory = Directory('/storage/emulated/0/Download');
-      directory = (await getExternalStorageDirectories(type: StorageDirectory.downloads))?.first;
-
-    } else if (Platform.isIOS) {
-      directory = await getApplicationDocumentsDirectory();
+  Future<void> downloadExcel(
+      BuildContext context, final url, String fileName) async {
+    try {
+      final response =
+          await Apis.getClient().get(url, headers: Apis.getHeaders());
+      final bytes = response.bodyBytes;
+      Directory? directory;
+      if (Platform.isAndroid) {
+        // directory = Directory('/storage/emulated/0/Download');
+        directory = (await getExternalStorageDirectories(
+                type: StorageDirectory.downloads))
+            ?.first;
+      } else if (Platform.isIOS) {
+        directory = await getApplicationDocumentsDirectory();
+      }
+      _downloadPath = directory?.path ?? '';
+      final filePath = '$_downloadPath/$fileName.xlsx';
+      final file = File(filePath);
+      await file.writeAsBytes(bytes);
+      LoginService.showBlurredSnackBarFile(
+          context, 'File Downloaded Successfully ', filePath,
+          type: SnackBarType.success);
+      print('File Service : Excel download Success $filePath');
+    } catch (e) {
+      print('File Service : Error on Excel download failed $e');
     }
-    _downloadPath = directory?.path ?? '';
-    final filePath = '$_downloadPath/$fileName.xlsx';
-    final file = File(filePath);
-    await file.writeAsBytes(bytes);
-    LoginService.showBlurredSnackBarFile(context, 'File Downloaded Successfully ', filePath, type: SnackBarType.success);
-    print('File Service : Excel download Success $filePath');
-  } catch(e){
-  print('File Service : Error on Excel download failed $e');
   }
-  }
-  void _downloadExcelReport(){
-    var selectedShop=_shopNameController.text;
+
+  void _downloadExcelReport() {
+    var selectedShop = _shopNameController.text;
     selectedShopData = shopResponses.firstWhere(
-          (shop) => shop.shopName == selectedShop,
+      (shop) => shop.shopName == selectedShop,
     );
     String fromDate;
     String toDate;
@@ -259,25 +295,25 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
     String shopName;
     String type;
     String date;
-    if(_selectedValue==1){
+    if (_selectedValue == 1) {
       fromDate = _fromDatePickerController.text;
       toDate = _toDatePickerController.text;
       month = '';
       year = '';
       date = '';
-    }else if(_selectedValue==2){
+    } else if (_selectedValue == 2) {
       fromDate = '';
       toDate = '';
       month = _monthController.text;
       year = _yearController.text;
       date = '';
-    }else if(_selectedValue==3){
+    } else if (_selectedValue == 3) {
       fromDate = '';
       toDate = '';
       month = '';
       year = _yearController.text;
       date = '';
-    }else{
+    } else {
       fromDate = '';
       toDate = '';
       month = '';
@@ -285,9 +321,10 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
       date = _DatePickerController.text;
     }
     shopName = selectedShopData.shopName;
-    if(_customerController.text.isNotEmpty && _customerController.text != 'ALL'){
+    if (_customerController.text.isNotEmpty &&
+        _customerController.text != 'ALL') {
       customerId = selectedCustomerData!.id;
-    }else{
+    } else {
       customerId = 0;
     }
     final encodedFromDate = Uri.encodeComponent(fromDate);
@@ -296,27 +333,29 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
     final encodedYear = Uri.encodeComponent(year);
     final encodedShopName = Uri.encodeComponent(shopName);
     final encodedDate = Uri.encodeComponent(date);
-    if(_reportTypeController.text=='Summarized Report'){
+    if (_reportTypeController.text == 'Summarized Report') {
       String type = 'Summary';
       final encodedType = Uri.encodeComponent(type);
-      final url = Uri.parse('${Apis.shopSummary}type=$encodedType?fromDate=$encodedFromDate&toDate=$encodedToDate&month=$encodedMonth&year=$encodedYear&customerId=$customerId&shopName=$encodedShopName&date=$encodedDate');
-      String frtTwoLet = shopName.substring(0,3);
+      final url = Uri.parse(
+          '${Apis.shopSummary}type=$encodedType?fromDate=$encodedFromDate&toDate=$encodedToDate&month=$encodedMonth&year=$encodedYear&customerId=$customerId&shopName=$encodedShopName&date=$encodedDate');
+      String frtTwoLet = shopName.substring(0, 3);
       String fileName = '$frtTwoLet-summary-${DateTime.now()}';
       downloadExcel(context, url, fileName);
-    }else{
+    } else {
       String type = 'Detail';
       final encodedType = Uri.encodeComponent(type);
-      final url = Uri.parse('${Apis.shopSummary}type=$encodedType?fromDate=$encodedFromDate&toDate=$encodedToDate&month=$encodedMonth&year=$encodedYear&customerId=$customerId&shopName=$encodedShopName&date=$encodedDate');
-      String frtTwoLet = shopName.substring(0,3);
+      final url = Uri.parse(
+          '${Apis.shopSummary}type=$encodedType?fromDate=$encodedFromDate&toDate=$encodedToDate&month=$encodedMonth&year=$encodedYear&customerId=$customerId&shopName=$encodedShopName&date=$encodedDate');
+      String frtTwoLet = shopName.substring(0, 3);
       String fileName = '$frtTwoLet-detailed-${DateTime.now()}';
       downloadExcel(context, url, fileName);
     }
-
   }
-  void _downloadPdfReport(){
-    var selectedShop=_shopNameController.text;
+
+  void _downloadPdfReport() {
+    var selectedShop = _shopNameController.text;
     selectedShopData = shopResponses.firstWhere(
-          (shop) => shop.shopName == selectedShop,
+      (shop) => shop.shopName == selectedShop,
     );
     String fromDate;
     String toDate;
@@ -327,50 +366,57 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
     String type;
     String date;
     shopName = selectedShopData.shopName;
-    if(_customerController.text.isNotEmpty && _customerController.text != 'ALL'){
+    if (_customerController.text.isNotEmpty &&
+        _customerController.text != 'ALL') {
       customerId = selectedCustomerData!.id;
     }
-    if(_customerController.text.isEmpty){
+    if (_customerController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill customer correctly')),
       );
       print('Please fill customer correctly');
       return;
     }
-    if(_customerController.text.isNotEmpty && _customerController.text == 'ALL'){
+    if (_customerController.text.isNotEmpty &&
+        _customerController.text == 'ALL') {
       customerId = 0;
     }
     final encodedShopName = Uri.encodeComponent(shopName);
     final url;
-    if(_selectedValue==1){
+    if (_selectedValue == 1) {
       fromDate = _fromDatePickerController.text;
       toDate = _toDatePickerController.text;
       final encodedFromDate = Uri.encodeComponent(fromDate);
       final encodedToDate = Uri.encodeComponent(toDate);
-      url = Uri.parse('${Apis.shopInvoicePdf}?fromDate=$encodedFromDate&toDate=$encodedToDate&customerId=$customerId&shopName=$encodedShopName');
-    }else if(_selectedValue==2){
+      url = Uri.parse(
+          '${Apis.shopInvoicePdf}?fromDate=$encodedFromDate&toDate=$encodedToDate&customerId=$customerId&shopName=$encodedShopName');
+    } else if (_selectedValue == 2) {
       month = _monthController.text;
       year = _yearController.text;
       final encodedMonth = Uri.encodeComponent(month);
       final encodedYear = Uri.encodeComponent(year);
-      url = Uri.parse('${Apis.shopInvoicePdf}?month=$encodedMonth&year=$encodedYear&customerId=$customerId&shopName=$encodedShopName');
-    }else if(_selectedValue==3){
+      url = Uri.parse(
+          '${Apis.shopInvoicePdf}?month=$encodedMonth&year=$encodedYear&customerId=$customerId&shopName=$encodedShopName');
+    } else if (_selectedValue == 3) {
       year = _yearController.text;
       final encodedYear = Uri.encodeComponent(year);
-      url = Uri.parse('${Apis.shopInvoicePdf}?year=$encodedYear&customerId=$customerId&shopName=$encodedShopName');
-    }else{
+      url = Uri.parse(
+          '${Apis.shopInvoicePdf}?year=$encodedYear&customerId=$customerId&shopName=$encodedShopName');
+    } else {
       date = _DatePickerController.text;
       final encodedDate = Uri.encodeComponent(date);
-      url = Uri.parse('${Apis.shopInvoicePdf}?customerId=$customerId&shopName=$encodedShopName&date=$encodedDate');
+      url = Uri.parse(
+          '${Apis.shopInvoicePdf}?customerId=$customerId&shopName=$encodedShopName&date=$encodedDate');
     }
-      String frtTwoLet = shopName.substring(0,3);
-      String fileName = '$frtTwoLet-${DateTime.now()}';
-      downloadPdf(context,url,fileName);
+    String frtTwoLet = shopName.substring(0, 3);
+    String fileName = '$frtTwoLet-${DateTime.now()}';
+    downloadPdf(context, url, fileName);
   }
-  void _searchSales(){
-    var selectedShop=_shopNameController.text;
+
+  void _searchSales() {
+    var selectedShop = _shopNameController.text;
     selectedShopData = shopResponses.firstWhere(
-          (shop) => shop.shopName == selectedShop,
+      (shop) => shop.shopName == selectedShop,
     );
     String fromDate;
     String toDate;
@@ -381,21 +427,21 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
     int customerId = 0;
     String shopName;
     String type;
-    if(_selectedValue==1){
+    if (_selectedValue == 1) {
       fromDate = _fromDatePickerController.text;
       toDate = _toDatePickerController.text;
       month = '';
       year = '';
       date = '';
       ReportFor = 'range';
-    }else if(_selectedValue==2){
+    } else if (_selectedValue == 2) {
       fromDate = '';
       toDate = '';
       month = _monthController.text;
       year = _yearController.text;
       date = '';
       ReportFor = 'month';
-    }else if(_selectedValue==3){
+    } else if (_selectedValue == 3) {
       fromDate = '';
       toDate = '';
       month = '';
@@ -411,34 +457,52 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
       ReportFor = 'byDate';
     }
     shopName = selectedShopData.shopName;
-    if(_customerController.text.isNotEmpty && _customerController.text != 'ALL'){
+    if (_customerController.text.isNotEmpty &&
+        _customerController.text != 'ALL') {
       customerId = selectedCustomerData!.id;
-    }else{
+    } else {
       customerId = 0;
     }
-    SearchSalesRequest searchSalesRequest = new SearchSalesRequest(reportFor: ReportFor, reportType: '', fromDate: fromDate, toDate: toDate, month: month, year: year, customerId: customerId, shopName: shopName, date: date, ownerId: 0);
+    SearchSalesRequest searchSalesRequest = new SearchSalesRequest(
+        reportFor: ReportFor,
+        reportType: '',
+        fromDate: fromDate,
+        toDate: toDate,
+        month: month,
+        year: year,
+        customerId: customerId,
+        shopName: shopName,
+        date: date,
+        ownerId: 0);
 
-    saveShop(searchSalesRequest,context);
+    saveShop(searchSalesRequest, context);
   }
-  void _downloadBill(BuildContext context, String shopName, String billNumber){
+
+  void _downloadBill(BuildContext context, String shopName, String billNumber) {
     final encodedShopName = Uri.encodeComponent(shopName);
     final encodedBillNumber = Uri.encodeComponent(billNumber);
-    final url = Uri.parse('${Apis.shopBillPdf}?shopName=$encodedShopName&billNumber=$encodedBillNumber');
+    final url = Uri.parse(
+        '${Apis.shopBillPdf}?shopName=$encodedShopName&billNumber=$encodedBillNumber');
     String fileName = '$billNumber-${DateTime.now()}';
-    downloadPdf(context,url,fileName);
+    downloadPdf(context, url, fileName);
   }
+
   @override
   void initState() {
     super.initState();
     _currentYear();
-    _toDatePickerController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    _DatePickerController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    _toDatePickerController.text =
+        DateFormat('yyyy-MM-dd').format(DateTime.now());
+    _DatePickerController.text =
+        DateFormat('yyyy-MM-dd').format(DateTime.now());
     _selectedValue = 4;
     getAllShops().then((_) {
       // Ensure this runs after the shops have been fetched
       if (shopResponses.isNotEmpty) {
         _shopNameController.text = shopResponses.first.shopName;
-        getShopCustomer(_shopNameController.text); // Fetch products after setting the shop name
+        getShopCustomer(_shopNameController
+            .text); // Fetch products after setting the shop name
+        _searchSales();
       }
     });
   }
@@ -455,289 +519,364 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
           onPressed: () => Navigator.of(context).pop(),
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
         ),
-        title: const Text('Billing History', style: TextStyle(color: Colors.white)),
+        title: const Text('Billing History',
+            style: TextStyle(color: Colors.white)),
       ),
       body: GestureDetector(
-    onTap: () {
-    FocusScope.of(context).unfocus();
-    },child : Padding(
-        padding: const EdgeInsets.all(16.0),
-        child : Form(
-          key:  _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CustomSearchField.buildSearchField(_shopNameController, 'Shop Name', Icons.shop, _shopItems, _handleShopSelection,false,true, true , true),
-            const SizedBox(height: 10),
-            CustomSearchField.buildSearchField(_customerController, 'Customer', Icons.person, _shopCustomer, _handleCustomerSelection,false,false, true, true),
-            const SizedBox(height: 10),
-            CustomSearchField.buildSearchField(_reportTypeController, 'Report Type', Icons.note_alt, _reportType, (String value) {},false,true, true, false),
-            const SizedBox(height: 5),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  flex: 1,
+                CustomSearchField.buildSearchField(
+                    _shopNameController,
+                    'Shop Name',
+                    Icons.shop,
+                    _shopItems,
+                    _handleShopSelection,
+                    true,
+                    true,
+                    true,
+                    true),
+                const SizedBox(height: 10),
+                CustomSearchField.buildSearchField(
+                    _customerController,
+                    'Customer',
+                    Icons.person,
+                    _shopCustomer,
+                    _handleCustomerSelection,
+                    true,
+                    false,
+                    true,
+                    true),
+                const SizedBox(height: 10),
+                CustomSearchField.buildSearchField(
+                    _reportTypeController,
+                    'Report Type',
+                    Icons.note_alt,
+                    _reportType,
+                    (String value) {},
+                    true,
+                    true,
+                    true,
+                    false),
+                const SizedBox(height: 5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: Row(
+                        children: [
+                          Radio<int>(
+                            value: 4, // Unique value for this option
+                            groupValue: _selectedValue,
+                            onChanged: (int? value) {
+                              setState(() {
+                                _selectedValue = value;
+                                _toDatePickerController.clear();
+                                _fromDatePickerController.clear();
+                                _yearController.clear();
+                                _monthController.clear();
+                              });
+                            },
+                          ),
+                          Expanded(
+                            child: Text(
+                              'Date',
+                              style: TextStyle(fontSize: textSize),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: Row(
+                        children: [
+                          Radio<int>(
+                            value: 1, // Unique value for this option
+                            groupValue: _selectedValue,
+                            onChanged: (int? value) {
+                              setState(() {
+                                _selectedValue = value;
+                                _yearController.clear();
+                                _monthController.clear();
+                              });
+                            },
+                          ),
+                          Expanded(
+                            child: Text(
+                              'Range',
+                              style: TextStyle(fontSize: textSize),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: Row(
+                        children: [
+                          Radio<int>(
+                            value: 2, // Unique value for this option
+                            groupValue: _selectedValue,
+                            onChanged: (int? value) {
+                              setState(() {
+                                _selectedValue = value;
+                                _fromDatePickerController.clear();
+                                _toDatePickerController.clear();
+                              });
+                            },
+                          ),
+                          Expanded(
+                            child: Text(
+                              'Month',
+                              style: TextStyle(fontSize: textSize),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: Row(
+                        children: [
+                          Radio<int>(
+                            value: 3, // Unique value for this option
+                            groupValue: _selectedValue,
+                            onChanged: (int? value) {
+                              setState(() {
+                                _selectedValue = value;
+                                _fromDatePickerController.clear();
+                                _toDatePickerController.clear();
+                                _monthController.clear();
+                              });
+                            },
+                          ),
+                          Expanded(
+                            child: Text(
+                              'Year',
+                              style: TextStyle(fontSize: textSize),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 5),
+                Visibility(
+                  visible: _selectedValue == 4,
                   child: Row(
                     children: [
-                      Radio<int>(
-                        value: 4, // Unique value for this option
-                        groupValue: _selectedValue,
-                        onChanged: (int? value) {
-                          setState(() {
-                            _selectedValue = value;
-                            _toDatePickerController.clear();
-                            _fromDatePickerController.clear();
-                            _yearController.clear();
-                            _monthController.clear();
-                          });
-                        },
-                      ),
-                       Expanded(
-                        child: Text('Date' ,style: TextStyle(fontSize: textSize),),
+                      Expanded(
+                        child: TextFieldDateWidget(
+                          _DatePickerController,
+                          "Date",
+                          const Icon(Icons.date_range, color: Colors.green),
+                          TextInputAction.next,
+                          TextInputType.text,
+                          "PAST",
+                        ),
                       ),
                     ],
                   ),
                 ),
-                Expanded(
-                  flex: 1,
+                Visibility(
+                  visible: _selectedValue == 1,
                   child: Row(
                     children: [
-                      Radio<int>(
-                        value: 1, // Unique value for this option
-                        groupValue: _selectedValue,
-                        onChanged: (int? value) {
-                          setState(() {
-                            _selectedValue = value;
-                            _yearController.clear();
-                            _monthController.clear();
-                          });
-                        },
+                      Expanded(
+                        child: TextFieldDateWidget(
+                          _fromDatePickerController,
+                          "From Date",
+                          const Icon(Icons.date_range, color: Colors.green),
+                          TextInputAction.next,
+                          TextInputType.text,
+                          "PAST",
+                        ),
                       ),
-                       Expanded(
-                        child: Text('Range',style: TextStyle(fontSize: textSize),),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TextFieldDateWidget(
+                          _toDatePickerController,
+                          "To Date",
+                          const Icon(Icons.date_range, color: Colors.green),
+                          TextInputAction.next,
+                          TextInputType.text,
+                          "PAST",
+                        ),
                       ),
                     ],
                   ),
                 ),
-                Expanded(
-                  flex: 1,
+                Visibility(
+                  visible: _selectedValue == 2,
                   child: Row(
                     children: [
-                      Radio<int>(
-                        value: 2, // Unique value for this option
-                        groupValue: _selectedValue,
-                        onChanged: (int? value) {
-                          setState(() {
-                            _selectedValue = value;
-                            _fromDatePickerController.clear();
-                            _toDatePickerController.clear();
-                          });
-                        },
+                      Expanded(
+                        child: CustomSearchField.buildSearchField(
+                            _monthController,
+                            'Month',
+                            Icons.calendar_today,
+                            _month,
+                            (String value) {},
+                            true,
+                            false,
+                            true,
+                            true),
                       ),
-                       Expanded(
-                        child: Text('Month',style: TextStyle(fontSize: textSize),),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: CustomSearchField.buildSearchField(
+                            _yearController,
+                            'Year',
+                            Icons.calendar_today,
+                            _year,
+                            (String value) {},
+                            true,
+                            false,
+                            true,
+                            true),
                       ),
                     ],
                   ),
                 ),
-                Expanded(
-                  flex: 1,
+                Visibility(
+                  visible: _selectedValue == 3,
                   child: Row(
                     children: [
-                      Radio<int>(
-                        value: 3, // Unique value for this option
-                        groupValue: _selectedValue,
-                        onChanged: (int? value) {
-                          setState(() {
-                            _selectedValue = value;
-                            _fromDatePickerController.clear();
-                            _toDatePickerController.clear();
-                            _monthController.clear();
-                          });
-                        },
-                      ),
-                       Expanded(
-                        child: Text('Year',style: TextStyle(fontSize: textSize),),
+                      Expanded(
+                        child: CustomSearchField.buildSearchField(
+                            _yearController,
+                            'Year',
+                            Icons.calendar_today,
+                            _year,
+                            (String value) {},
+                            true,
+                            false,
+                            true,
+                            true),
                       ),
                     ],
                   ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade100,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: IconButton(
+                        iconSize: 30,
+                        icon: const Icon(Icons.table_view, color: Colors.green),
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            _downloadExcelReport();
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade100,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: IconButton(
+                        iconSize: 30,
+                        icon:
+                            const Icon(Icons.picture_as_pdf, color: Colors.red),
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            _downloadPdfReport();
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text(
+                                      'Please fill in all fields correctly')),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    Align(
+                      alignment: Alignment.bottomLeft,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          _clear();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                        ),
+                        child: const Text('Clear',
+                            style: TextStyle(color: Colors.white)),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            _searchSales();
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text(
+                                      'Please fill in all fields correctly')),
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                        ),
+                        child: const Text('Search',
+                            style: TextStyle(color: Colors.white)),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 5),
+                Expanded(
+                  child: billingResponse == null
+                      ? const Center(child: Text('No Bills'))
+                      : _buildBillingReport(),
                 ),
               ],
             ),
-            const SizedBox(height: 5),
-            Visibility(
-              visible: _selectedValue == 4,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextFieldDateWidget(
-                      _DatePickerController,
-                      "Date",
-                      const Icon(Icons.date_range, color: Colors.green),
-                      TextInputAction.next,
-                      TextInputType.text,
-                      "PAST",
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Visibility(
-              visible: _selectedValue == 1,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextFieldDateWidget(
-                      _fromDatePickerController,
-                      "From Date",
-                      const Icon(Icons.date_range, color: Colors.green),
-                      TextInputAction.next,
-                      TextInputType.text,
-                      "PAST",
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: TextFieldDateWidget(
-                      _toDatePickerController,
-                      "To Date",
-                      const Icon(Icons.date_range, color: Colors.green),
-                      TextInputAction.next,
-                      TextInputType.text,
-                      "PAST",
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Visibility(
-              visible: _selectedValue == 2,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: CustomSearchField.buildSearchField(_monthController, 'Month', Icons.calendar_today, _month, (String value) {},false,false, true, true),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: CustomSearchField.buildSearchField(_yearController, 'Year', Icons.calendar_today, _year, (String value) {},false,false, true, true),
-                  ),
-                ],
-              ),
-            ),
-            Visibility(
-              visible: _selectedValue == 3,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: CustomSearchField.buildSearchField(_yearController, 'Year', Icons.calendar_today, _year, (String value) {},false,false, true, true),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.green.shade100,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: IconButton(
-                    iconSize: 30,
-                    icon: const Icon(Icons.table_view, color: Colors.green),
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        _downloadExcelReport();
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please fill in all fields correctly')),
-                        );
-                      }
-                    },
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade100,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: IconButton(
-                    iconSize: 30,
-                    icon: const Icon(Icons.picture_as_pdf, color: Colors.red),
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                          _downloadPdfReport();
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please fill in all fields correctly')),
-                        );
-                      }
-                    },
-                  ),
-                ),
-                const SizedBox(width: 20),
-                Align(
-                  alignment: Alignment.bottomLeft,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      _clear();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                    ),
-                    child: const Text('Clear', style: TextStyle(color: Colors.white)),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        _searchSales();
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please fill in all fields correctly')),
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                    ),
-                    child: const Text('Search', style: TextStyle(color: Colors.white)),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 5),
-            Expanded(
-              child: billingResponse == null
-                  ? const Center(child: Text('No Bills'))
-                  : _buildBillingReport(),
-            ),
-          ],
+          ),
         ),
       ),
-      ),
-    ),);
+    );
   }
+
   Widget _buildBillingReport() {
     return Column(
       children: [
         SizedBox(height: 5),
         Container(
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.green, width: 2), // Border color and width
-            borderRadius: BorderRadius.circular(10), // Match the Card's rounded corners
+            border: Border.all(
+                color: Colors.green, width: 2), // Border color and width
+            borderRadius:
+                BorderRadius.circular(10), // Match the Card's rounded corners
           ),
           child: Card(
             color: Colors.white,
@@ -747,7 +886,8 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
             ),
             child: ListTile(
               title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween, // Space between items
+                mainAxisAlignment:
+                    MainAxisAlignment.spaceBetween, // Space between items
                 children: [
                   Expanded(
                     child: RichText(
@@ -755,11 +895,15 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
                         children: [
                           TextSpan(
                             text: 'Bill Count   : ',
-                            style: const TextStyle(fontSize: 16, color: Colors.black),
+                            style: const TextStyle(
+                                fontSize: 16, color: Colors.black),
                           ),
                           TextSpan(
                             text: '${billingResponse?.billingCount}',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green),
+                            style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green),
                           ),
                         ],
                       ),
@@ -770,11 +914,15 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
                       children: [
                         TextSpan(
                           text: 'Delete Count : ',
-                          style: const TextStyle(fontSize: 16, color: Colors.black),
+                          style: const TextStyle(
+                              fontSize: 16, color: Colors.black),
                         ),
                         TextSpan(
                           text: '${billingResponse?.deletedCount}',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
+                          style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.red),
                         ),
                       ],
                     ),
@@ -786,9 +934,12 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSubtitleRow('Total Price   : ', billingResponse?.totalPrice),
-                    _buildSubtitleRow('Total Tax      : ', billingResponse?.totalTax),
-                    _buildSubtitleRow('Grand Total  : ', billingResponse?.grandTotalPrice),
+                    _buildSubtitleRow(
+                        'Total Price   : ', billingResponse?.totalPrice),
+                    _buildSubtitleRow(
+                        'Total Tax      : ', billingResponse?.totalTax),
+                    _buildSubtitleRow(
+                        'Grand Total  : ', billingResponse?.grandTotalPrice),
                   ],
                 ),
               ),
@@ -805,29 +956,36 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
                 shadowColor: Colors.green,
                 elevation: 1,
                 child: ListTile(
-                 // Increased padding for better spacing
+                  // Increased padding for better spacing
                   title: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start, // Align text to the left
+                          crossAxisAlignment: CrossAxisAlignment
+                              .start, // Align text to the left
                           children: [
                             Text(
                               '${index + 1}. Bill No: ${bill.billNumber}',
-                              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                  fontSize: 15, fontWeight: FontWeight.bold),
                             ),
                             Text(
                               'Date: ${bill.dateAndTime}',
-                              style: const TextStyle(fontSize: 14, color: Colors.black54),
+                              style: const TextStyle(
+                                  fontSize: 14, color: Colors.black54),
                             ),
                             Text(
                               'Payment Type: ${bill.paymentType}',
-                              style: const TextStyle(fontSize: 14, color: Colors.black54),
+                              style: const TextStyle(
+                                  fontSize: 14, color: Colors.black54),
                             ),
                             Text(
                               'Net Amount: ₹ ${bill.grandTotalPrice}',
-                              style: const TextStyle(fontSize: 14, color: Colors.green, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
@@ -844,7 +1002,8 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
                           const SizedBox(height: 5), // Space between buttons
                           ElevatedButton(
                             onPressed: () {
-                              _downloadBill(context, selectedShopData.shopName,bill.billNumber);
+                              _downloadBill(context, selectedShopData.shopName,
+                                  bill.billNumber);
                             },
                             child: const Icon(Icons.print),
                           ),
@@ -857,11 +1016,10 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
             },
           ),
         ),
-
       ],
     );
-
   }
+
   Widget _buildSubtitleRow(String label, dynamic value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2), // Space between rows
@@ -869,17 +1027,22 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 14,fontWeight: FontWeight.bold, color: Colors.black54),
+            style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.black54),
           ),
           const SizedBox(width: 5), // Small gap between label and value
           Text(
             '₹ $value',
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.teal),
+            style: const TextStyle(
+                fontSize: 14, fontWeight: FontWeight.bold, color: Colors.teal),
           ),
         ],
       ),
     );
   }
+
   void _showDetailsDialog(BuildContext context, ShopSalesDetailsResponse bill) {
     showDialog(
       context: context,
@@ -898,7 +1061,8 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
                 _buildRow('Total Tax:', bill.totalTax.toString()),
                 _buildRow('Net Total Price:', bill.netTotalPrice.toString()),
                 _buildRow('Discount Price:', bill.discountPrice.toString()),
-                _buildRow('Grand Total Price:', bill.grandTotalPrice.toString()),
+                _buildRow(
+                    'Grand Total Price:', bill.grandTotalPrice.toString()),
                 const SizedBox(height: 10),
                 // Text('Selling Data:', style: TextStyle(fontWeight: FontWeight.bold)),
                 // for (var sellingData in bill.listSellingData)
@@ -954,8 +1118,4 @@ class _ShopBillingReportState extends State<ShopBillingReport> {
       ),
     );
   }
-
-
 }
-
-

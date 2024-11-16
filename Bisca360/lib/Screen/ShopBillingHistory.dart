@@ -24,7 +24,8 @@ class ShopBillingHistory extends StatefulWidget {
 
 class _ShopBillingHistoryState extends State<ShopBillingHistory> {
   final TextEditingController _shopNameController = TextEditingController();
-  final TextEditingController _fromDatePickerController = TextEditingController();
+  final TextEditingController _fromDatePickerController =
+      TextEditingController();
   final TextEditingController _toDatePickerController = TextEditingController();
   final TextEditingController _datePickerController = TextEditingController();
 
@@ -32,48 +33,55 @@ class _ShopBillingHistoryState extends State<ShopBillingHistory> {
   BillingResponse? billingResponse;
 
   List<SearchFieldListItem<String>> get _shopItems {
-    return shopResponses.map((shop) => SearchFieldListItem<String>(shop.shopName)).toList();
+    return shopResponses
+        .map((shop) => SearchFieldListItem<String>(shop.shopName))
+        .toList();
   }
-
-
 
   @override
   void initState() {
     super.initState();
-    _datePickerController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    _datePickerController.text =
+        DateFormat('yyyy-MM-dd').format(DateTime.now());
     getAllShops().then((_) {
       // Ensure this runs after the shops have been fetched
       if (shopResponses.isNotEmpty) {
         _shopNameController.text = shopResponses.first.shopName;
-        getAllBillByDate(_datePickerController.text,_shopNameController.text); // Fetch products after setting the shop name
+        getAllBillByDate(
+            _datePickerController.text,
+            _shopNameController
+                .text); // Fetch products after setting the shop name
       }
     });
   }
 
-  Future<void> getAllShops() async {
-    try {
-      final response = await Apis.getClient().get(
+  Future<void> getAllShops() {
+    return Apis.getToken().then((_) async {
+      return Apis.getClient().get(
         Uri.parse(Apis.getAllShop),
-        headers: Apis.getHeaders(),
+        headers: await Apis.getHeaders(),
       );
-
+    }).then((response) {
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
           shopResponses = data.map((item) => Shopresponse.fromJson(item)).toList();
+          print('shops: $shopResponses');
         });
       } else {
-        print('Failed to load shops');
+        print('Failed to load shops: ${response.statusCode}');
       }
-    } catch (e) {
+    }).catchError((e) {
       print('Error fetching shops: $e');
-    }
+    });
   }
 
   Future<void> getAllBillByDate(String date, String shopName) async {
     try {
-      final url = Uri.parse('${Apis.getAllBillByDate}?shopName=${Uri.encodeComponent(shopName)}&date=${Uri.encodeComponent(date)}');
-      final response = await Apis.getClient().get(url, headers: Apis.getHeaders());
+      final url = Uri.parse(
+          '${Apis.getAllBillByDate}?shopName=${Uri.encodeComponent(shopName)}&date=${Uri.encodeComponent(date)}');
+      final response =
+          await Apis.getClient().get(url, headers: Apis.getHeaders());
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
@@ -124,7 +132,8 @@ class _ShopBillingHistoryState extends State<ShopBillingHistory> {
           onPressed: () => Navigator.of(context).pop(),
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
         ),
-        title: const Text('Billing History', style: TextStyle(color: Colors.white)),
+        title: const Text('Billing History',
+            style: TextStyle(color: Colors.white)),
       ),
       body: GestureDetector(
         onTap: () {
@@ -138,30 +147,32 @@ class _ShopBillingHistoryState extends State<ShopBillingHistory> {
               Row(
                 children: [
                   Expanded(
-              child: GestureDetector(
-              onTap: _selectDate, // Show date picker on tap
-                child: AbsorbPointer(
-                    child: TextFieldDateWidget(
-                      _datePickerController,
-                      "Bill Date",
-                      const Icon(Icons.date_range, color: Colors.green),
-                      TextInputAction.next,
-                      TextInputType.text,
-                      "PAST",
+                    child: GestureDetector(
+                      onTap: _selectDate, // Show date picker on tap
+                      child: AbsorbPointer(
+                        child: TextFieldDateWidget(
+                          _datePickerController,
+                          "Bill Date",
+                          const Icon(Icons.date_range, color: Colors.green),
+                          TextInputAction.next,
+                          TextInputType.text,
+                          "PAST",
+                        ),
+                      ),
                     ),
-                  ),
-              ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: CustomSearchField.buildSearchField(
-                      _shopNameController,
-                      'Shop Name',
-                      Icons.shop,
-                      _shopItems,
-                      _handleShopSelection,false,
-                      true, true ,false
-                    ),
+                        _shopNameController,
+                        'Shop Name',
+                        Icons.shop,
+                        _shopItems,
+                        _handleShopSelection,
+                        true,
+                        true,
+                        true,
+                        false),
                   ),
                 ],
               ),
@@ -193,7 +204,8 @@ class _ShopBillingHistoryState extends State<ShopBillingHistory> {
                 Expanded(
                   child: Text(
                     'Bill Count: ${billingResponse?.billingCount}',
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.bold),
                   ),
                 ),
                 Text(
@@ -207,8 +219,15 @@ class _ShopBillingHistoryState extends State<ShopBillingHistory> {
               children: [
                 Row(
                   children: [
-                    Expanded(child: Text('Total Price: ${billingResponse?.totalPrice}', style: const TextStyle(fontSize: 14))),
-                    Text('Net Total Amount: ${billingResponse?.netTotalPrice}', style: const TextStyle(fontSize: 14,color: Colors.green,fontWeight: FontWeight.bold)),
+                    Expanded(
+                        child: Text(
+                            'Total Price: ${billingResponse?.totalPrice}',
+                            style: const TextStyle(fontSize: 14))),
+                    Text('Net Total Amount: ${billingResponse?.netTotalPrice}',
+                        style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.green,
+                            fontWeight: FontWeight.bold)),
                   ],
                 ),
               ],
@@ -232,16 +251,24 @@ class _ShopBillingHistoryState extends State<ShopBillingHistory> {
                       Expanded(
                         child: Text(
                           '${index + 1}. Bill No: ${bill.billNumber}',
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.bold),
                         ),
                       ),
-                      Text('Date: ${bill.dateAndTime}', style: const TextStyle(fontSize: 15)),
+                      Text('Date: ${bill.dateAndTime}',
+                          style: const TextStyle(fontSize: 15)),
                     ],
                   ),
                   subtitle: Row(
                     children: [
-                      Expanded(child: Text('Payment Type: ${bill.paymentType}', style: const TextStyle(fontSize: 14))),
-                      Text('Net Amount: ${bill.netTotalPrice}', style: const TextStyle(fontSize: 14,color: Colors.green,fontWeight: FontWeight.bold)),
+                      Expanded(
+                          child: Text('Payment Type: ${bill.paymentType}',
+                              style: const TextStyle(fontSize: 14))),
+                      Text('Net Amount: ${bill.netTotalPrice}',
+                          style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.green,
+                              fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),

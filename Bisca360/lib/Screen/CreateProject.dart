@@ -21,13 +21,14 @@ class CreateProject extends StatefulWidget {
 }
 
 class _CreateProjectState extends State<CreateProject> {
-
   final TextEditingController _projectNameController = TextEditingController();
   final TextEditingController _projectAreaController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _projectOwnerNameController = TextEditingController();
+  final TextEditingController _projectOwnerNameController =
+      TextEditingController();
   final TextEditingController _mobileNumberController = TextEditingController();
-  final TextEditingController _projectStatusController = TextEditingController();
+  final TextEditingController _projectStatusController =
+      TextEditingController();
   final TextEditingController _contractAmtController = TextEditingController();
   final TextEditingController _advanceAmtController = TextEditingController();
   bool _isLoading = false;
@@ -52,7 +53,8 @@ class _CreateProjectState extends State<CreateProject> {
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
-          processStatusResponse = data.map((item) => ProcessStatusResponse.fromJson(item)).toList();
+          processStatusResponse =
+              data.map((item) => ProcessStatusResponse.fromJson(item)).toList();
         });
         print('ProcessStatusResponse : $processStatusResponse');
       } else {
@@ -62,19 +64,22 @@ class _CreateProjectState extends State<CreateProject> {
       print('Error fetching ProcessStatusResponse: $e');
     }
   }
-  Future<void> saveProject(ProjectRequest projectRequest, BuildContext context) async {
+
+  Future<void> saveProject(
+      ProjectRequest projectRequest, BuildContext context) async {
     try {
-      var res = await Apis.getClient().post(
-          Uri.parse(Apis.saveProject),
-          body :jsonEncode(projectRequest.toJson()),
+      var res = await Apis.getClient().post(Uri.parse(Apis.saveProject),
+          body: jsonEncode(projectRequest.toJson()),
           headers: Apis.getHeaders());
       final response = jsonDecode(res.body);
-      if (response['status']== "OK") {
-        LoginService.showBlurredSnackBar(context, response['message'] , type: SnackBarType.success);
+      if (response['status'] == "OK") {
+        LoginService.showBlurredSnackBar(context, response['message'],
+            type: SnackBarType.success);
         Navigator.of(context).pop();
         print("Success");
       } else {
-        LoginService.showBlurredSnackBar(context, response['message'] , type: SnackBarType.error);
+        LoginService.showBlurredSnackBar(context, response['message'],
+            type: SnackBarType.error);
         print('Failed to load data');
       }
     } catch (e) {
@@ -83,7 +88,7 @@ class _CreateProjectState extends State<CreateProject> {
   }
 
   String _getStatusCode() {
-    String  statusCode = '';
+    String statusCode = '';
     if (_projectStatusController.text.isNotEmpty) {
       for (ProcessStatusResponse processStatus in processStatusResponse) {
         if (_projectStatusController.text == processStatus.statusName) {
@@ -94,33 +99,50 @@ class _CreateProjectState extends State<CreateProject> {
     }
     return statusCode;
   }
-  void _saveForm(){
-    var id =0;
-    if(widget.projectResponse != null) {
+
+  void _saveForm() {
+    var id = 0;
+    if (widget.projectResponse != null) {
       id = widget.projectResponse!.id;
     }
     bool contract = _isChecked;
     double advanceAmount;
     double contractAmount;
-    if(contract){
-       advanceAmount = _advanceAmtController.text.isNotEmpty ? double.parse(_advanceAmtController.text) : 0.0;
-       contractAmount = _contractAmtController.text.isNotEmpty ? double.parse(_contractAmtController.text) : 0.0;
-    }else{
+    if (contract) {
+      advanceAmount = _advanceAmtController.text.isNotEmpty
+          ? double.parse(_advanceAmtController.text)
+          : 0.0;
+      contractAmount = _contractAmtController.text.isNotEmpty
+          ? double.parse(_contractAmtController.text)
+          : 0.0;
+    } else {
       advanceAmount = 0.0;
       contractAmount = 0.0;
     }
-    String description = _descriptionController.text.isNotEmpty ? _descriptionController.text : '';
+    String description = _descriptionController.text.isNotEmpty
+        ? _descriptionController.text
+        : '';
     double latitude = 0;
-    String locationInfo = _projectAreaController.text.isNotEmpty ? _projectAreaController.text : '';
+    String locationInfo = _projectAreaController.text.isNotEmpty
+        ? _projectAreaController.text
+        : '';
     double longitude = 0;
-    String? ownerMobileNumber = _mobileNumberController.text.isNotEmpty ? _mobileNumberController.text : '';
-    String siteArea = _projectAreaController.text.isNotEmpty ? _projectAreaController.text : '';
-    String siteName = _projectNameController.text.isNotEmpty ? _projectNameController.text : '';
-    String siteOwner = _projectOwnerNameController.text.isNotEmpty ? _projectOwnerNameController.text : '';
-    String siteStatusCode =_getStatusCode();
+    String? ownerMobileNumber = _mobileNumberController.text.isNotEmpty
+        ? _mobileNumberController.text
+        : '';
+    String siteArea = _projectAreaController.text.isNotEmpty
+        ? _projectAreaController.text
+        : '';
+    String siteName = _projectNameController.text.isNotEmpty
+        ? _projectNameController.text
+        : '';
+    String siteOwner = _projectOwnerNameController.text.isNotEmpty
+        ? _projectOwnerNameController.text
+        : '';
+    String siteStatusCode = _getStatusCode();
 
     ProjectRequest projectRequest = ProjectRequest(
-      id: id,
+        id: id,
         advanceAmount: advanceAmount,
         contract: contract,
         contractAmount: contractAmount,
@@ -133,22 +155,24 @@ class _CreateProjectState extends State<CreateProject> {
         siteOwner: siteOwner,
         siteStatusCode: siteStatusCode,
         ownerMobileNumber: ownerMobileNumber);
-    saveProject(projectRequest,context);
+    saveProject(projectRequest, context);
   }
 
   @override
   void initState() {
-    if(widget.projectResponse != null){
+    if (widget.projectResponse != null) {
       _projectNameController.text = widget.projectResponse!.siteName;
       _projectAreaController.text = widget.projectResponse!.siteArea;
       _descriptionController.text = widget.projectResponse!.description;
       _projectOwnerNameController.text = widget.projectResponse!.siteOwner;
-      _mobileNumberController.text = widget.projectResponse!.ownerMobileNumber.toString();
+      _mobileNumberController.text =
+          widget.projectResponse!.ownerMobileNumber.toString();
       _projectStatusController.text = widget.projectResponse!.siteStatusName;
     }
     getAllProcessStatus();
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -161,14 +185,18 @@ class _CreateProjectState extends State<CreateProject> {
           },
         ),
         backgroundColor: Colors.green,
-        title:  Text(widget.projectResponse != null ? 'Update Project' : 'Create Project', style: TextStyle(color: Colors.white)),
+        title: Text(
+            widget.projectResponse != null
+                ? 'Update Project'
+                : 'Create Project',
+            style: TextStyle(color: Colors.white)),
         elevation: 1,
       ),
       body: GestureDetector(
         onTap: () {
           FocusScope.of(context).unfocus();
         },
-        child:  Padding(
+        child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Form(
             key: _formKey,
@@ -209,7 +237,7 @@ class _CreateProjectState extends State<CreateProject> {
                   maxLines: null,
                   textAlignVertical: TextAlignVertical.center,
                 ),
-              const SizedBox(height: 10),
+                const SizedBox(height: 10),
                 AppTextFieldForm(
                   _mobileNumberController,
                   "Mobile Number",
@@ -235,37 +263,38 @@ class _CreateProjectState extends State<CreateProject> {
                     ),
                   ],
                 ),
-                if(_isChecked)...[ Row(
-                  children: [
-                    Expanded(
-                      child: AppTextFieldForm(
-                        _contractAmtController,
-                        "Contract Amount",
-                        const Icon(Icons.credit_card, color: Colors.green),
-                        TextInputAction.next,
-                        TextInputType.number,
-                        true,
-                        _isChecked ? true : false,
-                        maxLines: null,
-                        textAlignVertical: TextAlignVertical.center,
+                if (_isChecked) ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: AppTextFieldForm(
+                          _contractAmtController,
+                          "Contract Amount",
+                          const Icon(Icons.credit_card, color: Colors.green),
+                          TextInputAction.next,
+                          TextInputType.number,
+                          true,
+                          _isChecked ? true : false,
+                          maxLines: null,
+                          textAlignVertical: TextAlignVertical.center,
+                        ),
                       ),
-                    ),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: AppTextFieldForm(
-                        _advanceAmtController,
-                        "Advance Amount",
-                        const Icon(Icons.credit_card, color: Colors.green),
-                        TextInputAction.next,
-                        TextInputType.number,
-                        true,
-                        false,
-                        maxLines: null,
-                        textAlignVertical: TextAlignVertical.center,
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: AppTextFieldForm(
+                          _advanceAmtController,
+                          "Advance Amount",
+                          const Icon(Icons.credit_card, color: Colors.green),
+                          TextInputAction.next,
+                          TextInputType.number,
+                          true,
+                          false,
+                          maxLines: null,
+                          textAlignVertical: TextAlignVertical.center,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
                   const SizedBox(height: 10),
                 ],
                 const SizedBox(height: 10),
@@ -279,7 +308,16 @@ class _CreateProjectState extends State<CreateProject> {
                 //   validate: true, // Set true if you want validation
                 // ),
 
-                CustomSearchField.buildSearchField(_projectStatusController, 'Select Project Status', Icons.shop, _projectAccessItems, (String value) {},true,true,widget.projectResponse == null? true:false,true),
+                CustomSearchField.buildSearchField(
+                    _projectStatusController,
+                    'Select Project Status',
+                    Icons.shop,
+                    _projectAccessItems,
+                    (String value) {},
+                    true,
+                    true,
+                    widget.projectResponse == null ? true : false,
+                    true),
                 const SizedBox(height: 10),
                 AppTextFieldForm(
                   _descriptionController,
@@ -303,28 +341,29 @@ class _CreateProjectState extends State<CreateProject> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
                       ),
-                      child: const Text('Cancel', style: TextStyle(color: Colors.white)),
+                      child: const Text('Cancel',
+                          style: TextStyle(color: Colors.white)),
                     ),
                     const SizedBox(width: 16),
                     ElevatedButton(
-                      onPressed: _isLoading ? null : () {
-                        if (_formKey.currentState!.validate()) {
-                          _saveForm();
-                        }else{
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please fill in all fields correctly')),
-                          );
-                        }
-                      },
+                      onPressed: _isLoading
+                          ? null
+                          : () {
+                              if (_formKey.currentState!.validate()) {
+                                _saveForm();
+                              }
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                       ),
                       child: _isLoading
                           ? CircularProgressIndicator(color: Colors.white)
                           : Text(
-                        widget.projectResponse == null ? 'Create' : 'Update',
-                        style: const TextStyle(color: Colors.white),
-                      ),
+                              widget.projectResponse == null
+                                  ? 'Create'
+                                  : 'Update',
+                              style: const TextStyle(color: Colors.white),
+                            ),
                     ),
                   ],
                 ),

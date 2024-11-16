@@ -40,7 +40,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           },
         ),
         backgroundColor: Colors.green,
-        title: const Text('User Account', style: TextStyle(color: Colors.white)),
+        title:
+            const Text('User Account', style: TextStyle(color: Colors.white)),
         elevation: 1,
       ),
       body: Padding(
@@ -53,12 +54,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const CircleAvatar(
                     radius: 50,
-                    backgroundImage: AssetImage('assets/images/loading.png'), // Placeholder while loading
+                    backgroundImage: AssetImage(
+                        'assets/images/loading.png'), // Placeholder while loading
                   );
                 } else if (snapshot.hasError || snapshot.data == null) {
                   return const CircleAvatar(
                     radius: 50,
-                    backgroundImage: NetworkImage('https://cdn-icons-png.flaticon.com/512/3607/3607444.png'),
+                    backgroundImage: NetworkImage(
+                        'https://cdn-icons-png.flaticon.com/512/3607/3607444.png'),
                   );
                 } else {
                   return CircleAvatar(
@@ -100,7 +103,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    InfoRow(icon: Icons.business, value: widget.signInResponse.companyName ?? 'N/A'),
+                    InfoRow(
+                        icon: Icons.business,
+                        value: widget.signInResponse.companyName ?? 'N/A'),
                   ],
                 ),
               ),
@@ -121,9 +126,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    InfoRow(icon: Icons.phone, value: widget.signInResponse.mobileNumber.toString()),
+                    InfoRow(
+                        icon: Icons.phone,
+                        value: widget.signInResponse.mobileNumber.toString()),
                     const SizedBox(height: 8),
-                    InfoRow(icon: Icons.email, value: widget.signInResponse.email),
+                    InfoRow(
+                        icon: Icons.email, value: widget.signInResponse.email),
                   ],
                 ),
               ),
@@ -165,4 +173,3 @@ class InfoRow extends StatelessWidget {
     );
   }
 }
-

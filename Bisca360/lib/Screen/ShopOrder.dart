@@ -47,6 +47,7 @@ class _ShopOrderState extends State<ShopOrder> {
   final TextEditingController _CustomerCountController =
       TextEditingController();
   late TextEditingController _qtyController = TextEditingController();
+  late TextEditingController _listQtyController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   late TextEditingController _datePickerController = TextEditingController();
   final TextEditingController _mealTimeController = TextEditingController();
@@ -67,6 +68,7 @@ class _ShopOrderState extends State<ShopOrder> {
   late List<ShoppProductResponse> shopProducts = [];
   late List<ShopCustomerResponse> shopCustomer = [];
   late List<ShopOrderClosedBill> shopOrderClosedBill = [];
+  List<TextEditingController> _listQtyControllers = [];
 
   ShopOrderRequest? shopOrderResponse;
   List<ShopBillProducts> billedProducts = [];
@@ -167,25 +169,25 @@ class _ShopOrderState extends State<ShopOrder> {
     }
   }
 
-  Future<void> getAllShops() async {
-    try {
-      final response = await Apis.getClient().get(
-        Uri.parse(Apis.getActiveShop),
-        headers: Apis.getHeaders(),
+  Future<void> getAllShops() {
+    return Apis.getToken().then((_) async {
+      return Apis.getClient().get(
+        Uri.parse(Apis.getAllShop),
+        headers: await Apis.getHeaders(),
       );
-
+    }).then((response) {
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
-          shopResponses =
-              data.map((item) => Shopresponse.fromJson(item)).toList();
+          shopResponses = data.map((item) => Shopresponse.fromJson(item)).toList();
+          print('shops: $shopResponses');
         });
       } else {
-        print('Failed to load shops');
+        print('Failed to load shops: ${response.statusCode}');
       }
-    } catch (e) {
+    }).catchError((e) {
       print('Error fetching shops: $e');
-    }
+    });
   }
 
   Future<void> getSupplierAndChairNo(var shopId) async {
@@ -332,6 +334,14 @@ class _ShopOrderState extends State<ShopOrder> {
       selectedProductData = null;
       selectedShopOrder = null;
     });
+  }
+
+  void _initializeControllers() {
+    _listQtyControllers.clear();
+    for (var product in billedProducts) {
+      _listQtyControllers
+          .add(TextEditingController(text: product.quantity.toString()));
+    }
   }
 
   Future<void> saveSalesOrder(ShopOrderRequest shopOrderRequest) async {
@@ -613,6 +623,7 @@ class _ShopOrderState extends State<ShopOrder> {
   @override
   void initState() {
     super.initState();
+    _initializeControllers();
     getAllShops().then((_) {
       // Ensure this runs after the shops have been fetched
       if (shopResponses.isNotEmpty) {
@@ -636,6 +647,9 @@ class _ShopOrderState extends State<ShopOrder> {
   void dispose() {
     _qtyController
         .dispose(); // Clean up the controller when the widget is disposed
+    for (var controller in _listQtyControllers) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -758,6 +772,8 @@ class _ShopOrderState extends State<ShopOrder> {
         billedProducts.any((product) => product.item == newProduct.item);
     if (!productExists) {
       setState(() {
+        _listQtyControllers
+            .add(TextEditingController(text: newProduct.quantity.toString()));
         billedProducts.add(newProduct);
         _recalculateGrandTotal();
       });
@@ -774,16 +790,27 @@ class _ShopOrderState extends State<ShopOrder> {
   void _deleteProduct(int index) {
     setState(() {
       billedProducts.removeAt(index);
+      _listQtyControllers.removeAt(index);
       _recalculateGrandTotal();
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_listQtyControllers.length != billedProducts.length) {
+      _initializeControllers();
+    }
     final screenWidth = MediaQuery.of(context).size.width;
-    final buttonWidth =
-        screenWidth * 0.28; // Adjust as needed (e.g., 20% of screen width)
-    final textSize = screenWidth * 0.027; // Adjust as needed for text size
+
+    // Define min and max sizes for button width
+    final double minButtonWidth = 80.0; // Minimum button width
+    final double maxButtonWidth = 150.0; // Maximum button width
+    final buttonWidth = (screenWidth * 0.28).clamp(minButtonWidth, maxButtonWidth);
+
+    // Define min and max sizes for text size
+    final double minTextSize = 12.0; // Minimum text size
+    final double maxTextSize = 16.0; // Maximum text size
+    final double textSize = (screenWidth * 0.027).clamp(minTextSize, maxTextSize); // Adjust as needed for text size
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
@@ -811,7 +838,7 @@ class _ShopOrderState extends State<ShopOrder> {
                     Icons.shop,
                     _shopItems,
                     _handleShopSelection,
-                    false,
+                    true,
                     true,
                     true,
                     true),
@@ -837,7 +864,7 @@ class _ShopOrderState extends State<ShopOrder> {
                             Icons.category,
                             _mealTime,
                             (String value) {},
-                            false,
+                            true,
                             true,
                             true,
                             false),
@@ -851,7 +878,7 @@ class _ShopOrderState extends State<ShopOrder> {
                     Icons.abc,
                     _OrderNo,
                     _handleOrderNoSelection,
-                    false,
+                    true,
                     false,
                     true,
                     true),
@@ -865,14 +892,14 @@ class _ShopOrderState extends State<ShopOrder> {
                           child: CustomSearchField.buildSearchField(
                             _tableOrChairController,
                             selectedShopData?.shopType == 'Hotel'
-                                ? 'Table'
+                                ? 'Table No'
                                 : 'Chair No',
                             selectedShopData?.shopType == 'Hotel'
                                 ? Icons.table_restaurant
                                 : Icons.chair,
                             _chairNo,
                             (String value) {},
-                            false,
+                            true,
                             selectedShopOrder == null ? true : false,
                             true,
                             true,
@@ -890,7 +917,7 @@ class _ShopOrderState extends State<ShopOrder> {
                                 : Icons.supervised_user_circle,
                             _supplierName,
                             (String value) {},
-                            false,
+                            true,
                             selectedShopOrder == null ? true : false,
                             true,
                             true,
@@ -906,7 +933,7 @@ class _ShopOrderState extends State<ShopOrder> {
                           child: AppTextFieldForm(
                             _tableOrChairController,
                             selectedShopData?.shopType == 'Hotel'
-                                ? 'Table'
+                                ? 'Table No'
                                 : 'Chair No',
                             selectedShopData?.shopType == 'Hotel'
                                 ? Icon(Icons.table_restaurant)
@@ -931,8 +958,8 @@ class _ShopOrderState extends State<ShopOrder> {
                                 : Icon(Icons.supervised_user_circle),
                             TextInputAction.next,
                             TextInputType.text,
-                            false,
-                              selectedShopOrder != null ? true : false,
+                            true,
+                            selectedShopOrder != null ? true : false,
                             maxLines: null,
                             textAlignVertical: TextAlignVertical.center,
                           ),
@@ -960,7 +987,7 @@ class _ShopOrderState extends State<ShopOrder> {
                     Icons.fastfood,
                     _productItems,
                     _handleProductSelection,
-                    false,
+                    true,
                     true,
                     false,
                     true),
@@ -1027,12 +1054,6 @@ class _ShopOrderState extends State<ShopOrder> {
                             setState(() {
                               _isProductSelected = false;
                             }); // Trigger a rebuild
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text(
-                                      'Please fill in all fields correctly')),
-                            );
                           }
                         },
                         style: ElevatedButton.styleFrom(
@@ -1122,12 +1143,38 @@ class _ShopOrderState extends State<ShopOrder> {
                                 ),
                               ),
                               Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text('${product.quantity}',
-                                      style: TextStyle(fontSize: 15)),
+                                flex: 1,
+                                child: TextField(
+                                  controller: _listQtyControllers[index],
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                          decimal: true),
+                                  cursorColor: Colors.black,
+                                  onChanged: (value) {
+                                    int newQuantity = int.tryParse(value) ?? 0;
+                                    setState(() {
+                                      product.quantity = newQuantity;
+
+                                      // Update the total price only if newQuantity is greater than 0
+                                      if (newQuantity > 0) {
+                                        product.totalPriceList = newQuantity *
+                                            product.price; // Update total price
+                                      } else {
+                                        product.totalPriceList = product
+                                            .price; // Set to zero if quantity is zero
+                                      }
+                                    });
+                                    _recalculateGrandTotal(); // Recalculate the grand total
+                                  },
                                 ),
                               ),
+                              // Expanded(
+                              //   child: Padding(
+                              //     padding: const EdgeInsets.all(8.0),
+                              //     child: Text('${product.quantity}',
+                              //         style: TextStyle(fontSize: 15)),
+                              //   ),
+                              // ),
                               Expanded(
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
@@ -1226,103 +1273,106 @@ class _ShopOrderState extends State<ShopOrder> {
                                   color: Colors.white, fontSize: textSize)),
                         ),
                       ),
+                      const SizedBox(width: 5),
+                      SizedBox(
+                        width: buttonWidth,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (_CustomerCountController.text.isNotEmpty &&
+                                _supplierOrHairStylistController
+                                    .text.isNotEmpty &&
+                                _tableOrChairController.text.isNotEmpty) {
+                              _saveOrder();
+                              setState(() {
+                                _isProductSelected = false;
+                              });
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        'Please fill in all fields correctly')),
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                          ),
+                          child: Text(
+                            shopOrderResponse == null ? 'Save' : 'Update',
+                            style: TextStyle(
+                                color: Colors.white, fontSize: textSize),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (selectedShopOrder != null) ...[
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
                         const SizedBox(width: 5),
                         SizedBox(
                           width: buttonWidth,
                           child: ElevatedButton(
                             onPressed: () {
-                              if (_CustomerCountController.text.isNotEmpty && _supplierOrHairStylistController.text.isNotEmpty && _tableOrChairController.text.isNotEmpty) {
-                                _saveOrder();
-                                setState(() {
-                                  _isProductSelected = false;
-                                });
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Please fill in all fields correctly')),
-                                );
-                              }
+                              updateShopOrderStatus(_getShopId(),
+                                  selectedShopOrder!.orderNumber, 'CANCELED');
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
+                              backgroundColor: Colors.red,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(25),
                               ),
                             ),
-                            child: Text(
-                              shopOrderResponse == null
-                                  ? 'Save'
-                                  : 'Update',
-                              style: TextStyle(
-                                  color: Colors.white, fontSize: textSize),
-                            ),
+                            child: Text('Cancel',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: textSize)),
                           ),
                         ),
-                    ],
-                  ),
-                  if (selectedShopOrder != null) ...[
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      const SizedBox(width: 5),
-                      SizedBox(
-                        width: buttonWidth,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            updateShopOrderStatus(_getShopId(),
-                                selectedShopOrder!.orderNumber, 'CANCELED');
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25),
+                        const SizedBox(width: 5),
+                        SizedBox(
+                          width: buttonWidth,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              updateShopOrderStatus(_getShopId(),
+                                  selectedShopOrder!.orderNumber, 'CLOSED');
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.deepPurple,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(25),
+                              ),
                             ),
+                            child: Text('Close',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: textSize)),
                           ),
-                          child: Text('Cancel',
-                              style: TextStyle(
-                                  color: Colors.white, fontSize: textSize)),
                         ),
-                      ),
-                      const SizedBox(width: 5),
-                      SizedBox(
-                        width: buttonWidth,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            updateShopOrderStatus(_getShopId(),
-                                selectedShopOrder!.orderNumber, 'CLOSED');
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepPurple,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25),
-                            ),
+                        const SizedBox(width: 5),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.indigo.shade100,
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          child: Text('Close',
-                              style: TextStyle(
-                                  color: Colors.white, fontSize: textSize)),
+                          child: TextButton.icon(
+                            icon: const Icon(Icons.print, color: Colors.indigo),
+                            label: Text('Print Order',
+                                style: TextStyle(
+                                    color: Colors.black, fontSize: textSize)),
+                            onPressed: () {
+                              var id = selectedShopData!.id;
+                              String orderNumber =
+                                  selectedShopOrder!.orderNumber;
+                              _downloadOrder(context, id, orderNumber);
+                            },
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 5),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.indigo.shade100,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: TextButton.icon(
-                          icon: const Icon(Icons.print, color: Colors.indigo),
-                          label: Text('Print Order',
-                              style: TextStyle(
-                                  color: Colors.black, fontSize: textSize)),
-                          onPressed: () {
-                            var id = selectedShopData!.id;
-                            String orderNumber =
-                                selectedShopOrder!.orderNumber;
-                            _downloadOrder(context, id, orderNumber);
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
                   ],
                   // Row(
                   //   mainAxisAlignment: MainAxisAlignment.end,
@@ -1567,10 +1617,6 @@ class _ShopOrderState extends State<ShopOrder> {
     // Create controllers for the input fields
     TextEditingController itemController =
         TextEditingController(text: product.item);
-    TextEditingController quantityController =
-        TextEditingController(text: product.quantity.toString());
-    TextEditingController priceController =
-        TextEditingController(text: product.totalPriceList.toString());
 
     showDialog(
       context: context,
@@ -1581,7 +1627,7 @@ class _ShopOrderState extends State<ShopOrder> {
           ),
           title: Center(
             child: const Text(
-              'Change Status',
+              'Edit Product',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
@@ -1593,21 +1639,21 @@ class _ShopOrderState extends State<ShopOrder> {
             children: [
               TextField(
                 style:
-                TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                    TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                 enabled: false,
                 controller: itemController,
                 decoration: InputDecoration(labelText: 'Item'),
               ),
               CustomSearchField.buildSearchField(
-                    _statusController,
-                    'Status',
-                    Icons.access_alarms,
-                    _orderStatus,
-                        (String value) {},
-                    false,
-                    true,
-                    true,
-                    false),
+                  _statusController,
+                  'Status',
+                  Icons.access_alarms,
+                  _orderStatus,
+                  (String value) {},
+                  true,
+                  true,
+                  true,
+                  false),
               // TextField(
               //   controller: quantityController,
               //   decoration: InputDecoration(labelText: 'Quantity'),
@@ -1625,7 +1671,8 @@ class _ShopOrderState extends State<ShopOrder> {
               style: TextButton.styleFrom(
                 backgroundColor: Colors.blueGrey,
               ),
-              child: const Text('Cancel', style: TextStyle(color: Colors.white)),
+              child:
+                  const Text('Cancel', style: TextStyle(color: Colors.white)),
               onPressed: () {
                 Navigator.of(context).pop(); // Close the dialog
               },
@@ -1634,13 +1681,11 @@ class _ShopOrderState extends State<ShopOrder> {
               style: TextButton.styleFrom(
                 backgroundColor: Colors.green,
               ),
-              child: const Text('Update', style: TextStyle(color: Colors.white)),
+              child:
+                  const Text('Update', style: TextStyle(color: Colors.white)),
               onPressed: () {
                 // Update the product with new values
                 setState(() {
-                  product.item = itemController.text;
-                  // product.quantity = int.parse(quantityController.text);
-                  // product.totalPriceList = double.parse(priceController.text);
                   product.status = _statusController.text;
                 });
                 Navigator.of(context).pop(); // Close the dialog
@@ -1672,7 +1717,7 @@ class _ShopOrderState extends State<ShopOrder> {
     //                 Icons.access_alarms,
     //                 _orderStatus,
     //                 (String value) {},
-    //                 false,
+    //                 true,
     //                 true,
     //                 true,
     //                 false),

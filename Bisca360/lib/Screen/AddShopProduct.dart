@@ -18,7 +18,7 @@ import '../Widget/CustomSearchfieldWidget.dart';
 
 class AddShopProduct extends StatefulWidget {
   final ShoppProductResponse? shopProducts;
-  const AddShopProduct( {super.key,required this.shopProducts});
+  const AddShopProduct({super.key, required this.shopProducts});
 
   @override
   State<AddShopProduct> createState() => _AddShopProductState();
@@ -44,7 +44,7 @@ class _AddShopProductState extends State<AddShopProduct> {
 
   void _addProduct() {
     var id = 0;
-    if(widget.shopProducts != null){
+    if (widget.shopProducts != null) {
       id = widget.shopProducts?.id;
     }
     final shopName = _shopNameController.text;
@@ -55,8 +55,15 @@ class _AddShopProductState extends State<AddShopProduct> {
     final quantity = _qtyController.text;
     final price = _priceController.text;
 
-    if (shopName.isEmpty || category.isEmpty || subCategory.isEmpty || product.isEmpty || unit.isEmpty || quantity.isEmpty || price.isEmpty) {
-      Fluttertoast.showToast(msg: "Please fill All Field", toastLength: Toast.LENGTH_SHORT);
+    if (shopName.isEmpty ||
+        category.isEmpty ||
+        subCategory.isEmpty ||
+        product.isEmpty ||
+        unit.isEmpty ||
+        quantity.isEmpty ||
+        price.isEmpty) {
+      Fluttertoast.showToast(
+          msg: "Please fill All Field", toastLength: Toast.LENGTH_SHORT);
       return;
     }
 
@@ -95,6 +102,7 @@ class _AddShopProductState extends State<AddShopProduct> {
     }
     return categoryId;
   }
+
   int _getSubCategoryId() {
     int categoryId = 0;
     if (_subCategoryController.text.isNotEmpty) {
@@ -108,10 +116,8 @@ class _AddShopProductState extends State<AddShopProduct> {
     return categoryId;
   }
 
-
-  void _saveProducts(){
-
-    ShopProductRequest productRequest =  ShopProductRequest(
+  void _saveProducts() {
+    ShopProductRequest productRequest = ShopProductRequest(
         _categoryController.text,
         _subCategoryController.text,
         _getCategoryId(),
@@ -119,14 +125,13 @@ class _AddShopProductState extends State<AddShopProduct> {
         _shopNameController.text,
         0,
         addedProducts);
-    var data = jsonEncode(
-        productRequest
-            .toJson());
-    ShopService.saveShopProduct(data,context);
+    var data = jsonEncode(productRequest.toJson());
+    ShopService.saveShopProduct(data, context);
   }
-  void _updateProduct(){
+
+  void _updateProduct() {
     var id = 0;
-    if(widget.shopProducts != null){
+    if (widget.shopProducts != null) {
       id = widget.shopProducts?.id;
     }
     final shopName = _shopNameController.text;
@@ -137,8 +142,15 @@ class _AddShopProductState extends State<AddShopProduct> {
     final quantity = _qtyController.text;
     final price = _priceController.text;
 
-    if (shopName.isEmpty || category.isEmpty || subCategory.isEmpty || product.isEmpty || unit.isEmpty || quantity.isEmpty || price.isEmpty) {
-      Fluttertoast.showToast(msg: "Please fill All Field", toastLength: Toast.LENGTH_SHORT);
+    if (shopName.isEmpty ||
+        category.isEmpty ||
+        subCategory.isEmpty ||
+        product.isEmpty ||
+        unit.isEmpty ||
+        quantity.isEmpty ||
+        price.isEmpty) {
+      Fluttertoast.showToast(
+          msg: "Please fill All Field", toastLength: Toast.LENGTH_SHORT);
       return;
     }
 
@@ -147,7 +159,7 @@ class _AddShopProductState extends State<AddShopProduct> {
     setState(() {
       updateProducts.add(newProduct);
     });
-    ShopProductRequest productRequest =  ShopProductRequest(
+    ShopProductRequest productRequest = ShopProductRequest(
         _categoryController.text,
         _subCategoryController.text,
         _getCategoryId(),
@@ -155,10 +167,8 @@ class _AddShopProductState extends State<AddShopProduct> {
         _shopNameController.text,
         0,
         updateProducts);
-    var data = jsonEncode(
-        productRequest
-            .toJson());
-    ShopService.saveShopProduct(data,context);
+    var data = jsonEncode(productRequest.toJson());
+    ShopService.saveShopProduct(data, context);
   }
 
   @override
@@ -172,16 +182,19 @@ class _AddShopProductState extends State<AddShopProduct> {
       _unitController.text = widget.shopProducts!.unit.toString();
       _priceController.text = widget.shopProducts!.price.toString();
     }
-    if(_shopNameController.text.isNotEmpty){
+    if (_shopNameController.text.isNotEmpty) {
       getAllCategories(_shopNameController.text);
     }
-    if(_categoryController.text.isNotEmpty){
+    if (_categoryController.text.isNotEmpty) {
       getAllSubCategories(_getCategoryId());
     }
     getAllShops().then((_) {
       if (shopResponses.isNotEmpty) {
-        _shopNameController.text = (widget.shopProducts == null ? shopResponses.first.shopName : widget.shopProducts!.shopName);
-        getAllCategories(_shopNameController.text); // Fetch products after setting the shop name
+        _shopNameController.text = (widget.shopProducts == null
+            ? shopResponses.first.shopName
+            : widget.shopProducts!.shopName);
+        getAllCategories(_shopNameController
+            .text); // Fetch products after setting the shop name
         getAllSubCategories(_getCategoryId());
       }
     });
@@ -189,24 +202,25 @@ class _AddShopProductState extends State<AddShopProduct> {
     super.initState();
   }
 
-  Future<void> getAllShops() async {
-    try {
-      final response = await Apis.getClient().get(
+  Future<void> getAllShops() {
+    return Apis.getToken().then((_) async {
+      return Apis.getClient().get(
         Uri.parse(Apis.getAllShop),
-        headers: Apis.getHeaders(),
+        headers: await Apis.getHeaders(),
       );
-
+    }).then((response) {
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
           shopResponses = data.map((item) => Shopresponse.fromJson(item)).toList();
+          print('shops: $shopResponses');
         });
       } else {
-        print('Failed to load shops');
+        print('Failed to load shops: ${response.statusCode}');
       }
-    } catch (e) {
+    }).catchError((e) {
       print('Error fetching shops: $e');
-    }
+    });
   }
 
   Future<void> getUnits() async {
@@ -219,7 +233,8 @@ class _AddShopProductState extends State<AddShopProduct> {
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
-          unitResponses = data.map((item) => MeasurementResponse.fromJson(item)).toList();
+          unitResponses =
+              data.map((item) => MeasurementResponse.fromJson(item)).toList();
         });
       } else {
         print('Failed to load Units');
@@ -233,12 +248,14 @@ class _AddShopProductState extends State<AddShopProduct> {
     try {
       final encodedData = Uri.encodeComponent(shopName);
       final url = Uri.parse('${Apis.getAllCategory}$encodedData');
-      final response = await Apis.getClient().get(url, headers: Apis.getHeaders());
+      final response =
+          await Apis.getClient().get(url, headers: Apis.getHeaders());
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
-          categories = data.map((item) => CategoryResponse.fromJson(item)).toList();
+          categories =
+              data.map((item) => CategoryResponse.fromJson(item)).toList();
         });
         await getAllSubCategories(_getCategoryId());
       } else {
@@ -253,11 +270,13 @@ class _AddShopProductState extends State<AddShopProduct> {
     try {
       // final encodedData = Uri.encodeComponent(categoryName);
       final url = Uri.parse('${Apis.getAllSubCategory}$categoryId');
-      final response = await Apis.getClient().get(url, headers: Apis.getHeaders());
+      final response =
+          await Apis.getClient().get(url, headers: Apis.getHeaders());
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
-          subCategories = data.map((item) => SubCategoryResponse.fromJson(item)).toList();
+          subCategories =
+              data.map((item) => SubCategoryResponse.fromJson(item)).toList();
         });
       } else {
         print('Failed to load subCategories');
@@ -271,11 +290,13 @@ class _AddShopProductState extends State<AddShopProduct> {
     try {
       final encodedData = Uri.encodeComponent(data);
       final url = Uri.parse('${Apis.getShopProduct}$encodedData');
-      final response = await Apis.getClient().get(url, headers: Apis.getHeaders());
+      final response =
+          await Apis.getClient().get(url, headers: Apis.getHeaders());
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
-          shopProducts = data.map((item) => ShoppProductResponse.fromJson(item)).toList();
+          shopProducts =
+              data.map((item) => ShoppProductResponse.fromJson(item)).toList();
         });
       } else {
         print('Failed to load shopProducts');
@@ -299,7 +320,8 @@ class _AddShopProductState extends State<AddShopProduct> {
 
   List<SearchFieldListItem<String>> get _subCategoryItems {
     return subCategories
-        .map((subCategory) => SearchFieldListItem<String>(subCategory.subCategoryName))
+        .map((subCategory) =>
+            SearchFieldListItem<String>(subCategory.subCategoryName))
         .toList();
   }
 
@@ -327,11 +349,10 @@ class _AddShopProductState extends State<AddShopProduct> {
     getAllCategories(selectedShop);
   }
 
-
   void _handleCategorySelection(String selectedCategory) {
     _productController.clear();
     var selectedCategoryItem = categories.firstWhere(
-          (category) => category.categoryName == selectedCategory,
+      (category) => category.categoryName == selectedCategory,
     );
 
     if (selectedCategoryItem != null) {
@@ -343,7 +364,7 @@ class _AddShopProductState extends State<AddShopProduct> {
 
   void updateProductItems(String selectedCategory) {
     var selectedCategoryItem = categories.firstWhere(
-          (category) => category.categoryName == selectedCategory,
+      (category) => category.categoryName == selectedCategory,
     );
     if (selectedCategoryItem != null) {
       setState(() {
@@ -358,8 +379,6 @@ class _AddShopProductState extends State<AddShopProduct> {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -367,143 +386,203 @@ class _AddShopProductState extends State<AddShopProduct> {
       appBar: AppBar(
         actions: addedProducts.isNotEmpty
             ? [
-          Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: TextButton(
-              onPressed: () {
-                _saveProducts();
-              },
-              style: TextButton.styleFrom(
-                backgroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 25.0),
-              ),
-              child: const Text(
-                'Save',
-                style: TextStyle(
-                  color: Colors.green,
-                  fontWeight: FontWeight.bold,
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: TextButton(
+                    onPressed: () {
+                      _saveProducts();
+                    },
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                    ),
+                    child: const Text(
+                      'Save',
+                      style: TextStyle(
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          ),
-        ]
+              ]
             : [],
         backgroundColor: Colors.green,
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
         ),
-        title:  Text(widget.shopProducts != null ? 'Update Product' : 'Add Product', style: TextStyle(color: Colors.white)),
+        title: Text(
+            widget.shopProducts != null ? 'Update Product' : 'Add Product',
+            style: TextStyle(color: Colors.white)),
       ),
       body: GestureDetector(
-           onTap: () {
+        onTap: () {
           FocusScope.of(context).unfocus();
         },
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CustomSearchField.buildSearchField(_shopNameController, 'Shop name', Icons.shop, _shopItems, _handleShopSelection,false,true, true,true),
-            const SizedBox(height: 10),
-            CustomSearchField.buildSearchField(_categoryController, 'Category', Icons.category, _categoryItems, _handleCategorySelection,false,true, true,true),
-            const SizedBox(height: 10),
-            CustomSearchField.buildSearchField(_subCategoryController, 'Sub Category', Icons.category, _subCategoryItems, (String value) {},false,true, true,true),
-            const SizedBox(height: 10),
-            CustomSearchField.buildSearchField(_productController, 'Product', Icons.fastfood,
-                _productItems,
-                (String value) {},false,true, false,true),
-            const SizedBox(height: 10),
-            Row(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: _buildTextField(_qtyController, 'Quantity', Icons.numbers, TextInputType.numberWithOptions(decimal: true)),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: CustomSearchField.buildSearchField(_unitController, 'Unit', Icons.ad_units, _units, (String value) {},false,true, true,true),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Spacer(),
-                Expanded(
-                  child: _buildTextField(_priceController, 'Price', Icons.attach_money, TextInputType.numberWithOptions(decimal: true)),
-                ),
-              ],
-            ),
-            SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Handle cancel action
-                      Navigator.of(context).pop();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red // Text color
+                CustomSearchField.buildSearchField(
+                    _shopNameController,
+                    'Shop name',
+                    Icons.shop,
+                    _shopItems,
+                    _handleShopSelection,
+                    true,
+                    true,
+                    true,
+                    true),
+                const SizedBox(height: 10),
+                CustomSearchField.buildSearchField(
+                    _categoryController,
+                    'Category',
+                    Icons.category,
+                    _categoryItems,
+                    _handleCategorySelection,
+                    true,
+                    true,
+                    true,
+                    true),
+                const SizedBox(height: 10),
+                CustomSearchField.buildSearchField(
+                    _subCategoryController,
+                    'Sub Category',
+                    Icons.category,
+                    _subCategoryItems,
+                    (String value) {},
+                    true,
+                    true,
+                    true,
+                    true),
+                const SizedBox(height: 10),
+                CustomSearchField.buildSearchField(
+                    _productController,
+                    'Product',
+                    Icons.fastfood,
+                    _productItems,
+                    (String value) {},
+                    true,
+                    true,
+                    false,
+                    true),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildTextField(
+                          _qtyController,
+                          'Quantity',
+                          Icons.numbers,
+                          TextInputType.numberWithOptions(decimal: true)),
                     ),
-                    child: const Text('Cancel',style: TextStyle(color: Colors.white)),
-                  ),
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: (){
-                    if (_formKey.currentState!.validate()) {
-                       widget.shopProducts != null ? _updateProduct() : _addProduct() ;
-                      }else{
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Please fill in all fields correctly')),
-                      );
-                    }
-                    },
-                    style: ElevatedButton.styleFrom(
-                     backgroundColor: Colors.green // Text color
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: CustomSearchField.buildSearchField(
+                          _unitController,
+                          'Unit',
+                          Icons.ad_units,
+                          _units,
+                          (String value) {},
+                          true,
+                          true,
+                          true,
+                          true),
                     ),
-                    child: Text(widget.shopProducts != null ?'Update' : 'Add',style: TextStyle(color: Colors.white)),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            addedProducts.isNotEmpty ? Text('Added Products', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)) : Text(''),
-            Expanded(
-              child: ListView.builder(
-                itemCount: addedProducts.length,
-                itemBuilder: (context, index) {
-                  final product = addedProducts[index];
-                  return Card(
-                    elevation: 3,
-                    margin: EdgeInsets.symmetric(vertical: 3),
-                    child: ListTile(
-                      contentPadding: EdgeInsets.all(5),
-                      title: Text('${index+1}. Product: ${product.product}', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-                      subtitle: Text('Price: ${product.price}    Quantity: ${product.quantity}', style: TextStyle(fontSize: 14)),
-                      trailing: IconButton(
-                        icon: Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => _deleteProduct(index),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Spacer(),
+                    Expanded(
+                      child: _buildTextField(
+                          _priceController,
+                          'Price',
+                          Icons.attach_money,
+                          TextInputType.numberWithOptions(decimal: true)),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ElevatedButton(
+                        onPressed: () {
+                          // Handle cancel action
+                          Navigator.of(context).pop();
+                        },
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red // Text color
+                            ),
+                        child: const Text('Cancel',
+                            style: TextStyle(color: Colors.white)),
                       ),
+                    SizedBox(width: 10),
+                       ElevatedButton(
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            widget.shopProducts != null
+                                ? _updateProduct()
+                                : _addProduct();
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green // Text color
+                            ),
+                        child: Text(
+                            widget.shopProducts != null ? 'Update' : '  Add  ',
+                            style: TextStyle(color: Colors.white)),
                     ),
-                  );
-                },
-              ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                addedProducts.isNotEmpty
+                    ? Text('Added Products',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold))
+                    : Text(''),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: addedProducts.length,
+                    itemBuilder: (context, index) {
+                      final product = addedProducts[index];
+                      return Card(
+                        elevation: 3,
+                        margin: EdgeInsets.symmetric(vertical: 3),
+                        child: ListTile(
+                          contentPadding: EdgeInsets.all(5),
+                          title: Text(
+                              '${index + 1}. Product: ${product.product}',
+                              style: TextStyle(
+                                  fontSize: 15, fontWeight: FontWeight.bold)),
+                          subtitle: Text(
+                              'Price: ${product.price}    Quantity: ${product.quantity}',
+                              style: TextStyle(fontSize: 14)),
+                          trailing: IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _deleteProduct(index),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
-      ),
       ),
     );
   }
 
-
-  Widget _buildTextField(TextEditingController controller, String labelText, IconData icon, TextInputType keyboardType) {
+  Widget _buildTextField(TextEditingController controller, String labelText,
+      IconData icon, TextInputType keyboardType) {
     return SizedBox(
       height: 45,
       child: TextField(

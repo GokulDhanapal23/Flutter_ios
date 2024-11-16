@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:bisca360/Screen/Measurements.dart';
@@ -5,8 +6,10 @@ import 'package:bisca360/Screen/ShopBillingHistory.dart';
 import 'package:bisca360/Screen/ShopOrder.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../ApiService/Apis.dart';
 import '../Response/SigninResponse.dart';
 import '../Service/ImageService.dart';
 import 'AddShop.dart';
@@ -19,8 +22,9 @@ import 'ShopBilling.dart';
 import 'ShopBillingReport.dart';
 import 'ShopProduct.dart';
 import 'Shops.dart';
+
 class Home extends StatefulWidget {
-  final SigninResponse signinResponse;
+  final SigninResponse? signinResponse;
 
   const Home({super.key, required this.signinResponse});
 
@@ -29,17 +33,17 @@ class Home extends StatefulWidget {
     return HomeState();
   }
 }
+
 class HomeState extends State<Home> {
   late Future<Uint8List?> imageData;
+  static final storage = FlutterSecureStorage();
 
   @override
   void initState() {
     super.initState();
-    final user = widget.signinResponse;
+    final user = widget.signinResponse!;
     final id = user.id!;
     String uId = 'U$id';
-    imageData = ImageService.fetchImage(uId, 'profile');
-    imageData = ImageService.fetchImage(uId, 'profile');
     imageData = ImageService.fetchImage(uId, 'profile');
   }
 
@@ -79,7 +83,8 @@ class HomeState extends State<Home> {
                             style: TextButton.styleFrom(
                               backgroundColor: Colors.blueGrey,
                             ),
-                            child: const Text('No', style: TextStyle(color: Colors.white)),
+                            child: const Text('No',
+                                style: TextStyle(color: Colors.white)),
                             onPressed: () {
                               Navigator.of(context).pop(); // Close the dialog
                             },
@@ -88,14 +93,18 @@ class HomeState extends State<Home> {
                             style: TextButton.styleFrom(
                               backgroundColor: Colors.green,
                             ),
-                            child: const Text('Yes', style: TextStyle(color: Colors.white)),
+                            child: const Text('Yes',
+                                style: TextStyle(color: Colors.white)),
                             onPressed: () async {
-                              SharedPreferences preferences = await SharedPreferences.getInstance();
+                              SharedPreferences preferences =
+                                  await SharedPreferences.getInstance();
                               await preferences.remove('');
+                              await storage.delete(key: 'access_token');
                               Navigator.of(context).pop();
                               Navigator.pushReplacement(
                                 context,
-                                MaterialPageRoute(builder: (context) => const MyPhone()),
+                                MaterialPageRoute(
+                                    builder: (context) => const MyPhone()),
                               );
                             },
                           ),
@@ -129,7 +138,6 @@ class HomeState extends State<Home> {
     );
   }
 
-
   Widget _buildHeader() {
     return FutureBuilder<Uint8List?>(
       future: imageData,
@@ -147,20 +155,23 @@ class HomeState extends State<Home> {
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 30),
                 title: Text(
-                  '${widget.signinResponse.userName}!',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  '${widget.signinResponse!.userName}!',
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
-                  '${widget.signinResponse.roleName}',
+                  '${widget.signinResponse!.roleName}',
                   style: TextStyle(color: Colors.white70),
                 ),
                 trailing: CircleAvatar(
                   radius: 50,
-                  backgroundImage: snapshot.connectionState == ConnectionState.waiting
-                      ? const AssetImage('assets/images/loading.png') // Placeholder while loading
+                  backgroundImage: snapshot.connectionState ==
+                          ConnectionState.waiting
+                      ? const AssetImage(
+                          'assets/images/loading.png') // Placeholder while loading
                       : (snapshot.hasData && snapshot.data != null)
-                      ? MemoryImage(snapshot.data!)
-                      :const AssetImage('assets/user_png.png'),
+                          ? MemoryImage(snapshot.data!)
+                          : const AssetImage('assets/user_png.png'),
                 ),
               ),
               const SizedBox(height: 20),
@@ -187,28 +198,44 @@ class HomeState extends State<Home> {
           crossAxisSpacing: 20,
           mainAxisSpacing: 5,
           children: [
-            itemDashboard('Shops', CupertinoIcons.shopping_cart, Colors.deepOrange, Shop()),
+            itemDashboard('Shops', CupertinoIcons.shopping_cart,
+                Colors.deepOrange, Shop()),
             // itemDashboardImg('Shops', "https://cdn.pixabay.com/photo/2013/07/13/11/31/shop-158317_640.png", Colors.grey, Shop()),
-            itemDashboard('Products', CupertinoIcons.graph_circle, Colors.green, ShopProduct()),
-            itemDashboard('Order', CupertinoIcons.repeat, Colors.green, ShopOrder()),
-            itemDashboard('Billing', CupertinoIcons.money_dollar, Colors.purple, ShopBilling()),
-            itemDashboard('Project', Icons.home_work_outlined, Colors.orange, Projects()),
+            itemDashboard('Products', CupertinoIcons.graph_circle, Colors.green,
+                ShopProduct()),
+            itemDashboard(
+                'Order', CupertinoIcons.repeat, Colors.green, ShopOrder()),
+            itemDashboard('Billing', CupertinoIcons.money_dollar, Colors.purple,
+                ShopBilling()),
+            itemDashboard(
+                'Project', Icons.home_work_outlined, Colors.orange, Projects()),
             // itemDashboard('Customers', CupertinoIcons.person, Colors.teal, Customers()),
             // itemDashboard('Bill History', CupertinoIcons.clock, Colors.brown, ShopBillingHistory()),
-            itemDashboard('History', CupertinoIcons.chart_bar, Colors.indigo, ShopBillingReport()),
-            itemDashboard('Measurements', Icons.ad_units_sharp, Colors.brown, Measurements()),
-            itemDashboard('Settings', CupertinoIcons.settings, Colors.blue, Settings()),
-            itemDashboard('Profile', CupertinoIcons.person_alt_circle, Colors.pinkAccent, ProfileScreen(signInResponse:  widget.signinResponse,)),
+            itemDashboard('History', CupertinoIcons.chart_bar, Colors.indigo,
+                ShopBillingReport()),
+            itemDashboard('Measurements', Icons.ad_units_sharp, Colors.brown,
+                Measurements()),
+            itemDashboard(
+                'Settings', CupertinoIcons.settings, Colors.blue, Settings()),
+            itemDashboard(
+                'Profile',
+                CupertinoIcons.person_alt_circle,
+                Colors.pinkAccent,
+                ProfileScreen(
+                  signInResponse: widget.signinResponse!,
+                )),
           ],
         ),
       ),
     );
   }
 
-  Widget itemDashboard(String title, IconData iconData, Color background, Widget screen) {
+  Widget itemDashboard(
+      String title, IconData iconData, Color background, Widget screen) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => screen));
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => screen));
       },
       child: Padding(
         padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
@@ -248,10 +275,13 @@ class HomeState extends State<Home> {
       ),
     );
   }
-  Widget itemDashboardImg(String title, String imageUrl, Color background, Widget screen) {
+
+  Widget itemDashboardImg(
+      String title, String imageUrl, Color background, Widget screen) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => screen));
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => screen));
       },
       child: Padding(
         padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
@@ -277,7 +307,8 @@ class HomeState extends State<Home> {
                   color: background,
                   shape: BoxShape.circle,
                 ),
-                child: ClipPath( // Ensure the image is circular
+                child: ClipPath(
+                  // Ensure the image is circular
                   child: Image.network(
                     imageUrl,
                     width: 50, // Set width of the image
@@ -298,5 +329,4 @@ class HomeState extends State<Home> {
       ),
     );
   }
-
 }

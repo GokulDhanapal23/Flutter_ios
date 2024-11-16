@@ -19,12 +19,12 @@ class SetUpMPIN extends StatefulWidget {
 }
 
 class _SetUpMPINState extends State<SetUpMPIN> {
-
   @override
   void initState() {
     getSigninResponse();
     super.initState();
   }
+
   late String _pin = '';
   late String _conformPin = '';
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -33,16 +33,16 @@ class _SetUpMPINState extends State<SetUpMPIN> {
   Future<void> setUpMPIN(var data, BuildContext context) async {
     print('data: $data');
     try {
-      final res = await Apis.getClient()
-          .post(Uri.parse(Apis.setUpMPIN),
-          body: data,
-          headers: Apis.getHeaders());
+      final res = await Apis.getClient().post(Uri.parse(Apis.setUpMPIN),
+          body: data, headers: Apis.getHeaders());
       final response = jsonDecode(res.body);
       if (response['status'] == "OK") {
-        LoginService.showBlurredSnackBar(context, response['message'] , type: SnackBarType.success);
+        LoginService.showBlurredSnackBar(context, response['message'],
+            type: SnackBarType.success);
         Navigator.of(context).pop();
       } else {
-        LoginService.showBlurredSnackBar(context, response['message'] , type: SnackBarType.error);
+        LoginService.showBlurredSnackBar(context, response['message'],
+            type: SnackBarType.error);
         print('Failed to load data');
       }
     } catch (e) {
@@ -115,7 +115,8 @@ class _SetUpMPINState extends State<SetUpMPIN> {
                   ),
                   const SizedBox(height: 40),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.grey,
                       borderRadius: BorderRadius.circular(5),
@@ -143,7 +144,6 @@ class _SetUpMPINState extends State<SetUpMPIN> {
                           });
                           debugPrint(pin);
                         },
-
                       ),
                       // IconButton(
                       //   icon: Icon(
@@ -160,7 +160,8 @@ class _SetUpMPINState extends State<SetUpMPIN> {
                   ),
                   const SizedBox(height: 20),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.grey,
                       borderRadius: BorderRadius.circular(5),
@@ -188,7 +189,6 @@ class _SetUpMPINState extends State<SetUpMPIN> {
                           });
                           debugPrint(pin);
                         },
-
                       ),
                       // IconButton(
                       //   icon: Icon(
@@ -215,7 +215,7 @@ class _SetUpMPINState extends State<SetUpMPIN> {
                         ),
                       ),
                       onPressed: () async {
-                        if (_pin.length == 4)  {
+                        if (_pin.length == 4) {
                           var dataMpin = {
                             "mpin": _pin,
                             "userId": signinResponse.id,
@@ -227,11 +227,14 @@ class _SetUpMPINState extends State<SetUpMPIN> {
                         } else {
                           // Show an error message
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: const Text('Please enter a valid 4-digit MPIN')),
+                            SnackBar(
+                                content: const Text(
+                                    'Please enter a valid 4-digit MPIN')),
                           );
                         }
                       },
-                      child: const Text("Setup MPIN", style: TextStyle(color: Colors.white)),
+                      child: const Text("Setup MPIN",
+                          style: TextStyle(color: Colors.white)),
                     ),
                   ),
                 ],
@@ -243,4 +246,3 @@ class _SetUpMPINState extends State<SetUpMPIN> {
     );
   }
 }
-

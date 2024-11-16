@@ -12,7 +12,6 @@ import 'AddShop.dart';
 
 class Shop extends StatefulWidget {
   const Shop({super.key});
-
   @override
   State<Shop> createState() => _ShopState();
 }
@@ -23,10 +22,19 @@ class _ShopState extends State<Shop> {
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
   int updateProfile = 0;
+  int REFRESH = 0;
+
+
   @override
   void initState() {
     super.initState();
     getAllShops();
+  }
+
+  void setRefresh(int refresh){
+    setState(() {
+      REFRESH = refresh;
+    });
   }
 
   void _filterShops(String query) {
@@ -187,7 +195,7 @@ class _ShopState extends State<Shop> {
                           radius: 30,
                           backgroundImage: imageData != null
                               ? MemoryImage(imageData)
-                              : const AssetImage('assets/user_png.png'),
+                              :  AssetImage('assets/shop.png'),
                         ),
                         trailing: IconButton(
                           icon: const Icon(Icons.phone, color: Colors.green),
@@ -205,25 +213,24 @@ class _ShopState extends State<Shop> {
   }
 
   Future<void> getAllShops() async {
-    try {
-      final response = await Apis.getClient().get(
+    Apis.getToken().then((_) {
+      return Apis.getClient().get(
         Uri.parse(Apis.getAllShop),
         headers: Apis.getHeaders(),
       );
-
+    }).then((response) {
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
-          shopResponses =
-              data.map((item) => Shopresponse.fromJson(item)).toList();
+          shopResponses = data.map((item) => Shopresponse.fromJson(item)).toList();
           filteredShops = shopResponses; // Initially, show all shops
         });
       } else {
-        print('Failed to load shops');
+        print('Failed to load shops: ${response.statusCode}');
       }
-    } catch (e) {
+    }).catchError((e) {
       print('Error fetching shops: $e');
-    }
+    });
   }
 
   void showSearchDialog() {

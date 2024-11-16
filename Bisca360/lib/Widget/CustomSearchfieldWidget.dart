@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:searchfield/searchfield.dart';
 
+import '../Util/Validator.dart';
+
 class CustomSearchField extends StatelessWidget {
   final TextEditingController textEditingController;
   final String hintText;
@@ -18,12 +20,12 @@ class CustomSearchField extends StatelessWidget {
     required this.textEditingController,
     required this.hintText,
     required this.prefixIcon,
-    this.enabled = true,
+    required this.enabled,
     required this.suggestions,
     this.initialValue,
     required this.onSelect,
     this.height = 45.0, // Default height
-    this.validate = false,
+    required this.validate,
     this.setInitialValue = false,
     this.allowManualInput = true,
     Key? key,
@@ -51,6 +53,7 @@ class CustomSearchField extends StatelessWidget {
       prefixIcon: Icon(icon, color: Colors.green),
       suggestions: suggestions,
       initialValue: suggestions.isNotEmpty &&  setInitialValue ? suggestions.first : null,
+      enabled: enabled,
       onSelect: onSelect,
       validate: validation,
       setInitialValue: setInitialValue,
@@ -65,10 +68,13 @@ class CustomSearchField extends StatelessWidget {
       height: height, // Set the height of the container
       child: SearchField<String>(
         validator: (value) {
-          if (validate && (value == null || value.isEmpty)) {
-            return 'Please enter $hintText';
+          if (validate) {
+            if (value == null || value.isEmpty) {
+              print('Please enter $hintText');
+              return 'Please enter $hintText';
+            }
           }
-          return null; // No validation error
+          return null;
         },
         controller: textEditingController,
         inputType: allowManualInput ? TextInputType.text : TextInputType.none,
@@ -117,6 +123,9 @@ class CustomSearchField extends StatelessWidget {
           focusedErrorBorder: OutlineInputBorder(
             borderSide: const BorderSide(color: Colors.redAccent, width: 1.0),
             borderRadius: borderRadius,
+          ),
+          border: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.red),
           ),
           floatingLabelAlignment: FloatingLabelAlignment.start,
           labelStyle: TextStyle(color: Colors.black),

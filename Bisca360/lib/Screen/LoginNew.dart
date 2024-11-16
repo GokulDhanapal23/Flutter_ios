@@ -19,11 +19,12 @@ class MyPhone extends StatefulWidget {
 }
 
 class _MyPhoneState extends State<MyPhone> {
-  final TextEditingController countryController = TextEditingController(text: "+91");
-  final TextEditingController loginMobileNumberController = TextEditingController();
+  final TextEditingController countryController =
+      TextEditingController(text: "+91");
+  final TextEditingController loginMobileNumberController =
+      TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-
 
   Future<void> checkAccessPermission(BuildContext context) async {
     // Define the permissions you want to request
@@ -42,24 +43,31 @@ class _MyPhoneState extends State<MyPhone> {
     bool allGranted = statuses.values.every((status) => status.isGranted);
 
     if (allGranted) {
-      Fluttertoast.showToast(msg: "All permissions are granted", toastLength: Toast.LENGTH_SHORT);
+      Fluttertoast.showToast(
+          msg: "All permissions are granted", toastLength: Toast.LENGTH_SHORT);
       // You can navigate to the next screen or perform any action here
     } else {
       // Show a warning if not all permissions are granted
-      Fluttertoast.showToast(msg: "Please provide all permissions", toastLength: Toast.LENGTH_SHORT);
+      Fluttertoast.showToast(
+          msg: "Please provide all permissions",
+          toastLength: Toast.LENGTH_SHORT);
     }
   }
+
   Future<void> checkInternetPermission(BuildContext context) async {
     var connectivityResult = await (Connectivity().checkConnectivity());
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
-      Fluttertoast.showToast(msg: "Internet Success", toastLength: Toast.LENGTH_SHORT);
+      // Fluttertoast.showToast(
+      //     msg: "Internet Success", toastLength: Toast.LENGTH_SHORT);
     } else {
-      Fluttertoast.showToast(msg: "Failed internet", toastLength: Toast.LENGTH_SHORT);
+      // Fluttertoast.showToast(
+      //     msg: "Failed internet", toastLength: Toast.LENGTH_SHORT);
     }
   }
+
   @override
-  void initState(){
+  void initState() {
     super.initState();
     // checkAccessPermission(context);
     checkInternetPermission(context);
@@ -104,7 +112,8 @@ class _MyPhoneState extends State<MyPhone> {
                     child: TextFormField(
                       controller: loginMobileNumberController,
                       validator: (value) {
-                        return Validator.validate('mobile', value!, TextInputType.text);
+                        return Validator.validate(
+                            'mobile', value!, TextInputType.text);
                       },
                       maxLength: 10,
                       keyboardType: TextInputType.phone,
@@ -129,7 +138,7 @@ class _MyPhoneState extends State<MyPhone> {
                   ),
                   const SizedBox(height: 20),
                   SizedBox(
-                    width: double.infinity,
+                    width: 370,
                     height: 45,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
@@ -146,13 +155,15 @@ class _MyPhoneState extends State<MyPhone> {
                           var signInData = {
                             "mobileNumber": loginMobileNumberController.text,
                           };
-                          await LoginService.signIn(jsonEncode(signInData), context);
+                          await LoginService.signIn(
+                              jsonEncode(signInData), context);
                           setState(() {
                             _isLoading = false; // Hide loader
                           });
                         }
                       },
-                      child: const Text("Continue", style: TextStyle(color: Colors.white)),
+                      child: const Text("Continue",
+                          style: TextStyle(color: Colors.white)),
                     ),
                   )
                 ],

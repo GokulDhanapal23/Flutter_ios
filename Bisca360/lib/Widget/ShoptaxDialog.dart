@@ -52,59 +52,75 @@ class _TaxDialogState extends State<TaxDialog> {
   }
 
   void showTaxDialog(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final double heightFactor = screenSize.height * 0.01; // Base for dynamic sizing
+    final double widthFactor = screenSize.width * 0.01;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Select Shop Tax'),
+          title: Text(
+            'Select Shop Tax',
+            style: TextStyle(fontSize: 20 * heightFactor), // Responsive font size
+          ),
           content: StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
               return SingleChildScrollView(
-                child: Column(
-                  children: List.generate(widget.taxTypeResponseList.length, (index) {
-                    String taxType = widget.taxTypeResponseList[index];
-                    TextEditingController editTextController = TextEditingController(
-                      text: _checkedItems[index] ? _loadedTaxItems.firstWhere((item) => item.taxType == taxType).taxPercentage.toString() : '',
-                    );
+                child: Container(
+                  width: screenSize.width * 0.8, // Responsive width
+                  child: Column(
+                    children: List.generate(widget.taxTypeResponseList.length, (index) {
+                      String taxType = widget.taxTypeResponseList[index];
+                      TextEditingController editTextController = TextEditingController(
+                        text: _checkedItems[index]
+                            ? _loadedTaxItems.firstWhere((item) => item.taxType == taxType).taxPercentage.toString()
+                            : '',
+                      );
 
-                    return Column(
-                      children: [
-                        CheckboxListTile(
-                          title: Text(taxType),
-                          value: _checkedItems[index],
-                          onChanged: (bool? value) {
-                            setState(() {
-                              _checkedItems[index] = value ?? false;
-                              if (!_checkedItems[index]) {
-                                _loadedTaxItems.removeWhere((item) => item.taxType == taxType);
-                              } else {
-                                _loadedTaxItems.add(TaxItem(taxType, double.tryParse(editTextController.text) ?? 0));
-                              }
-                            });
-                          },
-                        ),
-                        Visibility(
-                          visible: _checkedItems[index],
-                          child: TextField(
-                            controller: editTextController,
-                            decoration: InputDecoration(
-                              hintText: 'Value for $taxType',
+                      return Column(
+                        children: [
+                          CheckboxListTile(
+                            title: Text(
+                              taxType,
+                              style: TextStyle(fontSize: 16 * heightFactor), // Responsive font size
                             ),
-                            keyboardType: TextInputType.number,
-                            onChanged: (text) {
+                            value: _checkedItems[index],
+                            onChanged: (bool? value) {
                               setState(() {
-                                double taxValue = double.tryParse(text) ?? 0;
-                                if (_loadedTaxItems.any((item) => item.taxType == taxType)) {
-                                  _loadedTaxItems.firstWhere((item) => item.taxType == taxType).taxPercentage = taxValue;
+                                _checkedItems[index] = value ?? false;
+                                if (!_checkedItems[index]) {
+                                  _loadedTaxItems.removeWhere((item) => item.taxType == taxType);
+                                } else {
+                                  _loadedTaxItems.add(TaxItem(taxType, double.tryParse(editTextController.text) ?? 0));
                                 }
                               });
                             },
                           ),
-                        ),
-                        SizedBox(height: 8.0),
-                      ],
-                    );
-                  }),
+                          Visibility(
+                            visible: _checkedItems[index],
+                            child: TextField(
+                              controller: editTextController,
+                              decoration: InputDecoration(
+                                hintText: 'Value for $taxType',
+                              ),
+                              keyboardType: TextInputType.number,
+                              style: TextStyle(fontSize: 16 * heightFactor), // Responsive font size
+                              onChanged: (text) {
+                                setState(() {
+                                  double taxValue = double.tryParse(text) ?? 0;
+                                  if (_loadedTaxItems.any((item) => item.taxType == taxType)) {
+                                    _loadedTaxItems.firstWhere((item) => item.taxType == taxType).taxPercentage = taxValue;
+                                  }
+                                });
+                              },
+                            ),
+                          ),
+                          SizedBox(height: 8 * heightFactor), // Responsive height
+                        ],
+                      );
+                    }),
+                  ),
                 ),
               );
             },
@@ -122,13 +138,19 @@ class _TaxDialogState extends State<TaxDialog> {
                 widget.taxController.text = jsonEncode(_taxJson);
                 Navigator.of(context).pop();
               },
-              child: Text('Add'),
+              child: Text(
+                'Add',
+                style: TextStyle(fontSize: 18 * heightFactor), // Responsive font size
+              ),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Cancel'),
+              child: Text(
+                'Cancel',
+                style: TextStyle(fontSize: 18 * heightFactor), // Responsive font size
+              ),
             ),
           ],
         );
@@ -140,7 +162,11 @@ class _TaxDialogState extends State<TaxDialog> {
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: () => showTaxDialog(context),
-      child: Text('Select Tax'),
+      child: Text(
+        'Select Tax',
+        style: TextStyle(fontSize: 18 * MediaQuery.of(context).size.height * 0.01), // Responsive font size
+      ),
     );
   }
+
 }

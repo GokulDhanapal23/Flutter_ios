@@ -4,9 +4,12 @@ import 'dart:io';
 
 import 'package:another_flushbar/flushbar.dart';
 import 'package:another_flushbar/flushbar_helper.dart';
+import 'package:bisca360/Request/SigninRequest.dart';
+import 'package:bisca360/Response/RefreshResponse.dart';
 import 'package:bisca360/Response/SigninResponse.dart';
 import 'package:bisca360/Screen/UserAccounts.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:open_file/open_file.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hive/hive.dart';
@@ -19,70 +22,75 @@ import '../Screen/Home.dart';
 import '../Screen/Login.dart';
 import 'NavigationHelper.dart';
 
-class LoginService{
+class LoginService {
   // static late CheckMobileNumberResponse saveDateRes;
   static late SigninResponse signinResponse;
 
- static final List<Flushbar> flushBars = [];
+  static final List<Flushbar> flushBars = [];
+  static final storage = FlutterSecureStorage();
 
   static Future<void> signIn(var data, BuildContext context) async {
     try {
-      final res = await Apis.getClient()
-          .post(Uri.parse(Apis.checkMobileNumber),
-          body: data,
-          headers: {"Content-Type": "application/json"});
+      final res = await Apis.getClient().post(Uri.parse(Apis.checkMobileNumber),
+          body: data, headers: {"Content-Type": "application/json"});
       final response = jsonDecode(res.body);
       print('Data: ${response}');
       if (response['status'] == "OK") {
-          saveDateRes = CheckMobileNumberResponse.fromJson(response);
-          NavigationHelper.navigateWithFadeSlide(
-            context,
-            UserAccounts(saveDateRes),
-          );
-          print('Data: ${saveDateRes.toString()}');
-        } else {
-        showBlurredSnackBar(context, response['message'] , type: SnackBarType.error);
-          print('Data: ${res.statusCode}');
-          // showBlurredSnackBar(context);
-        }
+        saveDateRes = CheckMobileNumberResponse.fromJson(response);
+        NavigationHelper.navigateWithFadeSlide(
+          context,
+          UserAccounts(saveDateRes),
+        );
+        print('Data: ${saveDateRes.toString()}');
+      } else {
+        showBlurredSnackBar(context, response['message'],
+            type: SnackBarType.error);
+        print('Data: ${res.statusCode}');
+        // showBlurredSnackBar(context);
+      }
     } catch (e) {
       print('Error: $e');
-      showBlurredSnackBar(context, e.toString() , type: SnackBarType.error);
+      showBlurredSnackBar(context, e.toString(), type: SnackBarType.error);
       // showBlurredSnackBar(context);
     }
   }
+
   static Future<void> signInWithMobile(var data, BuildContext context) async {
     try {
-      final res = await Apis.getClient()
-          .post(Uri.parse(Apis.signInWithMobile),
-          body: data,
-          headers: {"Content-Type": "application/json"});
+      final res = await Apis.getClient().post(Uri.parse(Apis.signInWithMobile),
+          body: data, headers: {"Content-Type": "application/json"});
       final response = jsonDecode(res.body);
       print('Data: ${response}');
       if (response['status'] == "OK") {
-        showBlurredSnackBar(context, response['message'] , type: SnackBarType.success);
+        showBlurredSnackBar(context, response['message'],
+            type: SnackBarType.success);
         final signinResponse = SigninResponse.fromJson(response);
-        storeLoginSession(signinResponse);
         storeSigninResponse(signinResponse);
+        storeLoginSession(signinResponse);
+        await storage.write(
+            key: 'access_token', value: signinResponse.accessToken);
+        print('Access Token : ${signinResponse.accessToken}');
         NavigationHelper.navigateWithFadeSlide(
           context,
           Home(signinResponse: signinResponse),
         );
       } else {
-        showBlurredSnackBar(context, response['message'] , type: SnackBarType.error);
-          print('Data: ${res.statusCode}');
-        }
+        showBlurredSnackBar(context, response['message'],
+            type: SnackBarType.error);
+        print('Data: ${res.statusCode}');
+      }
     } catch (e) {
       print('Error: $e');
-      showBlurredSnackBar(context, e.toString() , type: SnackBarType.error);
+      showBlurredSnackBar(context, e.toString(), type: SnackBarType.error);
     }
   }
 
- static Future<void> storeSigninResponse(SigninResponse response) async {
+  static Future<void> storeSigninResponse(SigninResponse response) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('signin_response', jsonEncode(response.toJson()));
     print('login session UserLogin: ${prefs.get('signin_response')}');
   }
+
   static Future<SigninResponse?> getSigninResponse() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     String? jsonString = prefs.getString('signin_response');
@@ -91,14 +99,16 @@ class LoginService{
     }
     return null; // Or handle as needed
   }
- static storeLoginSession(SigninResponse signIn) async {
+
+  static storeLoginSession(SigninResponse signIn) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('signIn', jsonEncode(signIn));
     var box = await Hive.openBox('login_box');
     box.put('signIn', json.encode(jsonEncode(signIn)));
     print('login session UserLogin: ${box.get('signIn')}');
   }
- static getStoredAccessToken() async {
+
+  static getStoredAccessToken() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     String? userJson = prefs.getString('signIn');
     if (userJson != null) {
@@ -108,46 +118,98 @@ class LoginService{
     return null;
   }
 
-  static Future<void> loginWithMPIN(var data, BuildContext context) async {
+  static Future<void> loginWithMPIN(
+      SigninRequest signInRequest, BuildContext context) async {
+    var data = jsonEncode(signInRequest.toJson());
     print('data: $data');
-
     try {
-      final res = await Apis.getClient()
-          .post(Uri.parse(Apis.login),
-          body: data,
-          headers: {"Content-Type": "application/json"});
+      final res = await Apis.getClient().post(Uri.parse(Apis.login),
+          body: data, headers: {"Content-Type": "application/json"});
       final response = jsonDecode(res.body);
       if (response['status'] == "OK") {
-        showBlurredSnackBar(context, response['message'] , type: SnackBarType.success);
+
         final signinResponse = SigninResponse.fromJson(response);
-        storeLoginSession(signinResponse);
         storeSigninResponse(signinResponse);
+        storeLoginSession(signinResponse);
+        await storage.write(
+            key: 'access_token', value: signinResponse.accessToken);
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_data', jsonEncode(signInRequest.toJson()));
         NavigationHelper.navigateWithFadeSlide(
           context,
           Home(signinResponse: signinResponse),
         );
+        showBlurredSnackBar(context, response['message'],
+            type: SnackBarType.success);
       } else {
-        showBlurredSnackBar(context, response['message'] , type: SnackBarType.error);
+        showBlurredSnackBar(context, response['message'],
+            type: SnackBarType.error);
         print('Failed to load data');
       }
     } catch (e) {
       print('Error: $e');
+    }
+  }
+
+    static Future<void> refreshLoginWithMPIN(SigninRequest signInRequest) async {
+      var data = jsonEncode(signInRequest.toJson());
+      try {
+        final res = await Apis.getClient().post(Uri.parse(Apis.login),
+            body: data, headers: {"Content-Type": "application/json"});
+        final response = jsonDecode(res.body);
+        if (response['status'] == "OK") {
+          final signinResponse = SigninResponse.fromJson(response);
+          storeSigninResponse(signinResponse);
+          storeLoginSession(signinResponse);
+          await storage.write(
+              key: 'access_token', value: signinResponse.accessToken);
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString('user_data', jsonEncode(signInRequest.toJson()));
+        } else {
+          print('Failed to load data');
+        }
+      } catch (e) {
+        print('Error: $e');
+      }
+    }
+
+  static Future<void> refreshToken() async {
+    try {
+      final url = Uri.parse(Apis.refreshToken);
+
+      // Await the headers
+      final headers = await Apis.getHeaders();
+
+      final res = await Apis.getClient().get(url, headers: headers);
+      final response = jsonDecode(res.body);
+
+      if (response['status'] == "OK") {
+        await storage.delete(key: 'access_token');
+        final refreshResponse = RefreshResponse.fromJson(response);
+        await storage.write(
+            key: 'access_token', value: refreshResponse.accessToken);
+        print('Refresh Response: $refreshResponse');
+      } else {
+        print('Failed to load Refresh Response');
+      }
+    } catch (e) {
+      print('Error fetching Refresh Response: $e');
     }
   }
 
   static Future<void> setUpMPIN(var data, BuildContext context) async {
     print('data: $data');
     try {
-      final res = await Apis.getClient()
-          .post(Uri.parse(Apis.setUpMPIN),
-          body: data,
-          headers: Apis.getHeaders());
+      final res = await Apis.getClient().post(Uri.parse(Apis.setUpMPIN),
+          body: data, headers: Apis.getHeaders());
       final response = jsonDecode(res.body);
       if (response['status'] == "OK") {
-        showBlurredSnackBar(context, response['message'] , type: SnackBarType.success);
+        showBlurredSnackBar(context, response['message'],
+            type: SnackBarType.success);
         Navigator.pop(context);
       } else {
-        showBlurredSnackBar(context, response['message'] , type: SnackBarType.error);
+        showBlurredSnackBar(context, response['message'],
+            type: SnackBarType.error);
         print('Failed to load data');
       }
     } catch (e) {
@@ -155,11 +217,10 @@ class LoginService{
     }
   }
 
-
-  static Future<File?> imageLoad(var doctype,var id) async {
+  static Future<File?> imageLoad(var doctype, var id) async {
     final response = await Apis.getClient().get(
-        Uri.parse(Apis.imageLoad),
-        headers: Apis.getHeaderNoToken(),
+      Uri.parse(Apis.imageLoad),
+      headers: Apis.getHeaderNoToken(),
     );
     return null;
   }
@@ -168,51 +229,80 @@ class LoginService{
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? jsonString = prefs.getString('signinResponse');
     if (jsonString != null) {
-        signinResponse = SigninResponse.fromJson(jsonDecode(jsonString));
-        print(' SigninResponse: $signinResponse');
+      signinResponse = SigninResponse.fromJson(jsonDecode(jsonString));
+      print(' SigninResponse: $signinResponse');
     } else {
       print('No SigninResponse found in Shared Preferences');
     }
   }
 
-  static void showBlurredSnackBar(BuildContext context, String message, {required SnackBarType type}) {
-    // Define colors and icons for different types of messages
+  static void showBlurredSnackBar(BuildContext context, String message,
+      {required SnackBarType type}) {
+    // Define colors, icons, and titles for different types of messages
     Color backgroundColor;
+    Color borderColor;
     Icon icon;
+    String title;
 
     switch (type) {
       case SnackBarType.success:
-        backgroundColor = Colors.teal;
-        icon = Icon(Icons.check_circle, size: 32, color: Colors.white);
+        backgroundColor = Colors.white;
+        borderColor = Colors.teal;
+        icon = Icon(Icons.check_circle, size: 32, color: Colors.teal);
+        title = "Success";
         break;
       case SnackBarType.error:
-        backgroundColor = Colors.orange;
-        icon = Icon(Icons.error, size: 32, color: Colors.white);
+        backgroundColor = Colors.white;
+        borderColor = Colors.red;
+        icon = Icon(Icons.error, size: 32, color: Colors.red);
+        title = "Error";
         break;
       case SnackBarType.warning:
-        backgroundColor = Colors.yellow;
-        icon = Icon(Icons.warning, size: 32, color: Colors.black);
+        backgroundColor = Colors.white;
+        borderColor = Colors.orange;
+        icon = Icon(Icons.warning, size: 32, color: Colors.orange);
+        title = "Warning";
         break;
       default:
         backgroundColor = Colors.black.withOpacity(0.5);
+        borderColor = Colors.white;
         icon = Icon(Icons.info, size: 32, color: Colors.white);
+        title = "Info";
     }
 
-    show(context, Flushbar(
-      icon: icon,
-      shouldIconPulse: false,
-      message: message,
-      onTap: (_) {
-        print('Clicked bar');
-      },
-      padding: EdgeInsets.all(24),
-      flushbarPosition: FlushbarPosition.TOP,
-      margin: EdgeInsets.fromLTRB(8, kToolbarHeight + 8, 8, 0),
-      duration: Duration(seconds: 2), // Increased duration for visibility
-      barBlur: 20,
-      borderRadius: BorderRadius.circular(20.0),
-      backgroundColor: backgroundColor,
-    ));
+    show(
+        context,
+        Flushbar(
+          icon: icon,
+          shouldIconPulse: false,
+          title: title, // Add the title here
+          message: message,
+          titleColor: Colors.black,
+          messageColor: Colors.black,
+          padding: EdgeInsets.all(24),
+          flushbarPosition: FlushbarPosition.TOP,
+          margin: EdgeInsets.fromLTRB(8, kToolbarHeight + 8, 8, 0),
+          duration: Duration(seconds: 3), // Increased duration for visibility
+          barBlur: 20,
+          borderRadius: BorderRadius.circular(20.0),
+          backgroundColor: backgroundColor,
+          borderColor: borderColor,
+          boxShadows: [
+            BoxShadow(
+              color: borderColor.withOpacity(0.2),
+              blurRadius: 10.0,
+              spreadRadius: 2.0,
+              offset: Offset(0, 4), // changes position of shadow
+            ),
+            BoxShadow(
+              color: borderColor.withOpacity(0.1),
+              blurRadius: 20.0,
+              spreadRadius: 0.0,
+              offset: Offset(0, 8), // changes position of shadow
+            ),
+          ],
+          // border: Border.all(color: borderColor, width: 2), // Add border color
+        ));
   }
 
   static Future<void> show(BuildContext context, Flushbar newFlushBar) async {
@@ -222,44 +312,72 @@ class LoginService{
     newFlushBar.show(context);
     flushBars.add(newFlushBar);
   }
-  static void showBlurredSnackBarFile(BuildContext context, String message, String filePath, {required SnackBarType type}) {
+
+  static void showBlurredSnackBarFile(
+      BuildContext context, String message, String filePath,
+      {required SnackBarType type}) {
     // Define colors and icons for different types of messages
     Color backgroundColor;
+    Color borderColor;
     Icon icon;
+    String title;
 
     switch (type) {
       case SnackBarType.success:
-        backgroundColor = Colors.teal;
-        icon = Icon(Icons.check_circle, size: 32, color: Colors.white);
+        backgroundColor = Colors.white;
+        borderColor = Colors.teal;
+        icon = Icon(Icons.check_circle, size: 32, color: Colors.teal);
+        title = "Success";
         break;
       case SnackBarType.error:
-        backgroundColor = Colors.orange;
-        icon = Icon(Icons.error, size: 32, color: Colors.white);
+        backgroundColor = Colors.white;
+        borderColor = Colors.red;
+        icon = Icon(Icons.error, size: 32, color: Colors.red);
+        title = "Error";
         break;
       case SnackBarType.warning:
-        backgroundColor = Colors.yellow;
-        icon = Icon(Icons.warning, size: 32, color: Colors.black);
+        backgroundColor = Colors.white;
+        borderColor = Colors.orange;
+        icon = Icon(Icons.warning, size: 32, color: Colors.orange);
+        title = "Warning";
         break;
       default:
         backgroundColor = Colors.black.withOpacity(0.5);
+        borderColor = Colors.white;
         icon = Icon(Icons.info, size: 32, color: Colors.white);
+        title = "Info";
     }
 
     Flushbar? flushbar;
     flushbar = Flushbar(
       icon: icon,
       shouldIconPulse: false,
+      title: title, // Add the title here
       message: message,
-      onTap: (_) {
-        print('Clicked bar');
-      },
+      titleColor: Colors.black,
+      messageColor: Colors.black,
       padding: EdgeInsets.all(24),
       flushbarPosition: FlushbarPosition.TOP,
       margin: EdgeInsets.fromLTRB(8, kToolbarHeight + 8, 8, 0),
-      duration: Duration(seconds: 4),
+      duration: Duration(seconds: 3), // Increased duration for visibility
       barBlur: 20,
       borderRadius: BorderRadius.circular(20.0),
       backgroundColor: backgroundColor,
+      borderColor: borderColor,
+      boxShadows: [
+        BoxShadow(
+          color: borderColor.withOpacity(0.2),
+          blurRadius: 10.0,
+          spreadRadius: 2.0,
+          offset: Offset(0, 4), // changes position of shadow
+        ),
+        BoxShadow(
+          color: borderColor.withOpacity(0.1),
+          blurRadius: 20.0,
+          spreadRadius: 0.0,
+          offset: Offset(0, 8), // changes position of shadow
+        ),
+      ],
       mainButton: Row(
         children: [
           TextButton(
@@ -268,7 +386,7 @@ class LoginService{
             },
             child: Text(
               'VIEW',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: borderColor),
             ),
           ),
           SizedBox(width: 8),
@@ -279,23 +397,25 @@ class LoginService{
             },
             child: Text(
               'CLEAR',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: borderColor),
             ),
           ),
         ],
       ),
     )..show(context);
-
-
   }
+
   static final Map<String, String> types = {
     '.pdf': 'application/pdf',
     '.doc': 'application/msword',
-    '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    '.docx':
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     '.xls': 'application/vnd.ms-excel',
-    '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    '.xlsx':
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     '.ppt': 'application/vnd.ms-powerpoint',
-    '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    '.pptx':
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     '.txt': 'text/plain',
     '.jpg': 'image/jpeg',
     '.jpeg': 'image/jpeg',
@@ -320,6 +440,6 @@ class LoginService{
       ));
     }
   }
-
 }
+
 enum SnackBarType { success, error, warning }
